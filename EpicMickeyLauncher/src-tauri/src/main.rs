@@ -85,7 +85,7 @@ async fn change_mod_status(json: String, dumploc: String)
     }
     else{
 
-        //this is identical to delete_mod so combining both into a function would be a good pratice
+        //this is identical to delete_mod so combining both into a function would be a good practice
 
         for file in files {
             let mut source_path = PathBuf::new();
