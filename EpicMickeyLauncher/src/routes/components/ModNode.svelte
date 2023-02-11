@@ -2,6 +2,7 @@
 
 <style>
     .modNodeDiv{
+        z-index: -1;
         border: 2px solid white;
         border-radius: 20px;
         padding: 10px 10px;
@@ -12,13 +13,13 @@
     }
     
     .modNodeImg{
+        z-index: -1;
       width: 120px;
       height: 120px;
       bottom: 133px;
       right: 10px;
       float:right;
       border-radius: 10px;
-      z-index: -1;
       position: relative;
     }
 </style>
@@ -32,6 +33,7 @@
     export let iconLink = "";
     export let downloadLink = "";
     export let author ="";
+    export let gamedata;
 
     let downloadButton;
 
@@ -43,11 +45,8 @@
             description = newDesc;
         }
 
-        let jsonData = await ReadJSON("games.json");
 
-        let modsData = JSON.parse(await ReadFile(jsonData[0].path + "/EMLMods.json"));
-
-        console.log(modsData)
+        let modsData = JSON.parse(await ReadFile(gamedata.path + "/EMLMods.json"));
 
         if(modsData.find(r => r.name == modName))
         {
@@ -62,7 +61,6 @@
     }
 
     async function Download() {
-        let jsonData = await ReadJSON("games.json");
 
         let modInstallElement = new ModInstall({
             target: document.body
@@ -70,13 +68,12 @@
         modInstallElement.modIcon = iconLink;
         modInstallElement.modName = modName;
 
-        invoke("download_mod", {url: downloadLink, name: modName, dumploc:jsonData[0].path}).then(async (json) => {
-           console.log("hey bitch")
+        invoke("download_mod", {url: downloadLink, name: modName, dumploc:gamedata.path}).then(async (json) => {
 
            let changedFiles = JSON.parse(json);
-               let currentMods = JSON.parse(await ReadFile(jsonData[0].path + "/EMLMods.json"))
+               let currentMods = JSON.parse(await ReadFile(gamedata.path + "/EMLMods.json"))
                currentMods.push(changedFiles)
-               await WriteFile(JSON.stringify(currentMods),  jsonData[0].path + "/EMLMods.json")
+               await WriteFile(JSON.stringify(currentMods),  gamedata.path + "/EMLMods.json")
 
                Init()
                modInstallElement.$destroy()

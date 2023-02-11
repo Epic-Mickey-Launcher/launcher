@@ -28,8 +28,6 @@
     }
 
     function OpenDirectory(){
-        console.log(data.path)
-
         let p = data.path.replace("/", "\\")
 
         invoke("playgame", {dolphin:"explorer", exe:p})
@@ -79,6 +77,8 @@
 
         cmdline = await ReadFile(data.path + "/files/cmdline.txt")
 
+        unsavedCmdline = cmdline;
+
 
         for (let index = 0; index < cmdline.length; index++) {
          if(cmdline.at(index) === '-')
@@ -89,7 +89,6 @@
         }
         selectedLevel = cmdline.substring(0, levelEndIndex)
 
-        console.log(cmdline)
     });
 
     function SetLevel(lvl)
@@ -120,7 +119,7 @@
 
     async function ExitLevelLoader(type)
     {
-        cmdline = unsavedCmdline;
+            cmdline = unsavedCmdline;
 
         await WriteFile(cmdline, data.path + "/files/cmdline.txt")
 
@@ -130,13 +129,12 @@
             levelLoader.style.display = "none";
         }
         else{
-            window.open("#/", "_self")
+            await window.open("#/", "_self")
         }
     }
 
     function Search(e)
     {
-       console.log(input)
         if(input != "")
         {
             buttons.forEach(b => {
@@ -162,7 +160,7 @@
 
 <main>
     <div bind:this={mainSettings}>
-        <h1>Epic Mickey Settings</h1>
+        <plaintext>Epic Mickey Settings</plaintext> 
         <hr />
         <p />
         <button on:click={OpenLevelLoader}>Change Level</button>

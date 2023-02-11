@@ -9,7 +9,6 @@
         });
 
         if (selectedPath.includes("Dolphin.exe")) {
-            console.log("worldS")
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = selectedPath;
             await WriteToJSON(JSON.stringify(dat), "conf.json")

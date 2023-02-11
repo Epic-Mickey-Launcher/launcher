@@ -29,7 +29,6 @@
   onMount(async () => {
 
     const appLocalDataDirPath = await appLocalDataDir();
-    console.log(appLocalDataDirPath)
 
     let jsonExists = await exists(appLocalDataDirPath + "games.json");
 
@@ -43,7 +42,7 @@
     let jsonData = JSON.parse(t)
 
     jsonData.forEach( dat => {
-     CreateNode("EM1", dat.path)
+     CreateNode(dat.game, dat.path)
     })
   })
 
@@ -58,8 +57,16 @@
 
       element.filepath = directory;
       element.game = game;
-      element.imgLogoURL = "/img/emlogo.png"
+
+      if(game == "EM1")
+      {
+        element.imgLogoURL = "/img/emlogo.png"
       element.imgBackgroundURL = "/img/EM1banner.png"
+      }
+      else{
+        element.imgLogoURL = "/img/em2logo.png"
+      element.imgBackgroundURL = "/img/EM2banner.png"
+      }
   }
 
 
