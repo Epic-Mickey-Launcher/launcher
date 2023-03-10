@@ -19,7 +19,7 @@
 
  <style>
     .installing{
-       position: fixed;
+    
        width: 100%;
        height: 100%;
        top:0;
@@ -28,9 +28,9 @@
        right:0;
        background-color: rgba(0, 0, 0, 0.3);
         border-radius: 5px;
-     -webkit-backdrop-filter: blur(10px);
+     -webkit-backdrop-filter: blur(10px);   position: fixed;
      backdrop-filter: blur(10px);
-   
+   z-index: 500;
      align-items: center;
      align-self: center;
      text-align: center;

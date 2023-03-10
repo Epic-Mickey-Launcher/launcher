@@ -8,7 +8,8 @@
         <button on:click={OpenGame} class="gameplaybutton">Play</button>
         <button on:click={OpenLevelLoader}  class="gamesettings">...</button>
         <plaintext class ="error">{errorMSG}</plaintext>
-       </div>
+        <plaintext class="nameofbuild">sds</plaintext>
+    </div>
 </main>
 
 
@@ -36,6 +37,15 @@
 
 
 <style>
+    .nameofbuild{
+        pointer-events: none;
+        position: relative;
+        opacity: 0;
+        transition-duration: 0.3s;
+        bottom: 125px;
+        left: 20px;
+    }
+
  .gamenode {
   margin-right: auto;
   margin-left: auto;
@@ -87,11 +97,11 @@
   left: 20px;
   bottom:70px;
   filter: drop-shadow(1px 3px 5px rgba(0, 0, 0, 0.877));
-  transition-duration: 0.7s;
+  transition-duration: 0.3s;
  }
 
  .gamelogo:hover{
-    transform: scale(1.1)
+    opacity: 0;
  }
 
  .gamebuttonimage {

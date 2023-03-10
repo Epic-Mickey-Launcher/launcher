@@ -15,6 +15,13 @@ export async function ReadJSON(file)
   return JSON.parse(content);
 }
 
+export async function ReadJSONSync(file)
+{
+  let path = await appLocalDataDir()
+  let content = await readTextFile(path + file)
+  return JSON.parse(content);
+}
+
 export async function WriteFile(content, file)
 {
   await writeTextFile({path: file, contents: content})
@@ -23,6 +30,9 @@ export async function ReadFile(file)
 {
   let content = await readTextFile(file)
   return content;
+}
+export async function FileExists(path){
+  return await exists(path)
 }
 
 export async function InitConfFiles()

@@ -36,10 +36,15 @@
         modInstallElement.description = "This might take a while...";
 
         invoke("delete_mod", {json:json,dumploc:dumploc}).then(async () => {
+            
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring)
-            data.splice(index, 1);
+
+            let delete_index = data.indexOf(JSON.parse(json))
+
+            data.splice(delete_index, 1);
             await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json")
+
             modInstallElement.$destroy()
             node.remove()
         })
@@ -59,7 +64,6 @@
         modInstallElement.description = "This might take a while...";
 
         let jsonString  = JSON.stringify(jsonToObject)
-        console.log(jsonToObject)
         invoke("change_mod_status", {json:jsonString,dumploc:dumploc}).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring)

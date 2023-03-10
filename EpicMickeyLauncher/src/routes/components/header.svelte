@@ -12,7 +12,7 @@
 
 <main>
     <div class="header">
-        <img src="/img/emlLogo.png" alt="" style="display: block; margin-left: auto; margin-right: 10px;">
+        <img src="/img/emlLogo.png" alt="" style="display: block; margin-left: auto; margin-right: 10px;z-index:1;">
         <button on:click={() => OpenPage("modmarket")} class="headerButton">Mod Market</button>
         <button on:click={() => OpenPage("games")} class="headerButton">Games</button>
         <button on:click={() => OpenPage("settings")} class="headerButton">Settings</button>
@@ -30,6 +30,7 @@
     width: 100%;
 }
 .headerButton{
+    z-index: 1;
     width: 50%;
     border: 1px solid;
     border-color: rgb(138, 138, 138);
