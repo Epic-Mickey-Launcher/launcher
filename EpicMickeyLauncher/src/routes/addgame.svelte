@@ -47,7 +47,9 @@ gametype = "EM2"
 
     await WriteToJSON(JSON.stringify(jsonData), "games.json");
 
-    if(FileExists(path + "/DATA/EMLMods.json"))
+    let fileExists = await exists(path + "/DATA/EMLMods.json")
+
+    if(!fileExists)
     {
       await WriteFile("[]", path + "/DATA/EMLMods.json")
     }

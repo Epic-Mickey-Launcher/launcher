@@ -68,7 +68,16 @@
         modInstallElement.modIcon = iconLink;
         modInstallElement.modName = modName;
 
-        invoke("download_mod", {url: downloadLink, name: modName, dumploc:gamedata.path}).then(async (json) => {
+       let gameid;
+       if(gamedata.game == "EM1")
+       {
+           gameid = "SEME4Q"
+       }
+       else{
+        gameid = "SERE4Q"
+       }
+
+        invoke("download_mod", {url: downloadLink, name: modName, dumploc:gamedata.path, gameid: gameid}).then(async (json) => {
 
            let changedFiles = JSON.parse(json);
                let currentMods = JSON.parse(await ReadFile(gamedata.path + "/EMLMods.json"))

@@ -11,7 +11,6 @@ let jsonData
       return jsonData;
     }
 
-console.log("just loaded hi")
 
 import { GET, POST } from "./library/networking.js";
 import { onMount } from 'svelte';

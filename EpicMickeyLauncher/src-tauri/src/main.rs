@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use std::io::Cursor;
 use std::fs::read_dir;
 use std::path::Path;
+use std::io::BufReader;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 use fs_extra::dir::CopyOptions;
@@ -12,6 +13,7 @@ use scan_dir::ScanDir;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use serde_json::Value;
+use bytes::{BytesMut, BufMut};
 extern crate reqwest;
 extern crate zip_extract;
 extern crate dirs_next;
@@ -60,7 +62,7 @@ fn remove_first(s: &str) -> Option<&str> {
 }
 
 #[tauri::command]
-async fn change_mod_status(json: String, dumploc: String)
+async fn change_mod_status(json: String, dumploc: String, gameid: String)
 {
     let data : ChangedFiles = serde_json::from_str(&json).unwrap();
 
@@ -81,7 +83,7 @@ async fn change_mod_status(json: String, dumploc: String)
     let name = data.name;
 
     if active {
-        download_mod("".to_string(), name, dumploc).await;
+        download_mod("".to_string(), name, dumploc, gameid).await;
     }
     else{
 
@@ -102,7 +104,8 @@ async fn change_mod_status(json: String, dumploc: String)
         }
 
         let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\SEME4Q"));
+        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
+        dolphin_path.push(Path::new(&gameid));
 
         for file in texturefiles {
 
@@ -124,7 +127,7 @@ async fn change_mod_status(json: String, dumploc: String)
 }
 
 #[tauri::command]
-async fn delete_mod(json: String, dumploc: String)
+async fn delete_mod(json: String, dumploc: String, gameid: String)
 {
     let data : ChangedFiles = serde_json::from_str(&json).unwrap();
 
@@ -161,7 +164,8 @@ async fn delete_mod(json: String, dumploc: String)
         }
 
         let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\SEME4Q"));
+        let dolphin_texture = format!(r"Dolphin Emulator\Load\Textures\{}", gameid);
+        dolphin_path.push(Path::new(&dolphin_texture));
 
         for file in texturefiles {
 
@@ -183,7 +187,7 @@ async fn delete_mod(json: String, dumploc: String)
 }
 
 #[tauri::command]
-async fn download_mod(url: String, name: String, dumploc: String) -> String
+async fn download_mod(url: String, name: String, dumploc: String, gameid: String) -> String
 {
 
     let mut path = PathBuf::new();
@@ -194,9 +198,27 @@ async fn download_mod(url: String, name: String, dumploc: String) -> String
     {
   // download
   println!("started downloading");
+  println!("{}", url);
 
-  let bytes = reqwest::get(url).await.expect("fail")
+
+  let mut buffer;
+  
+  if url.starts_with("http")
+  {
+    buffer = reqwest::get(url).await.expect("fail")
   .bytes().await.expect("get bytes FAIL");
+  }
+  else{
+    let f = File::open(url).expect("Failed to open local file");
+    let mut reader = BufReader::new(f);
+    let mut buff = Vec::new();
+    reader.read_to_end(&mut buff).expect("Failed to read bytes from local file");
+    let mut buffer_to_bytes = BytesMut::new();
+    buffer_to_bytes.put(buff.as_slice());
+    buffer = buffer_to_bytes.into();
+  }
+
+  let bytes = buffer;
 
   // install
   fs::create_dir_all("C:/EMLStuff/Data/cachedMods").expect("Failed to create folders.");
@@ -348,6 +370,11 @@ async fn download_mod(url: String, name: String, dumploc: String) -> String
 
     let mut texturefiles: Vec<String> = Vec::new();
 
+    let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
+
+    dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
+    dolphin_path.push(Path::new(&gameid));
+
     //inject texture files into dolphin config
     if Path::new(&path_textures).exists() {
 
@@ -373,10 +400,6 @@ async fn download_mod(url: String, name: String, dumploc: String) -> String
             content_only: true,
             copy_inside: false
         };
-
-        let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-
-        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\SEME4Q\"));
 
         fs::create_dir_all(&path).expect("Failed to create folders.");
         

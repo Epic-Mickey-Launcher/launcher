@@ -8,6 +8,7 @@
     export let json = ""
     export let index = 0
     export let active = false;
+    export let gamedata;
     let node;
     import { invoke } from '@tauri-apps/api/tauri'
 
@@ -35,7 +36,18 @@
         modInstallElement.action = "Deleting";
         modInstallElement.description = "This might take a while...";
 
-        invoke("delete_mod", {json:json,dumploc:dumploc}).then(async () => {
+        let gameid;
+        console.log(gamedata)
+       if(gamedata.game == "EM1")
+       {
+           gameid = "SEME4Q"
+       }
+       else{
+        gameid = "SERE4Q"
+       }
+
+        
+        invoke("delete_mod", {json:json,dumploc:dumploc, gameid:gameid}).then(async () => {
             
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring)
@@ -63,8 +75,17 @@
         modInstallElement.action = jsonToObject.active ? "Enabling" : "Disabling";
         modInstallElement.description = "This might take a while...";
 
+        let gameid;
+       if(gamedata.game == "EM1")
+       {
+           gameid = "SEME4Q"
+       }
+       else{
+        gameid = "SERE4Q"
+       }
+
         let jsonString  = JSON.stringify(jsonToObject)
-        invoke("change_mod_status", {json:jsonString,dumploc:dumploc}).then(async () => {
+        invoke("change_mod_status", {json:jsonString,dumploc:dumploc, gameid:gameid}).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring)
             json = jsonString;

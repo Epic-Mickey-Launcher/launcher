@@ -24,6 +24,7 @@ copy_dir = "0.1.2"
 fs_extra = "1.2.0"
 scan_dir = "0.3.3"
 walkdir = "2.3.2"
+bytes = "1.4.0"
 json = "0.12.4"
 
 [features]
