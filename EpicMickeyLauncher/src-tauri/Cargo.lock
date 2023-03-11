@@ -3,25 +3,6 @@
 version = 3
 
 [[package]]
-name = "EpicMickeyLauncher"
-version = "0.0.0"
-dependencies = [
- "bytes",
- "copy_dir",
- "dirs-next",
- "fs_extra",
- "json",
- "reqwest",
- "scan_dir",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "walkdir 2.3.2",
- "zip-extract",
-]
-
-[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -582,6 +563,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9852635589dc9f9ea1b6fe9f05b50ef208c85c834a562f0c6abb1c475736ec2b"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "epic-mickey-launcher"
+version = "0.0.0"
+dependencies = [
+ "bytes",
+ "copy_dir",
+ "dirs-next",
+ "fs_extra",
+ "json",
+ "reqwest",
+ "scan_dir",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "walkdir 2.3.2",
+ "zip-extract",
 ]
 
 [[package]]
