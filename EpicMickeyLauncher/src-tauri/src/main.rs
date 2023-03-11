@@ -1,3 +1,8 @@
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
+
 use std::process::Command;
 use std::fs::File;
 use std::fs;
@@ -22,10 +27,6 @@ extern crate fs_extra;
 extern crate scan_dir;
 use fs_extra::dir::copy;
 
-#[cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
-)]
 
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles{

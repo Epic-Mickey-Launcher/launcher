@@ -103,7 +103,7 @@
             title: "Select ZIP",
             multiple:false,
         });
-
+ 
         console.log(selectedPath);
 
         let filename = selectedPath.toString().split('\\').pop().split('/').pop();;
