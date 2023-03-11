@@ -39,18 +39,18 @@
         invoke("playgame", { dolphin: "explorer", exe: p });
     }
 
-    function CreateModNode(element, index){
+    function CreateModNode(element, index) {
         let modNode = new ModNode({
-                target: modNodeGrid,
-            });
+            target: modNodeGrid,
+        });
 
-            modNode.index = index;
-            modNode.gamedata = data;
-            modNode.modName = element.name;
-            modNode.json = JSON.stringify(element);
-            modNode.dumploc = data.path;
-            modNode.active = element.active;
-            modNode.setChecked(element.active);
+        modNode.index = index;
+        modNode.gamedata = data;
+        modNode.modName = element.name;
+        modNode.json = JSON.stringify(element);
+        modNode.dumploc = data.path;
+        modNode.active = element.active;
+        modNode.setChecked(element.active);
     }
 
     let buttons = [];
@@ -81,8 +81,8 @@
         let ModsDataObject = JSON.parse(ModsData);
 
         ModsDataObject.forEach((element) => {
-            let i = ModsDataObject.indexOf(element)
-            CreateModNode(element, i)
+            let i = ModsDataObject.indexOf(element);
+            CreateModNode(element, i);
         });
 
         cmdline = await ReadFile(data.path + "/files/cmdline.txt");
@@ -101,12 +101,17 @@
     async function InstallLocalMod() {
         const selectedPath = await open({
             title: "Select ZIP",
-            multiple:false,
+            multiple: false,
         });
- 
+
         console.log(selectedPath);
 
-        let filename = selectedPath.toString().split('\\').pop().split('/').pop();;
+        let filename = selectedPath
+            .toString()
+            .split("\\")
+            .pop()
+            .split("/")
+            .pop();
 
         let gameid;
         if (data.game == "EM1") {
@@ -121,7 +126,8 @@
         modInstallElement.modIcon = "img/waren.png";
         modInstallElement.modName = filename;
         modInstallElement.action = "Installing";
-        modInstallElement.description = "This might take a while depending on your storage device's speed.";
+        modInstallElement.description =
+            "This might take a while depending on your storage device's speed.";
 
         invoke("download_mod", {
             url: selectedPath,

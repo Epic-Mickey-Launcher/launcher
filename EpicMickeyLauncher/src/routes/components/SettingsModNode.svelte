@@ -1,105 +1,107 @@
-<svelte:options accessors={true}/>
+<svelte:options accessors={true} />
 
 <script>
     import { onMount } from "svelte";
     import ModInstall from "./ModInstall.svelte";
-    export let modName = "mod"
-    export let dumploc = ""
-    export let json = ""
-    export let index = 0
+    export let modName = "mod";
+    export let dumploc = "";
+    export let json = "";
+    export let index = 0;
     export let active = false;
     export let gamedata;
     let node;
-    import { invoke } from '@tauri-apps/api/tauri'
+    import { invoke } from "@tauri-apps/api/tauri";
 
-    import { ReadFile , WriteFile} from "../library/configfiles";
+    import { ReadFile, WriteFile } from "../library/configfiles";
     import { destroy_component } from "svelte/internal";
-    let checkBox; 
+    let checkBox;
 
-    onMount(async () => {
-           
-    })
+    onMount(async () => {});
 
-    export function setChecked(check)
-    {
-       checkBox.checked = check;
+    export function setChecked(check) {
+        checkBox.checked = check;
     }
 
-    async function DeleteMod()
-    {
-
+    async function DeleteMod() {
         let modInstallElement = new ModInstall({
-            target: document.body
-        })
+            target: document.body,
+        });
         modInstallElement.modIcon = "/img/waren.png";
         modInstallElement.modName = modName;
         modInstallElement.action = "Deleting";
         modInstallElement.description = "This might take a while...";
 
         let gameid;
-        console.log(gamedata)
-       if(gamedata.game == "EM1")
-       {
-           gameid = "SEME4Q"
-       }
-       else{
-        gameid = "SERE4Q"
-       }
+        console.log(gamedata);
+        if (gamedata.game == "EM1") {
+            gameid = "SEME4Q";
+        } else {
+            gameid = "SERE4Q";
+        }
 
-        
-        invoke("delete_mod", {json:json,dumploc:dumploc, gameid:gameid}).then(async () => {
-            
+        invoke("delete_mod", {
+            json: json,
+            dumploc: dumploc,
+            gameid: gameid,
+        }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
-            let data = JSON.parse(datastring)
+            let data = JSON.parse(datastring);
 
-            let delete_index = data.indexOf(JSON.parse(json))
+            let delete_index = data.indexOf(JSON.parse(json));
 
             data.splice(delete_index, 1);
-            await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json")
+            await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
 
-            modInstallElement.$destroy()
-            node.remove()
-        })
+            modInstallElement.$destroy();
+            node.remove();
+        });
     }
 
-    async function ToggleMod()
-    {
-        let jsonToObject = JSON.parse(json)
+    async function ToggleMod() {
+        let jsonToObject = JSON.parse(json);
         jsonToObject.active = !jsonToObject.active;
 
         let modInstallElement = new ModInstall({
-            target: document.body
-        })
+            target: document.body,
+        });
         modInstallElement.modIcon = "/img/waren.png";
         modInstallElement.modName = modName;
-        modInstallElement.action = jsonToObject.active ? "Enabling" : "Disabling";
+        modInstallElement.action = jsonToObject.active
+            ? "Enabling"
+            : "Disabling";
         modInstallElement.description = "This might take a while...";
 
         let gameid;
-       if(gamedata.game == "EM1")
-       {
-           gameid = "SEME4Q"
-       }
-       else{
-        gameid = "SERE4Q"
-       }
+        if (gamedata.game == "EM1") {
+            gameid = "SEME4Q";
+        } else {
+            gameid = "SERE4Q";
+        }
 
-        let jsonString  = JSON.stringify(jsonToObject)
-        invoke("change_mod_status", {json:jsonString,dumploc:dumploc, gameid:gameid}).then(async () => {
+        let jsonString = JSON.stringify(jsonToObject);
+        invoke("change_mod_status", {
+            json: jsonString,
+            dumploc: dumploc,
+            gameid: gameid,
+        }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
-            let data = JSON.parse(datastring)
+            let data = JSON.parse(datastring);
             json = jsonString;
             active = jsonToObject.active;
             data[index] = jsonToObject;
-            await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json")
-            modInstallElement.$destroy()
-        })
+            await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
+            modInstallElement.$destroy();
+        });
     }
-    
 </script>
 
 <div style="background-color:rgb(22, 22, 22);padding:10px;" bind:this={node}>
     <label for="check">{modName} | Enabled: </label>
-    <input bind:this={checkBox} on:click={ToggleMod} id="check"  type="checkbox">
+    <input
+        bind:this={checkBox}
+        on:click={ToggleMod}
+        id="check"
+        type="checkbox"
+    />
     <button on:click={DeleteMod} style="background-color:red;">Delete</button>
 </div>

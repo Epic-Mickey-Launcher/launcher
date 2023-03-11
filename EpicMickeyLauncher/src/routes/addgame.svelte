@@ -1,11 +1,17 @@
 <script>
   import { open } from "@tauri-apps/api/dialog";
   import { exists } from "@tauri-apps/api/fs";
-  import { ReadJSON, WriteFile, WriteToJSON, ReadFile, FileExists } from "./library/configfiles.js";
+  import {
+    ReadJSON,
+    WriteFile,
+    WriteToJSON,
+    ReadFile,
+    FileExists,
+  } from "./library/configfiles.js";
   let addgamedumpDiv;
   let dumpFound;
   let error = "";
-  let gametype = ""
+  let gametype = "";
   let path;
 
   async function AddGameDump() {
@@ -17,20 +23,16 @@
     path = selectedPath;
     let folderExists = await exists(path + "/DATA");
     if (folderExists) {
+      let verdat = await FileExists(path + "/DATA/files/VERSIONDATA.TXT");
 
-       let verdat = await FileExists(path + "/DATA/files/VERSIONDATA.TXT")
+      if (verdat) {
+        //EM1
+        gametype = "EM1";
+      } else {
+        //EM2
+        gametype = "EM2";
+      }
 
-
-       if(verdat)
-       {
-     //EM1
-      gametype = "EM1"
-       }
-       else{
-     //EM2
-gametype = "EM2"
-       }
-       
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
     } else {
@@ -41,17 +43,16 @@ gametype = "EM2"
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
-    let newData = { path: path + "/DATA", game: gametype, platform: "wii" }
+    let newData = { path: path + "/DATA", game: gametype, platform: "wii" };
 
     jsonData.push(newData);
 
     await WriteToJSON(JSON.stringify(jsonData), "games.json");
 
-    let fileExists = await exists(path + "/DATA/EMLMods.json")
+    let fileExists = await exists(path + "/DATA/EMLMods.json");
 
-    if(!fileExists)
-    {
-      await WriteFile("[]", path + "/DATA/EMLMods.json")
+    if (!fileExists) {
+      await WriteFile("[]", path + "/DATA/EMLMods.json");
     }
 
     window.open("#/", "_self");

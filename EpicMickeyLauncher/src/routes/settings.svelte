@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onMount } from "svelte";
     import { ReadJSON, WriteToJSON } from "./library/configfiles.js";
     import { open } from "@tauri-apps/api/dialog";
     async function SetDolphinPath() {
@@ -11,24 +11,21 @@
         if (selectedPath.includes("Dolphin.exe")) {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = selectedPath;
-            await WriteToJSON(JSON.stringify(dat), "conf.json")
-            SetCurrentDolphinPath()
-
+            await WriteToJSON(JSON.stringify(dat), "conf.json");
+            SetCurrentDolphinPath();
         }
     }
 
-    let currentDolphinPath =""
+    let currentDolphinPath = "";
     onMount(async () => {
-        await SetCurrentDolphinPath()
-    })
+        await SetCurrentDolphinPath();
+    });
 
-    async function SetCurrentDolphinPath(){
+    async function SetCurrentDolphinPath() {
         let c = await ReadJSON("conf.json");
         currentDolphinPath = c.dolphinPath;
     }
-
 </script>
-
 
 <h1>Settings</h1>
 <hr />
