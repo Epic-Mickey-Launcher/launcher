@@ -9,3 +9,4 @@ Made in Svelte & Tauri
 - Add a quick start page that lets you set up EML easier ⌛
 - Add account system (Mod uploading, Forums, etc)
 - Add full support for all EM2 versions
+- Add at least partial support to Linux & Mac
