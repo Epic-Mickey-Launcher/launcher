@@ -23,6 +23,8 @@
     path = selectedPath;
     let folderExists = await exists(path + "/DATA");
     if (folderExists) {
+
+      //TODO: find a better identifier for different versions because this Sucks!!!
       let verdat = await FileExists(path + "/DATA/files/VERSIONDATA.TXT");
 
       if (verdat) {

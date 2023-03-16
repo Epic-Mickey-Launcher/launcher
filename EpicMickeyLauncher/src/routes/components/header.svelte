@@ -1,4 +1,10 @@
 <script>
+    import { writable } from "svelte/store";
+
+    export const HeaderVisible = writable(true);
+
+    let header;
+
     function OpenPage(page) {
         window.open("#/" + page, "_self");
     }
@@ -9,7 +15,8 @@
 </script>
 
 <main>
-    <div class="header">
+    {#if HeaderVisible}
+    <div class="header" bind:this={header}>
         <img
             src="/img/emlLogo.png"
             alt=""
@@ -27,6 +34,7 @@
     </div>
 
     <p style="margin-bottom:60px" />
+    {/if}
 </main>
 
 <style>

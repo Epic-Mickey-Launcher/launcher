@@ -8,11 +8,18 @@
   } from "@tauri-apps/api/fs";
   import { appLocalDataDir } from "@tauri-apps/api/path";
   import { onMount } from "svelte";
+  import { ReadJSON, WriteToJSON, FileExists } from "./library/configfiles.js";
 
   let gameNodeDiv;
 
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
+
+    let confExists = await FileExists(appLocalDataDir + "conf.json")
+    if(!confExists) {
+      console.log("FUCK SYCK")
+       window.open("#/quickstart", "_self")
+    }
 
     let jsonExists = await exists(appLocalDataDirPath + "games.json");
 
@@ -54,6 +61,7 @@
   }
 </script>
 
+
 <h1 style="text-align:center">Games</h1>
 <hr style="width:500px" />
 <p />
@@ -62,10 +70,6 @@
 
 <div bind:this={gameNodeDiv} class="gamegrid" />
 <p style="margin-bottom:50px;" />
-<a
-  style="margin: 0 auto; display:block; text-align: center"
-  href="placetogetgames">Where do i get the games?</a
->
 
 <style>
   .addgamebutton {

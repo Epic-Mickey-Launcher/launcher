@@ -1,5 +1,5 @@
 [package]
-name = "epic-mickey-launcher"
+name = "EpicMickeyLauncher"
 version = "0.0.0"
 description = "launcher"
 authors = ["Memer"]
