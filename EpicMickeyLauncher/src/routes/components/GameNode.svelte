@@ -4,6 +4,7 @@
     import { objectbuffer } from "../library/datatransfer.js";
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadJSON } from "../library/configfiles.js";
+    import { onMount } from "svelte";
     export let game = "";
     export let filepath = "";
 
@@ -18,6 +19,10 @@
             exe: filepath + "/sys/main.dol",
         });
     }
+
+    onMount(async () =>{
+
+    })
 
     function OpenLevelLoader() {
         objectbuffer.set({ game: game, path: filepath });

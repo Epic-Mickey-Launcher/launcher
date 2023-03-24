@@ -15,9 +15,8 @@
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
 
-    let confExists = await FileExists(appLocalDataDir + "conf.json")
+    let confExists = await FileExists(appLocalDataDirPath + "conf.json")
     if(!confExists) {
-      console.log("FUCK SYCK")
        window.open("#/quickstart", "_self")
     }
 

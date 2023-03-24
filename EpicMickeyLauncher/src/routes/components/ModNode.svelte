@@ -25,11 +25,11 @@
         );
 
         if (modsData.find((r) => r.name == modName)) {
-            downloadButton.innerHTML = "Already Installed";
-            downloadButton.disabled = true;
+            downloadButton.textContent = "Already Installed";
+            downloadButton.textContent = true;
         } else {
             downloadButton.disabled = false;
-            downloadButton.innerHTML = "Download";
+            downloadButton.textContent = "Download";
         }
     }
 

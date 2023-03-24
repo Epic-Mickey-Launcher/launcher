@@ -66,7 +66,7 @@
     onMount(async () => {
         levelsData.forEach((level) => {
             let btn = document.createElement("button");
-            btn.innerHTML = level.name;
+            btn.textContent = level.name;
             btn.style.marginLeft = "3px";
             btn.style.marginTop = "3px";
             btn.onclick = function () {

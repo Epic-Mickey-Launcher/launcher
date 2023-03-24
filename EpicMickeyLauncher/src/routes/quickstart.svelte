@@ -8,7 +8,7 @@
         </div>
     
         <div style="display:none;" bind:this={quickstart}>
-            <div style="background-color:black;width:500px;padding:30px;margin:auto;">
+            <div style="background-color:black;width:max-content;padding:30px;margin:auto;">
                 <h2>How to download & use Dolphin</h2>
                 <plaintext>Go to the Dolphin website & Download the latest beta version (https://nb.dolphin-emu.org/download/?ref=btn)</plaintext>
                 <p>
@@ -113,14 +113,12 @@
     {    
     width:100%;
     top:0px;
-    right:10px;
     min-height: 100%;
-    left:0px;
+    right:0px;
     z-index: 500;
     position: absolute;
     display: flex;
     justify-content: center;
-    align-items: center;
     background: linear-gradient(#ff00aa,#870099); 
     }
 </style>
