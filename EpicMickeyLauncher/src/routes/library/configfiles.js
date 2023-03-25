@@ -1,15 +1,26 @@
 
-import {BaseDirectory, exists, writeTextFile, readTextFile} from "@tauri-apps/api/fs"
-import { appLocalDataDir } from '@tauri-apps/api/path';
+import {BaseDirectory, exists, writeTextFile, readTextFile, createDir} from "@tauri-apps/api/fs"
+import { appLocalDataDir }  from '@tauri-apps/api/path';
+
+async function DataFolderExists(){
+  let path = await appLocalDataDir()
+  let pathExists = await exists(path);
+  if(!pathExists)
+  {
+    await createDir(path)
+  }
+}
 
 export async function WriteToJSON(content, file)
 {
+  DataFolderExists()
   let path = await appLocalDataDir()
   await writeTextFile({path: path + file, contents: content})
 }
 
 export async function ReadJSON(file)
 {
+  DataFolderExists()
   let path = await appLocalDataDir()
   let content = await readTextFile(path + file)
   return JSON.parse(content);
@@ -17,6 +28,7 @@ export async function ReadJSON(file)
 
 export async function ReadJSONSync(file)
 {
+  DataFolderExists()
   let path = await appLocalDataDir()
   let content = await readTextFile(path + file)
   return JSON.parse(content);

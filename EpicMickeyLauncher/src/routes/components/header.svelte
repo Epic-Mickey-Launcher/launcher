@@ -1,5 +1,22 @@
 <script>
+    import { onMount } from "svelte";
     import { writable } from "svelte/store";
+    import { Login } from "../library/networking";
+
+    onMount(() => {
+        let cb = (userinfo) => {
+            if (userinfo.error == 0) {
+                accountbutton.style.display = "block";
+            }
+        };
+
+        // @ts-ignore
+        window.onSignIn.push(cb);
+
+        Login({ username: "diddle", password: "gamer" });
+    });
+
+    let accountbutton;
 
     export const HeaderVisible = writable(true);
 
@@ -16,56 +33,73 @@
 
 <main>
     {#if HeaderVisible}
-    <div class="header" bind:this={header}>
-        <img
-            src="/img/emlLogo.png"
-            alt=""
-            style="z-index:1;margin-left:10px;"
-        />
-        
-        <p style="margin-right:20px" />
+        <div class="header" bind:this={header}>
+            <img
+                src="/img/emlLogo.png"
+                alt=""
+                style="z-index:1;margin-left:10px;"
+            />
 
-        <button on:click={() => OpenPage("modmarket")} class="headerButton startheaderbuttons"
-            >Mod Market</button
-        >
-        <button on:click={() => OpenPage("games")} class="headerButton"
-            >Games</button
-        >
-        <button on:click={() => OpenPage("games")} class="headerButton"
-            >My account</button
-        >
-        <button on:click={() => OpenPage("settings")} class="headerButton endheaderbuttons"
-            >Settings</button
-        >
+            <p style="margin-right:20px" />
 
-        <img src="/img/waren.png" alt="" class="pfp">
+            <button
+                on:click={() => OpenPage("modmarket")}
+                class="headerButton startheaderbuttons">Mod Market</button
+            >
+            <button on:click={() => OpenPage("games")} class="headerButton"
+                >Games</button
+            >
+            <button
+                style="display:none;"
+                bind:this={accountbutton}
+                on:click={() => OpenPage("games")}
+                class="headerButton">My account</button
+            >
+            <button
+                on:click={() => OpenPage("settings")}
+                class="headerButton endheaderbuttons">Settings</button
+            >
 
-    </div>
+            <div class="pfpbutton">
+                <button on:click={() => OpenPage("register")} style="position:absolute;width:50px;height:50px;top:20px;border:none;background-color: Transparent;"></button>
+                <img
+                src="/img/loggedoutpfp.jpeg"
+                alt=""
+                title="Sign Up"
+                class="pfp"
+                />
+            </div>
+    
+        </div>
 
-    <p style="margin-bottom:60px" />
+        <p style="margin-bottom:60px" />
     {/if}
 </main>
 
 <style>
-
-    .startheaderbuttons{
-       border-radius: 10px 0 0 10px;
+    .startheaderbuttons {
+        border-radius: 10px 0 0 10px;
     }
 
-    .endheaderbuttons{
+    .endheaderbuttons {
         border-radius: 0 10px 10px 0;
     }
 
-    .pfp{
-      width:50px;
-      height:50px;
-      border-radius: 100%;
-      transition-duration: 0.3s;
-      margin: auto;
-      margin-right: 10px;
+    .pfpbutton{
+        margin: auto;
+        margin-right: 10px;
     }
-    .pfp:hover{
-        transform: scale(1.1)
+
+    .pfp {
+        pointer-events: none;
+        position: relative;
+        transition-duration: 0.3s;
+        width: 50px;
+        height: 50px;
+        border-radius: 100%;
+    }
+    .pfp:hover {
+        transform: scale(1.1);
     }
 
     .header {
@@ -78,7 +112,6 @@
         justify-content: left;
     }
     .headerButton {
-    
         z-index: 1;
         width: 10%;
         border: none;

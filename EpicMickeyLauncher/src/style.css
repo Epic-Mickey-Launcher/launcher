@@ -8,6 +8,16 @@ background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,
   src: url(/fonts/norm.ttf);
 }
 
+.hyperlinkbutton{
+  font-size: 15px;
+  border:none;
+  background-color: transparent;
+  text-decoration: underline;
+}
+.hyperlinkbutton:hover{
+  cursor:grab;
+}
+
 * {
   font-family: normalfont;
   color:white;
