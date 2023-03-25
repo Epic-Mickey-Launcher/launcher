@@ -53,7 +53,7 @@
 <script>
 
     import { onMount } from "svelte";
-    import { ReadJSON, WriteToJSON } from "./library/configfiles.js";
+    import { InitConfFiles, ReadJSON, WriteToJSON } from "./library/configfiles.js";
     import { open } from "@tauri-apps/api/dialog";
 
     async function SetDolphinPath() {
@@ -88,8 +88,7 @@
     }
 
     function Exit(url){
-     WriteToJSON("[]", "games.json");
-     WriteToJSON("{}", "conf.json");
+    InitConfFiles()
      window.open("#/" + url, "_self")
     }
 

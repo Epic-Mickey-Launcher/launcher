@@ -5,6 +5,7 @@
     import Games from "./routes/Games.svelte"
     import AddGame from "./routes/addgame.svelte"
     import QuickStart from "./routes/quickstart.svelte"
+    import Register from "./routes/register.svelte"
     import Settings from "./routes/settings.svelte"
     import LevelLoader from "./routes/LevelLoader.svelte"
     import ModMarket from "./routes/modmarket.svelte";
@@ -15,6 +16,7 @@
         "/addgame": AddGame,
         "/settings": Settings,
         "/quickstart": QuickStart,
+        "/register": Register,
         "/*": Games,
     }
     InitConfFiles()
