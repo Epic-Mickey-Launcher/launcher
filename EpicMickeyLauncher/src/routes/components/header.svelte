@@ -1,12 +1,24 @@
 <script>
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
-    import { Login } from "../library/networking";
+    import { ReadToken } from "../library/configfiles";
+    import {Login, staticAssetsLink } from "../library/networking";
 
-    onMount(() => {
+    let pfp;
+
+    onMount(async () => {
+
+         let token = await ReadToken();
+         if(token != "")
+         {
+            Login({token: token});
+         }
+
         let cb = (userinfo) => {
             console.log(userinfo)
             if (userinfo.error == 0) {
+                pfp = staticAssetsLink + "img/" + userinfo.pfp;
+                console.log(pfp)
                 accountbutton.style.display = "block";
             }
         };
@@ -62,7 +74,7 @@
             <div class="pfpbutton">
                 <button on:click={() => OpenPage("register")} style="position:absolute;width:50px;height:50px;top:20px;border:none;background-color: Transparent;"></button>
                 <img
-                src="/img/loggedoutpfp.jpeg"
+                src={pfp}
                 alt=""
                 title="Sign Up"
                 class="pfp"
