@@ -1,6 +1,7 @@
 export const serverLink = 'http://localhost:3002/eml/';
 export const staticAssetsLink = 'http://localhost:3002/';
 let token = ""
+import { WriteToken, ReadToken } from "./configfiles.js";
 // @ts-ignore
 window.executeCallbacks = function (callbacks, data){
     callbacks.forEach(cb => {
@@ -10,6 +11,10 @@ window.executeCallbacks = function (callbacks, data){
 
 // @ts-ignore
 window.onSignIn = []
+
+export async function SignIn(userinfo){
+ await Login(userinfo)
+}
 
 export async function Register(userinfo){
   let info = await POST("register", {username: userinfo.username, password:userinfo.password})
@@ -34,13 +39,14 @@ export async function Login(userinfo){
      finalinfo = await POST("signintoken", {token: userinfo.token})
    }
    else {
-    console.log("fartoluci")
     finalinfo = await POST("signin", {
       username: userinfo.username,
        password:userinfo.password
       })
    }
 
+ await WriteToken(finalinfo.token)
+  
 // @ts-ignore
    window.executeCallbacks(window.onSignIn, finalinfo)
 
@@ -52,6 +58,7 @@ export async function Login(userinfo){
    
   }
 }
+
 
 export async function POST(route, data)
 {
@@ -73,3 +80,5 @@ export async function GET(route)
   const content = await res.json();
   return content;
 }
+
+

@@ -1,19 +1,21 @@
 <script>
-    import { Register } from "./library/networking";
+    import { Register, SignIn } from "./library/networking";
 
     let user;
     let pass;
 
 
-    function Login(type){
+   async function Login(type){
    if(type == 1)
    {
 //login
+console.log("butts farts")
+await SignIn({username:user, password:pass});
 
    }
    else{
 //register
-Register({username:user, password:pass})
+await Register({username:user, password:pass})
    }
     }
 

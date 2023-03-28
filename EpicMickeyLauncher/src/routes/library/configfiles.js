@@ -47,6 +47,23 @@ export async function FileExists(path){
   return await exists(path)
 }
 
+export async function WriteToken(token)
+{
+  await WriteFile(token, await appLocalDataDir() + "TOKEN")
+}
+
+export async function ReadToken(token)
+{
+  if(await FileExists(await appLocalDataDir() + "TOKEN"))
+  {
+    return await ReadFile(await appLocalDataDir() + "TOKEN")
+  }
+  else{
+    return await ""
+  }
+}
+
+
 export async function InitConfFiles()
 {
     let gamesJsonExists = await exists(await appLocalDataDir() + "games.json");
