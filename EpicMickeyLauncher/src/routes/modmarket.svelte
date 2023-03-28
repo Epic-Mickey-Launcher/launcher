@@ -7,7 +7,7 @@
       return jsonData;
    }
 
-   import { GET, POST } from "./library/networking.js";
+   import { GET, POST, serverLink, staticAssetsLink } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
    import ModsData from "./data/mods.json";
@@ -45,20 +45,21 @@
    }
 
    async function GetAllMods(modlisttoget) {
-      let data;
-      if (modlisttoget == "EM1") {
-         data = ModsData;
-      } else {
-         data = ModsDataEM2;
-      }
-      data.forEach(async (e) => {
+      let data = await GET("getmods")
+       
+      console.log(data)
+     
+      data.modlist.forEach(async (e) => {
          let modNode = new ModNode({
             target: ModList,
          });
-         modNode.modName = e.title;
-         modNode.iconLink = e.iconLink;
+
+         console.log(serverLink + e.icon)
+
+         modNode.modName = e.name;
+         modNode.iconLink = staticAssetsLink + e.icon;
          modNode.description = e.description;
-         modNode.downloadLink = e.downloadLink;
+         modNode.downloadLink = staticAssetsLink + e.download;
          modNode.author = e.author;
          modNode.gamedata = jsonData.find((r) => r.game == currentSelectedGame);
          modNode.Init();

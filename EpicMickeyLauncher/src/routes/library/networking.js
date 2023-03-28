@@ -1,4 +1,5 @@
-const serverLink = 'http://localhost:3002/eml/';
+export const serverLink = 'http://localhost:3002/eml/';
+export const staticAssetsLink = 'http://localhost:3002/';
 let token = ""
 // @ts-ignore
 window.executeCallbacks = function (callbacks, data){
