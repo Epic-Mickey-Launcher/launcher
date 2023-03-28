@@ -85,6 +85,8 @@
    {/await}
 </select>
 
+<a href="#/uploadmod">Upload Mod</a>
+
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
 <div class="warning" bind:this={warning}>

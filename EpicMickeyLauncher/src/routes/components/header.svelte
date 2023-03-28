@@ -5,6 +5,7 @@
 
     onMount(() => {
         let cb = (userinfo) => {
+            console.log(userinfo)
             if (userinfo.error == 0) {
                 accountbutton.style.display = "block";
             }
@@ -12,8 +13,6 @@
 
         // @ts-ignore
         window.onSignIn.push(cb);
-
-        Login({ username: "diddle", password: "gamer" });
     });
 
     let accountbutton;
@@ -52,7 +51,7 @@
             <button
                 style="display:none;"
                 bind:this={accountbutton}
-                on:click={() => OpenPage("games")}
+                on:click={() => OpenPage("profilepage")}
                 class="headerButton">My account</button
             >
             <button
