@@ -1,5 +1,5 @@
 const serverLink = 'http://localhost:3002/eml/';
-
+let token = ""
 // @ts-ignore
 window.executeCallbacks = function (callbacks, data){
     callbacks.forEach(cb => {
@@ -9,6 +9,21 @@ window.executeCallbacks = function (callbacks, data){
 
 // @ts-ignore
 window.onSignIn = []
+
+export async function Register(userinfo){
+  let info = await POST("register", {username: userinfo.username, password:userinfo.password})
+
+  if(info.error == 1){
+    //account with same username already exists
+    return
+  }
+
+  Login({token: info.token})
+}
+
+export async function UploadMod(modfile){
+  let moduploadresult = await POST("modupload", {token: token, modfile:modfile})
+}
 
 export async function Login(userinfo){
 
@@ -25,13 +40,12 @@ export async function Login(userinfo){
       })
    }
 
-
 // @ts-ignore
    window.executeCallbacks(window.onSignIn, finalinfo)
 
 
    if(finalinfo.error == 0){
-  
+        token = finalinfo.token;
    }
    else{
    

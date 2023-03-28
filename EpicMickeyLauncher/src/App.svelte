@@ -7,16 +7,20 @@
     import QuickStart from "./routes/quickstart.svelte"
     import Register from "./routes/register.svelte"
     import Settings from "./routes/settings.svelte"
+    import uploadmod from "./routes/uploadmod.svelte"
     import LevelLoader from "./routes/LevelLoader.svelte"
     import ModMarket from "./routes/modmarket.svelte";
+    import ProfilePage from "./routes/profilepage.svelte";
     let routes = {
         "/": Games,
         "/levelloader": LevelLoader,
         "/modmarket": ModMarket,
         "/addgame": AddGame,
+        "/uploadmod": uploadmod,
         "/settings": Settings,
         "/quickstart": QuickStart,
         "/register": Register,
+        "/profilepage": ProfilePage,
         "/*": Games,
     }
     InitConfFiles()

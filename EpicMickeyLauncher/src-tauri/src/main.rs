@@ -38,9 +38,11 @@ struct ChangedFiles {
 #[derive(Serialize, Deserialize)]
 struct ModInfo {
     name: String,
-    data_path: String,
-    texture_path: String,
+    description: String,
     dependencies: Vec<String>,
+    custom_textures_path: String,
+    custom_game_files_path: String,
+    icon_path: String,
 }
 
 fn main() {
@@ -228,13 +230,27 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         println!("done downloading");
     }
 
+    
+
+    let mut path_json = full_path.clone();
+    path_json.push("mod.json");
+
+    
+
+    let json_string = fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
+
+    let json_data: ModInfo = serde_json::from_str(&json_string).expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+
     //inject files
 
     let mut path_textures = full_path.clone();
     let mut path_datafiles = full_path.clone();
 
-    path_textures.push("custtext");
-    path_datafiles.push("files/DATA/files");
+    path_textures.push(&json_data.custom_textures_path);
+    path_datafiles.push(&json_data.custom_game_files_path);
+
+    println!("{}", path_datafiles.display());
+    
     let mut files_to_restore: Vec<String> = Vec::new();
 
     //inject DATA files into current dump
@@ -275,11 +291,15 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             if !p.path().is_file() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
 
-                if p_str.ends_with(r"/files") {
+                let dont_end_with = format!(r"/{}", json_data.custom_game_files_path);
+
+                if p_str.ends_with(&dont_end_with) {
                     continue;
                 }
 
                 let p_str_shortened = &p_str.replace(&path_datafiles_str, "");
+
+                println!("{}", p_str_shortened);
 
                 //get rid of slash
 
