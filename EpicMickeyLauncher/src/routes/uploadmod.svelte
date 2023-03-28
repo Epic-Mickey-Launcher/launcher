@@ -1,7 +1,7 @@
 <label class="inputfile" for="fileupload">
-    <span style="  position: relative;  top: 50%;">Drag your mod here or click the box to upload.</span>
+    <span style="  position: relative;  top: 50%;">Click the box to upload.</span>
 </label>
-<input bind:files={files} id="fileupload" style="display:none;" type="file"/>
+<input on:drop={dropFile} bind:files={files} id="fileupload" style="display:none;" type="file"/>
 
 <style>
     .inputfile{
@@ -33,6 +33,10 @@
             console.log("nuh uh")
         }
 	}
+
+    function dropFile(){
+        console.log("farts gibbel")
+    }
 
     function uploadFile(file) {
    var reader = new FileReader();

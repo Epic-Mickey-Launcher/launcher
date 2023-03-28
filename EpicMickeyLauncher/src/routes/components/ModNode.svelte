@@ -3,17 +3,24 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
+    import { POST } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
     export let modName = "";
     export let description = "";
     export let iconLink = "";
     export let downloadLink = "";
     export let author = "";
+    let authorname = "";
     export let gamedata;
 
     let downloadButton;
 
     export async function Init() {
+
+        let authorinfo = await POST("getaccount", {id:author})
+
+        authorname = authorinfo.username;
+
         if (description.length > 70) {
             let newDesc = description.substring(0, 70);
             newDesc += "...";
@@ -71,7 +78,7 @@
 
 <div class="modNodeDiv">
     <h3>{modName}</h3>
-    <h4>Author: {author}</h4>
+    <h4>Author:<button class="hyperlinkbutton">{authorname}</button> </h4>
     <h5>Description: {description}</h5>
     <img class="modNodeImg" alt="" src={iconLink} />
     <button bind:this={downloadButton} on:click={Download}>Download</button>
