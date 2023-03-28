@@ -109,6 +109,7 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String) {
         }
 
         let mut dolphin_path = find_dolphin_dir(gameid);
+    
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -291,7 +292,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             if !p.path().is_file() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
 
-                let dont_end_with = format!(r"/{}", json_data.custom_game_files_path);
+                let dont_end_with = format!(r"{}", json_data.custom_game_files_path);
 
                 if p_str.ends_with(&dont_end_with) {
                     continue;
@@ -299,12 +300,11 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
                 let p_str_shortened = &p_str.replace(&path_datafiles_str, "");
 
-                println!("{}", p_str_shortened);
+                println!("{} shortened version", p_str_shortened);
 
                 //get rid of slash
 
-                let p_str_final =
-                    remove_first(&p_str_shortened).expect("couldn't remove slash from string");
+                let p_str_final = remove_first(&p_str_shortened).expect("couldn't remove slash from string");
 
                 dirs.push(p_str_final.to_string());
             }
