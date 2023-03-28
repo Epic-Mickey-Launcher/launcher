@@ -1,7 +1,11 @@
+//note 2self or whoever. macos directory system uses / and not \
+
 #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+
+use std::env;
 
 use bytes::{BufMut, BytesMut};
 use fs_extra::dir::CopyOptions;
@@ -102,9 +106,7 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String) {
             }
         }
 
-        let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
-        dolphin_path.push(Path::new(&gameid));
+        let mut dolphin_path = find_dolphin_dir(gameid);
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -158,9 +160,7 @@ async fn delete_mod(json: String, dumploc: String, gameid: String) {
             }
         }
 
-        let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-        let dolphin_texture = format!(r"Dolphin Emulator\Load\Textures\{}", gameid);
-        dolphin_path.push(Path::new(&dolphin_texture));
+        let mut dolphin_path = find_dolphin_dir(gameid);
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -182,11 +182,16 @@ async fn delete_mod(json: String, dumploc: String, gameid: String) {
 
 #[tauri::command]
 async fn download_mod(url: String, name: String, dumploc: String, gameid: String) -> String {
-    let mut path = PathBuf::new();
-    path.push("C:/EMLStuff/Data/cachedMods");
-    path.push(&name);
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/cachedMods");
 
-    if !Path::new(&path).exists() {
+    let mut full_path = path.clone();
+    full_path.push(&name);
+
+
+    let os = env::consts::OS;
+
+    if !Path::new(&full_path).exists() {
         // download
         println!("started downloading");
         println!("{}", url);
@@ -215,22 +220,18 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         let bytes = buffer;
 
         // install
-        fs::create_dir_all("C:/EMLStuff/Data/cachedMods").expect("Failed to create folders.");
-
-        let mut file =
-            File::create("C:/EMLStuff/Data/TEMP.zip").expect("failed to create temp file");
-        file.write_all(&bytes).expect("failed to write");
+        fs::create_dir_all(&mut path).expect("Failed to create folders.");
 
         //cache file for later downloads
-        zip_extract::extract(Cursor::new(bytes), &path, false).expect("failed to extract");
+        zip_extract::extract(Cursor::new(bytes), &full_path, false).expect("failed to extract");
 
         println!("done downloading");
     }
 
     //inject files
 
-    let mut path_textures = path.clone();
-    let mut path_datafiles = path.clone();
+    let mut path_textures = full_path.clone();
+    let mut path_datafiles = full_path.clone();
 
     path_textures.push("custtext");
     path_datafiles.push("files/DATA/files");
@@ -357,10 +358,9 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
     let mut texturefiles: Vec<String> = Vec::new();
 
-    let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
+    let mut dolphin_path = find_dolphin_dir(gameid);
 
-    dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
-    dolphin_path.push(Path::new(&gameid));
+    fs::create_dir_all(&dolphin_path).expect("Failed to create dolphin folder.");
 
     //inject texture files into dolphin config
     if Path::new(&path_textures).exists() {
@@ -405,4 +405,22 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
     println!("Process ended successfully");
     json.into()
+}
+
+fn find_dolphin_dir(gameid: String) -> PathBuf
+{
+    let os = env::consts::OS;
+
+    let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
+
+    if os == "macos"{
+        dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
+        dolphin_path.push(Path::new(r"Dolphin/Load/Textures/"));
+    }
+    else{
+        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
+    }
+    dolphin_path.push(Path::new(&gameid));
+
+    dolphin_path
 }
