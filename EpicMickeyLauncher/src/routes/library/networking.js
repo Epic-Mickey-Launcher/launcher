@@ -1,6 +1,6 @@
 export const serverLink = 'http://localhost:3002/eml/';
 export const staticAssetsLink = 'http://localhost:3002/';
-let token = ""
+export let userinfo;
 import { WriteToken, ReadToken } from "./configfiles.js";
 // @ts-ignore
 window.executeCallbacks = function (callbacks, data){
@@ -28,7 +28,7 @@ export async function Register(userinfo){
 }
 
 export async function UploadMod(modfile){
-  let moduploadresult = await POST("modupload", {token: token, modfile:modfile})
+  let moduploadresult = await POST("modupload", {token: userinfo.token, modfile:modfile})
 }
 
 export async function Login(userinfo){
@@ -44,21 +44,22 @@ export async function Login(userinfo){
        password:userinfo.password
       })
    }
-
+   userinfo = finalinfo
  await WriteToken(finalinfo.token)
   
 // @ts-ignore
    window.executeCallbacks(window.onSignIn, finalinfo)
-
-
-   if(finalinfo.error == 0){
-        token = finalinfo.token;
-   }
-   else{
-   
-  }
 }
 
+export async function GetUserInfo(){
+  if(userinfo == null){
+    console.log("User is not logged in!")
+    return {error:0}
+  }
+  else{
+    return userinfo
+  }
+}
 
 export async function POST(route, data)
 {
