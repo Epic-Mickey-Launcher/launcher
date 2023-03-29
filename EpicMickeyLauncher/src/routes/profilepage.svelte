@@ -2,13 +2,26 @@
 <script>
     import { onMount } from "svelte";
     import Userprofilemodnode from "./components/userprofilemodnode.svelte";
+    import { GetUserInfo, POST, userinfo } from "./library/networking";
     
     let modNodeGroup;
 
-    onMount(() => {
-       let modnode = new Userprofilemodnode({
+    onMount(async () => {
+
+        let cb = async () => {
+            let modnode = new Userprofilemodnode({
         target:modNodeGroup,
        })
+
+       let userinfo = await GetUserInfo();
+
+       let profileinfo = await POST("getprofileinfo", {id: userinfo.id, username:null})
+
+       console.log(profileinfo)
+        }
+
+        // @ts-ignore
+        window.onSignIn.push(cb)
     })
 </script>
 
