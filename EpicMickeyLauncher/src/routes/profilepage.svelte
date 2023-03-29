@@ -2,35 +2,58 @@
 <script>
     import { onMount } from "svelte";
     import Userprofilemodnode from "./components/userprofilemodnode.svelte";
-    import { GetUserInfo, POST, userinfo } from "./library/networking";
+    import { Subscribe } from "./library/callback";
+    import { GetUserInfo, loggedin, POST, staticAssetsLink } from "./library/networking";
     
     let modNodeGroup;
 
+    let username;
+    let bio;
+    let pfplink;
+    
+
     onMount(async () => {
 
-        let cb = async () => {
-            let modnode = new Userprofilemodnode({
-        target:modNodeGroup,
-       })
+        let cb = async (m) => {
 
-       let userinfo = await GetUserInfo();
+       let userinfo = m;
+
+       console.log(userinfo)
 
        let profileinfo = await POST("getprofileinfo", {id: userinfo.id, username:null})
 
        console.log(profileinfo)
+
+       username = profileinfo.username;
+       bio = profileinfo.bio;
+       pfplink = staticAssetsLink + "img/" + profileinfo.pfp;
+
+       profileinfo.mods.forEach(m => {
+            let mod = new Userprofilemodnode({
+                target:modNodeGroup
+            })
+       })
+        }
+
+        if(loggedin)
+        {
+          cb(await GetUserInfo())
+        }
+        else{
+            Subscribe("SignedIn", cb)
         }
 
         // @ts-ignore
-        window.onSignIn.push(cb)
+       
     })
 </script>
 
 <div style="text-align:center;">
-    <img class="pfp" src="/img/waren.png" alt="">
+    <img class="pfp" src={pfplink} alt="">
     <br>
-    <span style="font-size:30px;">sexymustache1</span>
+    <span style="font-size:30px;">{username}</span>
     <p>
-    <span>My dick is turning purple!</span>
+    <span>{bio}</span>
     <div style="border: 2px solid yellow;width:120px;margin:auto;border-radius:30px;"><p style="color:yellow;">role</p></div>
     <p>
     <hr>

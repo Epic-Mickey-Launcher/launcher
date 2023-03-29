@@ -1,6 +1,6 @@
 <script lang="ts">
     import Header from "./routes/components/header.svelte"
-    import {InitConfFiles} from "./routes/library/configfiles.js"
+    import {InitConfFiles, ReadToken} from "./routes/library/configfiles.js"
     import Router from "svelte-spa-router"
     import Games from "./routes/Games.svelte"
     import AddGame from "./routes/addgame.svelte"
@@ -11,6 +11,17 @@
     import LevelLoader from "./routes/LevelLoader.svelte"
     import ModMarket from "./routes/modmarket.svelte";
     import ProfilePage from "./routes/profilepage.svelte";
+    import { Login } from "./routes/library/networking";
+
+    async function RouteLoaded() {
+     //login
+     let token = await ReadToken();
+         if(token != "")
+         {
+            Login({token: token});
+         }
+    }
+
     let routes = {
         "/": Games,
         "/levelloader": LevelLoader,
@@ -28,5 +39,5 @@
 
 <main>
     <Header/>
-    <Router {routes}/>
+    <Router {routes} on:routeLoaded={RouteLoaded}/>
 </main>

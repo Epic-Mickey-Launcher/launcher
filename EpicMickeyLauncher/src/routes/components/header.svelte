@@ -3,17 +3,10 @@
     import { writable } from "svelte/store";
     import { ReadToken } from "../library/configfiles";
     import {Login, staticAssetsLink } from "../library/networking";
-
+    import {Subscribe} from "../library/callback.js"
     let pfp;
 
     onMount(async () => {
-
-         let token = await ReadToken();
-         if(token != "")
-         {
-            Login({token: token});
-         }
-
         let cb = (userinfo) => {
             console.log(userinfo)
             if (userinfo.error == 0) {
@@ -24,7 +17,7 @@
         };
 
         // @ts-ignore
-        window.onSignIn.push(cb);
+        Subscribe("SignedIn", cb)
     });
 
     let accountbutton;
