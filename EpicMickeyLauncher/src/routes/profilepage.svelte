@@ -3,8 +3,9 @@
     import { onMount } from "svelte";
     import Userprofilemodnode from "./components/userprofilemodnode.svelte";
     import { Subscribe } from "./library/callback";
-    import { GetUserInfo, loggedin, POST, staticAssetsLink } from "./library/networking";
+    import { GetUserInfo, loggedin, OnSignedIn, POST, staticAssetsLink } from "./library/networking";
     
+    let isownerofprofile;
     let modNodeGroup;
 
     let username;
@@ -24,6 +25,10 @@
 
        console.log(profileinfo)
 
+        isownerofprofile = userinfo.username == profileinfo.username;
+       
+      
+
        username = profileinfo.username;
        bio = profileinfo.bio;
        pfplink = staticAssetsLink + "img/" + profileinfo.pfp;
@@ -32,16 +37,14 @@
             let mod = new Userprofilemodnode({
                 target:modNodeGroup
             })
+            mod.name = m.name;
+            mod.description = m.description;
+            mod.id = m.id;
+            mod.modicon = staticAssetsLink + m.icon;
        })
         }
 
-        if(loggedin)
-        {
-          cb(await GetUserInfo())
-        }
-        else{
-            Subscribe("SignedIn", cb)
-        }
+        OnSignedIn(cb)
 
         // @ts-ignore
        
@@ -54,15 +57,20 @@
     <span style="font-size:30px;">{username}</span>
     <p>
     <span>{bio}</span>
-    <div style="border: 2px solid yellow;width:120px;margin:auto;border-radius:30px;"><p style="color:yellow;">role</p></div>
+    <div style="border: 2px solid yellow;width:120px;margin:auto;border-radius:30px;display:none;"><p style="color:yellow;">role</p></div>
     <p>
     <hr>
     <span style="font-size:30px;">Mods</span>
     <p>
 
-        <span bind:this={modNodeGroup}>
+        <span bind:this={modNodeGroup} style="display:flex;width:fit-content;margin:0 auto;">
 
         </span>
+
+    <p>
+        {#if isownerofprofile}
+        <button on:click={() => window.open("#/accountsettings", "_self")} class="hyperlinkbutton">Edit Profile</button>
+        {/if}
   
     </div>
 

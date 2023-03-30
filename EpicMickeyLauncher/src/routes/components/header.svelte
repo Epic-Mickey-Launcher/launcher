@@ -17,7 +17,7 @@
         };
 
         // @ts-ignore
-        Subscribe("SignedIn", cb)
+        Subscribe("SignedIn", cb, true)
     });
 
     let accountbutton;

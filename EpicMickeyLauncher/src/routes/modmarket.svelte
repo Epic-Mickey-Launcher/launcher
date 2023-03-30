@@ -57,6 +57,7 @@
          console.log(serverLink + e.icon)
 
          modNode.modName = e.name;
+         modNode.moddataobj = e;
          modNode.iconLink = staticAssetsLink + e.icon;
          modNode.description = e.description;
          modNode.downloadLink = staticAssetsLink + e.download;
@@ -68,8 +69,8 @@
       });
    }
 </script>
-
-<select
+<div style="display:flex; width:100%; justify-content:center;">
+   <select
    class="dropdown"
    bind:value={selectedgamebuild}
    on:change={() => LoadModList()}
@@ -87,6 +88,9 @@
 </select>
 
 <a href="#/uploadmod">Upload Mod</a>
+</div>
+
+<p>
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
@@ -118,6 +122,8 @@
       text-align: center;
    }
    .dropdown {
+
+      margin-right:30px;
       background-color: black;
    }
 </style>

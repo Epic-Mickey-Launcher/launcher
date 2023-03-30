@@ -1,8 +1,10 @@
 let callbacks = []
 
-export function Subscribe(name, cb) {
+export function Subscribe(name, cb, persistent) {
+    if(persistent == null){ persistent = false }
     callbacks.push({
         name: name,
+        persistent: persistent,
         callback: cb
     })
 }
@@ -13,9 +15,10 @@ export function Invoke(name, args) {
     allcallbacks.forEach(e => {
         e.callback(args)
 
-        let index = allcallbacks.indexOf(e)
+        if(!e.persistent){
+            let index = allcallbacks.indexOf(e)
 
-        allcallbacks.splice(index, 1)
-
+            allcallbacks.splice(index, 1)
+        }
     })
 }
