@@ -3,6 +3,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
+    import { SetData } from "../library/datatransfer";
     import { POST } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
     export let modName = "";
@@ -10,10 +11,16 @@
     export let iconLink = "";
     export let downloadLink = "";
     export let author = "";
+    export let moddataobj;
     let authorname = "";
     export let gamedata;
 
     let downloadButton;
+
+    function ViewPage(){
+        SetData("modpage_info", moddataobj)
+        window.open("#/modpage", "_self")
+    }
 
     export async function Init() {
 
@@ -82,7 +89,7 @@
     <h5>Description: {description}</h5>
     <img class="modNodeImg" alt="" src={iconLink} />
     <button bind:this={downloadButton} on:click={Download}>Download</button>
-    <button>View Page</button>
+    <button on:click={ViewPage}>View Page</button>
 </div>
 
 <style>

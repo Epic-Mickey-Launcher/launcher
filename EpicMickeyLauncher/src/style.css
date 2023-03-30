@@ -13,6 +13,7 @@ background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,
   border:none;
   background-color: transparent;
   text-decoration: underline;
+  padding: 0px;
 }
 .hyperlinkbutton:hover{
   cursor:grab;
@@ -36,6 +37,12 @@ button{
   transition-duration: 0.1s;
 }
 input{
+  border: 1px solid;
+  border-color: rgb(138, 138, 138);
+  background-color: rgb(82, 82, 82);
+  transition-duration: 0.1s;
+}
+textarea{
   border: 1px solid;
   border-color: rgb(138, 138, 138);
   background-color: rgb(82, 82, 82);

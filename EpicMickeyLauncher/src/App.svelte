@@ -11,6 +11,8 @@
     import LevelLoader from "./routes/LevelLoader.svelte"
     import ModMarket from "./routes/modmarket.svelte";
     import ProfilePage from "./routes/profilepage.svelte";
+    import modpage from "./routes/modpage.svelte";
+    import accountsettings from "./routes/accountsettings.svelte";
     import { Login } from "./routes/library/networking";
 
     async function RouteLoaded() {
@@ -31,7 +33,9 @@
         "/settings": Settings,
         "/quickstart": QuickStart,
         "/register": Register,
+        "/modpage": modpage,
         "/profilepage": ProfilePage,
+        "/accountsettings": accountsettings,
         "/*": Games,
     }
     InitConfFiles()

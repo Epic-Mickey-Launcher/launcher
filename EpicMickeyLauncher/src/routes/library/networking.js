@@ -26,6 +26,17 @@ export async function UploadMod(modfile){
   let moduploadresult = await POST("modupload", {token: info.token, modfile:modfile})
 }
 
+export async function OnSignedIn(cb){
+
+        if(loggedin)
+        {
+          cb(await GetUserInfo())
+        }
+        else{
+            Subscribe("SignedIn", cb)
+        }
+}
+
 export async function Login(userinfo){
   loggedin = false;
    let finalinfo;
