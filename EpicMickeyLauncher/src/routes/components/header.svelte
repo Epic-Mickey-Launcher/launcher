@@ -8,9 +8,9 @@
 
     onMount(async () => {
         let cb = (userinfo) => {
-            console.log(userinfo)
+            console.log("fartinmyass")
             if (userinfo.error == 0) {
-                pfp = staticAssetsLink + "img/" + userinfo.pfp;
+                pfp = staticAssetsLink + "img/" + userinfo.pfp + "?" + new Date().getTime();;
                 console.log(pfp)
                 accountbutton.style.display = "block";
             }

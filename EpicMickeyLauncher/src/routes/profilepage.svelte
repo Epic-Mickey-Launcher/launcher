@@ -25,7 +25,7 @@
 
        console.log(profileinfo)
 
-        isownerofprofile = userinfo.username == profileinfo.username;
+        isownerofprofile = userinfo.id == profileinfo.id;
        
       
 
@@ -34,13 +34,15 @@
        pfplink = staticAssetsLink + "img/" + profileinfo.pfp;
 
        profileinfo.mods.forEach(m => {
-            let mod = new Userprofilemodnode({
-                target:modNodeGroup
+            new Userprofilemodnode({
+                target:modNodeGroup,
+                props:{
+                    name: m.name,
+                    description: m.description,
+                    id: m.id,
+                    modicon: staticAssetsLink + m.icon,
+                }
             })
-            mod.name = m.name;
-            mod.description = m.description;
-            mod.id = m.id;
-            mod.modicon = staticAssetsLink + m.icon;
        })
         }
 

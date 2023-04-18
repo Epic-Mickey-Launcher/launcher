@@ -33,7 +33,7 @@ export async function OnSignedIn(cb){
           cb(await GetUserInfo())
         }
         else{
-            Subscribe("SignedIn", cb)
+            Subscribe("SignedIn", cb, true)
         }
 }
 

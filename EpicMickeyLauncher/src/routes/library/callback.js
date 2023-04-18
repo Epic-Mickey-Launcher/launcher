@@ -15,7 +15,7 @@ export function Invoke(name, args) {
     allcallbacks.forEach(e => {
         e.callback(args)
 
-        if(!e.persistent){
+        if(e.persistent == false){
             let index = allcallbacks.indexOf(e)
 
             allcallbacks.splice(index, 1)

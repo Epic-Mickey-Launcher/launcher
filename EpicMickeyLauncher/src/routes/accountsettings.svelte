@@ -23,6 +23,21 @@
          if(userinfo != null){
             let data = {username: username.value, bio: bio.value, password: password.value, pfpdata: pfpdata, token:userinfo.token}
          let res = await POST("changeaccountsettings", data)
+         switch(res.error){
+           case 0:
+            alert("All changes have been applied successfully!")
+            window.open("#/profilepage", "_self")
+            break
+            case 1:
+            alert("Person with the same username exists.")
+                break
+                case 2:
+                alert("Password is less than 8 characters.")
+                    break
+                    case 3:
+                        alert("pfp")
+                        break 
+        }
          }
     }
     function getpfpdata(file) {
