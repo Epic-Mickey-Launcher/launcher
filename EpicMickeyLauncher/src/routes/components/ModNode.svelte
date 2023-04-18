@@ -11,14 +11,14 @@
     export let iconLink = "";
     export let downloadLink = "";
     export let author = "";
-    export let moddataobj;
+    export let modid = ""
     let authorname = "";
     export let gamedata;
 
     let downloadButton;
 
     function ViewPage(){
-        SetData("modpage_info", moddataobj)
+        SetData("modpage_id", modid)
         window.open("#/modpage", "_self")
     }
 
@@ -26,7 +26,12 @@
 
         let authorinfo = await POST("getaccount", {id:author})
 
-        authorname = authorinfo.username;
+        if(authorinfo.username == null){
+             authorname = "Deleted Account"
+        }
+        else{
+            authorname = authorinfo.username;
+        }
 
         if (description.length > 70) {
             let newDesc = description.substring(0, 70);

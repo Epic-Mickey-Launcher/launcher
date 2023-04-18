@@ -56,6 +56,7 @@
 
          console.log(serverLink + e.icon)
 
+         modNode.modid = e.id;
          modNode.modName = e.name;
          modNode.moddataobj = e;
          modNode.iconLink = staticAssetsLink + e.icon;

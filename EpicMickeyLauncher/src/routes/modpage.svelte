@@ -4,15 +4,20 @@
     import { POST, staticAssetsLink } from "./library/networking";
 
 
-    let modinfo;
+    let modid;
     let authorname = ""
-    console.log("Fat")
+    let modinfo;
 
     onMount(async () => {
-        modinfo = GetData("modpage_info");
+        modid = GetData("modpage_id");
+        modinfo = await POST("getmod", {id:modid})
         let userinfo = await POST("getaccount", {id:modinfo.author})
-        authorname = userinfo.username
-        console.log(modinfo)
+        if(userinfo.username == null){
+             authorname = "Deleted Account"
+        }
+        else{
+            authorname = userinfo.username;
+        }
     })
 </script>
 
@@ -28,18 +33,6 @@
         <p>
         <button>Download</button> <span style="margin:auto 10px;font-size:10px;">59 Downloads</span>
         <p>
-        <div style="display:flex;width:100%">
-            <div style="height:20px;display:flex;">
-                <button style="width:20px;"></button>
-                <span style="margin:auto 10px;font-size:10px;">59</span>
-            </div>
-            <p>
-            <div style="height:20px;display:flex;">
-                    <button style="width:20px;"></button>
-                    <span style="margin:auto 10px;font-size:10px;">59</span>
-             </div>
-        </div>
-       
     </div>
 </div>
 
