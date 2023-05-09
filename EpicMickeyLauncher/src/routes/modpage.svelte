@@ -1,24 +1,88 @@
 <script>
     import { onMount } from "svelte";
-    import { GetData } from "./library/datatransfer";
+    import { GetData, SetData } from "./library/datatransfer";
     import { POST, staticAssetsLink } from "./library/networking";
+    import { ReadFile, WriteFile } from "./library/configfiles";
+    import ModInstall from "./components/ModInstall.svelte";
+    import { invoke } from "@tauri-apps/api/tauri";
 
-
+    let authoraccountexists = true;
     let modid;
     let authorname = ""
+    let dumploc;
     let modinfo;
 
     onMount(async () => {
         modid = GetData("modpage_id");
+        dumploc = GetData("modpage_dumploc");
         modinfo = await POST("getmod", {id:modid})
         let userinfo = await POST("getaccount", {id:modinfo.author})
         if(userinfo.username == null){
-             authorname = "Deleted Account"
+             authorname = "Unknown Account"
+             authoraccountexists = false;
         }
         else{
             authorname = userinfo.username;
         }
+        CheckIfDownloaded()
     })
+
+    function Download()
+    {
+        console.log(dumploc)
+
+        let gameid;
+        gameid = "SEME4Q";
+
+        let modInstallElement = new ModInstall({
+            target: document.body,
+        });
+        modInstallElement.modIcon = staticAssetsLink + modinfo.icon;
+        modInstallElement.modName = modinfo.name;
+
+        invoke("download_mod", {
+            url: staticAssetsLink + modinfo.download,
+            name: modinfo.name,
+            dumploc: dumploc,
+            modid: modinfo.id.toString(),
+            gameid: gameid,
+        }).then(async (json) => {
+            let changedFiles = JSON.parse(json);
+            let currentMods = JSON.parse(
+                await ReadFile(dumploc + "/EMLMods.json")
+            );
+            currentMods.push(changedFiles);
+            await WriteFile(
+                JSON.stringify(currentMods),
+                dumploc+ "/EMLMods.json"
+            );
+
+            modInstallElement.$destroy();
+            CheckIfDownloaded()
+        });
+    }
+    let downloadButton;
+    async function CheckIfDownloaded()
+    {
+       let dataStr = await ReadFile( dumploc+ "/EMLMods.json");
+       let dataJson = JSON.parse(dataStr);
+       let json = dataJson.find(r => r.modid == modid);
+       downloadStatus = "Download";
+       if(json != null)
+       {
+         downloadButton.disabled = true;
+          downloadStatus = "Already Installed";
+       }
+    }
+
+    async function OpenProfileOfAuthor(){
+        if(!authoraccountexists)return;
+        SetData("profile_id", modinfo.author)
+        window.open("#/profilepage", "_self")
+    }
+
+    let downloadStatus = "Download";
+
 </script>
 
 {#if modinfo != null}
@@ -27,12 +91,12 @@
     <div>
         <span style="font-size:30px;">{modinfo.name}</span>
         <p>
-        <button class="hyperlinkbutton">{authorname}</button>
+        <button on:click={OpenProfileOfAuthor} class="hyperlinkbutton">{authorname}</button>
         <p>
         <span>{modinfo.description}</span>
         <p>
-        <button>Download</button> <span style="margin:auto 10px;font-size:10px;">59 Downloads</span>
-        <p>
+        <button bind:this={downloadButton}  on:click={Download}>{downloadStatus}</button>
+        <button on:click={() => window.open("#/modmarket", "_self")}>Go back to Mod Market</button>
     </div>
 </div>
 

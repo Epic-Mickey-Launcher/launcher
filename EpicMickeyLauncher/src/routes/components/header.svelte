@@ -6,13 +6,13 @@
     import {Subscribe} from "../library/callback.js"
     let pfp;
 
+    let loggedin = false;
+
     onMount(async () => {
         let cb = (userinfo) => {
-            console.log("fartinmyass")
             if (userinfo.error == 0) {
+                loggedin = true;
                 pfp = staticAssetsLink + "img/" + userinfo.pfp + "?" + new Date().getTime();;
-                console.log(pfp)
-                accountbutton.style.display = "block";
             }
         };
 
@@ -20,7 +20,6 @@
         Subscribe("SignedIn", cb, true)
     });
 
-    let accountbutton;
 
     export const HeaderVisible = writable(true);
 
@@ -33,6 +32,18 @@
     document.addEventListener("contextmenu", (event) => {
         event.preventDefault();
     });
+
+
+    async function PfpButton(){
+        if(loggedin)
+        {
+            OpenPage("profilepage")
+        }
+        else{
+            OpenPage("register")
+        }
+    }
+
 </script>
 
 <main>
@@ -53,19 +64,14 @@
             <button on:click={() => OpenPage("games")} class="headerButton"
                 >Games</button
             >
-            <button
-                style="display:none;"
-                bind:this={accountbutton}
-                on:click={() => OpenPage("profilepage")}
-                class="headerButton">My account</button
-            >
+
             <button
                 on:click={() => OpenPage("settings")}
                 class="headerButton endheaderbuttons">Settings</button
             >
 
             <div class="pfpbutton">
-                <button on:click={() => OpenPage("register")} style="position:absolute;width:50px;height:50px;top:20px;border:none;background-color: Transparent;"></button>
+                <button on:click={() => PfpButton()} style="position:absolute;width:50px;height:50px;top:20px;border:none;background-color: Transparent;"></button>
                 <img
                 src={pfp}
                 alt=""

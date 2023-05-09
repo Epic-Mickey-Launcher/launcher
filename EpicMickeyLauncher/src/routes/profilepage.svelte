@@ -2,8 +2,8 @@
 <script>
     import { onMount } from "svelte";
     import Userprofilemodnode from "./components/userprofilemodnode.svelte";
-    import { Subscribe } from "./library/callback";
-    import { GetUserInfo, loggedin, OnSignedIn, POST, staticAssetsLink } from "./library/networking";
+    import { OnSignedIn, POST, staticAssetsLink } from "./library/networking";
+    import { GetData, SetData } from "./library/datatransfer";
     
     let isownerofprofile;
     let modNodeGroup;
@@ -21,7 +21,19 @@
 
        console.log(userinfo)
 
-       let profileinfo = await POST("getprofileinfo", {id: userinfo.id, username:null})
+       //used for when visiting other users profiles 
+       let idofprofile = await GetData("profile_id")
+
+       let profileinfo;
+
+       if(idofprofile != "")
+       {
+        profileinfo = await POST("getprofileinfo", {id: idofprofile, username:null});
+        SetData("profile_id", "")
+       }
+       else{
+        profileinfo = await POST("getprofileinfo", {id: userinfo.id, username:null});
+       }
 
        console.log(profileinfo)
 

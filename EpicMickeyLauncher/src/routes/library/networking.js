@@ -51,7 +51,6 @@ export async function Login(userinfo){
       })
    }
    accountinfo = finalinfo
-   console.log(finalinfo)
  await WriteToken(finalinfo.token)
  loggedin = true;
  Invoke("SignedIn", finalinfo)
