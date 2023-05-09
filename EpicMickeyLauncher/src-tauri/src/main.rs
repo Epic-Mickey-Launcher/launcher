@@ -30,6 +30,7 @@ use fs_extra::dir::copy;
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles {
     name: String,
+    modid: String,
     files: Vec<String>,
     texturefiles: Vec<String>,
     active: bool,
@@ -70,7 +71,7 @@ fn remove_first(s: &str) -> Option<&str> {
 }
 
 #[tauri::command]
-async fn change_mod_status(json: String, dumploc: String, gameid: String) {
+async fn change_mod_status(json: String, dumploc: String, gameid: String, modid: String) {
     let data: ChangedFiles = serde_json::from_str(&json).unwrap();
 
     let texturefiles = data.texturefiles;
@@ -88,7 +89,7 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String) {
     let name = data.name;
 
     if active {
-        download_mod("".to_string(), name, dumploc, gameid).await;
+        download_mod("".to_string(), name, dumploc, gameid, modid).await;
     } else {
         //this is identical to delete_mod so combining both into a function would be a good practice
 
@@ -184,7 +185,7 @@ async fn delete_mod(json: String, dumploc: String, gameid: String) {
 }
 
 #[tauri::command]
-async fn download_mod(url: String, name: String, dumploc: String, gameid: String) -> String {
+async fn download_mod(url: String, name: String, dumploc: String, gameid: String, modid: String) -> String {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml/cachedMods");
 
@@ -341,6 +342,8 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             }
         }
 
+        println!("{}", path_datafiles.display());
+
         for file in &files {
             let mut source = PathBuf::new();
             source.push(&dumploc);
@@ -351,8 +354,10 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             destination.push(&path_backup);
             destination.push(file);
 
-            if std::path::Path::new(&source).exists()
-                && !std::path::Path::new(&destination).exists()
+            println!("{}", source.display());
+            println!("{}", destination.display());
+
+            if std::path::Path::new(&source).exists() && !std::path::Path::new(&destination).exists()
             {
                 fs::copy(&source, destination).expect("couldn't copy file to backup");
             }
@@ -418,6 +423,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         name: name,
         files: files_to_restore,
         texturefiles: texturefiles,
+        modid: modid,
         active: true,
     };
 

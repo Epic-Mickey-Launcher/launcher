@@ -15,7 +15,7 @@
             getpfpdata(file)
         }
         else{
-            console.log("nuh uh")
+            console.log("pfp needs to be a png file")
         }
 	}
     async function ApplyChanges(){
@@ -72,6 +72,9 @@
     <span>Change Password:</span> <input placeholder="New Password" bind:this={password} type="password">
 <p>
 <span>Upload a new profile picture: </span> <input bind:files={files} type="file"> <img src="img/waren.png" alt="" style="width:30px;margin-bottom:-10px;">
+
+<p>
+<button>Log Out</button>
 <p></p>
 <button>Delete Account</button>
 <p></p>

@@ -33,9 +33,15 @@
 <main>
     <div class="gamenode">
         <img class="gamebuttonimage" src={imgBackgroundURL} alt="" />
-        <img class="gamelogo" src={imgLogoURL} alt="" />
-        <button on:click={OpenGame} class="gameplaybutton">Play</button>
-        <button on:click={OpenLevelLoader} class="gamesettings">...</button>
+        <div style="position:relative;">
+            <img class="gamelogo" src={imgLogoURL} alt="" />
+        </div>
+
+        <div style="position:relative;bottom:110px;left:400px;">
+            <button on:click={OpenGame} class="gameplaybutton">Play</button>
+            <button on:click={OpenLevelLoader} class="gamesettings">...</button>
+        </div>
+      
         <plaintext class="error">{errorMSG}</plaintext>
         <plaintext class="nameofbuild">sds</plaintext>
     </div>
@@ -67,9 +73,6 @@
     }
 
     .gameplaybutton {
-        position: relative;
-        left: 200px;
-        bottom: 90px;
         padding: 10px 20px;
         background: rgb(2, 0, 36);
         background: linear-gradient(
@@ -104,9 +107,6 @@
         );
     }
     .gamesettings {
-        position: relative;
-        left: 200px;
-        bottom: 90px;
         padding: 10px 5px;
         background: rgb(2, 0, 36);
         background: linear-gradient(

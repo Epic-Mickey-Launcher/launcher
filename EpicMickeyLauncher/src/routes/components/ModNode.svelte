@@ -12,6 +12,7 @@
     export let downloadLink = "";
     export let author = "";
     export let modid = ""
+    let authoraccountexists = true;
     let authorname = "";
     export let gamedata;
 
@@ -19,6 +20,7 @@
 
     function ViewPage(){
         SetData("modpage_id", modid)
+        SetData("modpage_dumploc", gamedata.path)
         window.open("#/modpage", "_self")
     }
 
@@ -27,6 +29,7 @@
         let authorinfo = await POST("getaccount", {id:author})
 
         if(authorinfo.username == null){
+            authoraccountexists = false;
              authorname = "Deleted Account"
         }
         else{
@@ -43,14 +46,21 @@
             await ReadFile(gamedata.path + "/EMLMods.json")
         );
 
-        if (modsData.find((r) => r.name == modName)) {
+        if (modsData.find((r) => r.modid == modid)) {
             downloadButton.textContent = "Already Installed";
-            downloadButton.textContent = true;
+            downloadButton.disabled = true;
         } else {
             downloadButton.disabled = false;
             downloadButton.textContent = "Download";
         }
     }
+
+    async function OpenProfileOfAuthor(){
+        if(!authoraccountexists)return;
+        SetData("profile_id", author)
+        window.open("#/profilepage", "_self")
+    }
+
 
     async function Download() {
         let modInstallElement = new ModInstall({
@@ -70,6 +80,7 @@
             url: downloadLink,
             name: modName,
             dumploc: gamedata.path,
+            modid: modid.toString(),
             gameid: gameid,
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
@@ -90,7 +101,7 @@
 
 <div class="modNodeDiv">
     <h3>{modName}</h3>
-    <h4>Author:<button class="hyperlinkbutton">{authorname}</button> </h4>
+    <h4>Author:<button on:click={OpenProfileOfAuthor} class="hyperlinkbutton">{authorname}</button> </h4>
     <h5>Description: {description}</h5>
     <img class="modNodeImg" alt="" src={iconLink} />
     <button bind:this={downloadButton} on:click={Download}>Download</button>
