@@ -1,6 +1,13 @@
-<label class="inputfile" for="fileupload">
-    <span style="  position: relative;  top: 50%;">Click the box to upload.</span>
-</label>
+
+<div bind:this={uploadModDiv}>
+    <label class="inputfile" for="fileupload">
+        <span style="  position: relative;  top: 50%;">Click the box to upload.</span>
+    </label>
+</div>
+
+<div bind:this={waitDiv} style="display:none;"><h1>Please Wait...</h1></div>
+<div bind:this={resultDiv} style="display:none;"><h1>Success!</h1></div>
+
 <input on:drop={dropFile} bind:files={files} id="fileupload" style="display:none;" type="file"/>
 
 <style>
@@ -19,6 +26,9 @@
 <script>
     import { UploadMod } from "./library/networking";
 
+    let uploadModDiv;
+    let waitDiv;
+    let resultDiv;
 
 
     let files;
@@ -27,7 +37,13 @@
 		let file = files[0];
 
         if(file.name.endsWith(".zip")){
-            uploadFile(file)
+            uploadFile(file, () => {
+                waitDiv.style.display = "none"
+                resultDiv.style.display = "block"
+            })
+            uploadModDiv.style.display = "none"
+            waitDiv.style.display = "block"
+
         }
         else{
             console.log("nuh uh")
@@ -35,18 +51,11 @@
 	}
 
     function dropFile(){
-        console.log("farts gibbel")
+     
     }
 
-    function uploadFile(file) {
-   var reader = new FileReader();
-   reader.readAsDataURL(file);
-   reader.onload = function () {
-     UploadMod(reader.result)
-   };
-   reader.onerror = function (error) {
-     
-   };
-}
+    function uploadFile(file, cb) {
+     UploadMod(file, cb)
+    }
 
 </script>
