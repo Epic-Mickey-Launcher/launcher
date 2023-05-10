@@ -190,7 +190,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
     path.push(r"com.memer.eml/cachedMods");
 
     let mut full_path = path.clone();
-    full_path.push(&name);
+    full_path.push(&modid);
 
 
     let os = env::consts::OS;
@@ -250,8 +250,6 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
     path_textures.push(&json_data.custom_textures_path);
     path_datafiles.push(&json_data.custom_game_files_path);
-
-    println!("{}", path_datafiles.display());
     
     let mut files_to_restore: Vec<String> = Vec::new();
 
@@ -293,15 +291,15 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             if !p.path().is_file() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
 
-                let dont_end_with = format!(r"{}", json_data.custom_game_files_path);
+                let extra_slash = if json_data.custom_game_files_path.starts_with(r"\") || json_data.custom_game_files_path.starts_with("/") {""} else {r"\"};
+
+                let dont_end_with = format!(r"{}{}", extra_slash, json_data.custom_game_files_path);
 
                 if p_str.ends_with(&dont_end_with) {
                     continue;
                 }
 
-                let p_str_shortened = &p_str.replace(&path_datafiles_str, "");
-
-                println!("{} shortened version", p_str_shortened);
+                let p_str_shortened = p_str.replace(&path_datafiles_str, "");
 
                 //get rid of slash
 
@@ -342,8 +340,6 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             }
         }
 
-        println!("{}", path_datafiles.display());
-
         for file in &files {
             let mut source = PathBuf::new();
             source.push(&dumploc);
@@ -354,8 +350,6 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             destination.push(&path_backup);
             destination.push(file);
 
-            println!("{}", source.display());
-            println!("{}", destination.display());
 
             if std::path::Path::new(&source).exists() && !std::path::Path::new(&destination).exists()
             {

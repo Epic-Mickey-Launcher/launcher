@@ -1,5 +1,5 @@
-export const serverLink = 'http://localhost:3002/';
-export const staticAssetsLink = 'http://localhost:3002/';
+export const serverLink = 'https://api.memerdev.com/';
+export const staticAssetsLink = 'https://api.memerdev.com/';
 export let loggedin = false;
 import { WriteToken, ReadToken } from "./configfiles.js";
 import { Subscribe, Invoke } from "./callback.js";
@@ -21,9 +21,10 @@ export async function Register(userinfo){
   Login({token: info.token})
 }
 
-export async function UploadMod(modfile){
+export async function UploadMod(modfile, cb){
   let info = await GetUserInfo()
-  let moduploadresult = await POST("modupload", {token: info.token, modfile:modfile})
+  let moduploadresult = await MultipartPOST("modupload", {token: info.token, modfile:modfile})
+  cb()
 }
 
 export async function OnSignedIn(cb){
@@ -66,6 +67,21 @@ export async function GetUserInfo(){
   }
 }
 
+export async function MultipartPOST(route, data)
+{
+  const formData = new FormData();
+  for (const name in data)
+  {
+    formData.append(name, data[name])
+  }
+  const res = await fetch(serverLink + route, {
+    method: 'POST',
+  
+    body: formData
+  });
+  return await res;
+}
+
 export async function POST(route, data)
 {
      const res = await fetch(serverLink + route, {
@@ -74,6 +90,7 @@ export async function POST(route, data)
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
+    
     body: JSON.stringify(data)
   });
   const content = await res.json();

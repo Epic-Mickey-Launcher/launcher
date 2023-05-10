@@ -82,6 +82,7 @@
         invoke("change_mod_status", {
             json: jsonString,
             dumploc: dumploc,
+            modid: jsonToObject.modid,
             gameid: gameid,
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
