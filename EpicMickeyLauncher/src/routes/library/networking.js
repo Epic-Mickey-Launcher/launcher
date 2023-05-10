@@ -1,4 +1,4 @@
-export const serverLink = 'http://localhost:3002/eml/';
+export const serverLink = 'http://localhost:3002/';
 export const staticAssetsLink = 'http://localhost:3002/';
 export let loggedin = false;
 import { WriteToken, ReadToken } from "./configfiles.js";
