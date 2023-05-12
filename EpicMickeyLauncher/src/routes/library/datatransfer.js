@@ -19,6 +19,6 @@ export function GetData(name){
       return data.value;
    }
    else{
-    return "";
+    return null;
    }
 }

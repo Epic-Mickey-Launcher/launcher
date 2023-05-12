@@ -37,6 +37,10 @@
     import { GetToken, POST, UploadMod } from "./library/networking";
     import { WriteFile } from "./library/configfiles";
     import ModInstall from "./components/ModInstall.svelte";
+    import { onMount } from "svelte";
+    import { GetData, SetData } from "./library/datatransfer";
+
+    let replacingMod;
 
     let uploadModDiv;
     let waitDiv;
@@ -47,6 +51,11 @@
         uploadModDiv.style.display = "none"
         largeMod.style.display = "block"
     }
+
+    onMount(async () => {
+        replacingMod = GetData("modupload_id")
+        SetData("modupload_id", "")
+    })
 
 
     let files;
@@ -90,7 +99,8 @@
         modInstallElement.action = "Uploading";
         modInstallElement.modIcon = "img/icon.png";
         modInstallElement.modName = v.modname;
-        await POST("moduploadnonhosted", {token: token, link: inputlink.value})
+        await POST("moduploadnonhosted", {token: token, link: inputlink.value, replacing:replacingMod})
+        replacingMod = null
         modInstallElement.$destroy();
         result = "Mod Request Sent! It might take a while for the server to download the mod, so give it a moment."
         waitDiv.style.display = "none"
@@ -113,7 +123,8 @@
                 else{
                     uploadModDiv.style.display = "none"
                     waitDiv.style.display = "block"
-                    UploadMod(file, cb)
+                    UploadMod(file, cb, replacingMod)
+                    replacingMod = null
                 }
             
     }

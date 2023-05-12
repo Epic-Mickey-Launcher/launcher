@@ -122,6 +122,7 @@
     }
 
     .header {
+        box-shadow: 2px 2px 10px rgb(0, 0, 0);
         border-radius: 10px;
         display: flex;
         columns: 1rem 1rem;
@@ -133,7 +134,7 @@ background: linear-gradient(143deg, rgba(66,66,66,1) 0%, rgba(62,62,62,1) 100%);
     }
     .headerButton {
         z-index: 1;
-        width: 10%;
+        width: 20%;
         border: none;
         background-color: rgb(36, 36, 36);
         transition-duration: 0.1s;

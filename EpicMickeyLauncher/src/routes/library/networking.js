@@ -26,9 +26,9 @@ export async function Register(userinfo){
   Login({token: info.token})
 }
 
-export async function UploadMod(modfile, cb){
+export async function UploadMod(modfile, cb, r){
   let info = await GetUserInfo()
-  let moduploadresult = await MultipartPOST("modupload", {token: info.token, modfile:modfile})
+  let moduploadresult = await MultipartPOST("modupload", {token: info.token, modfile:modfile, replacing:r})
   cb()
 }
 

@@ -45,11 +45,15 @@
    }
 
    async function GetAllMods(modlisttoget) {
+      
       let data = await GET("getmods")
        
       console.log(data)
      
       data.modlist.forEach(async (e) => {
+
+         if(e.game == currentSelectedGame)
+         {
          let modNode = new ModNode({
             target: ModList,
          });
@@ -66,11 +70,12 @@
          modNode.gamedata = jsonData.find((r) => r.game == currentSelectedGame);
          modNode.Init();
 
-         allspawnednodes.push(modNode);
+         allspawnednodes.push(modNode);  
+         }
       });
    }
 </script>
-<div style="display:flex; width:100%; justify-content:center;">
+<div style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;">
    <select
    class="dropdown"
    bind:value={selectedgamebuild}
@@ -87,11 +92,9 @@
       {/each}
    {/await}
 </select>
-
 <a href="#/uploadmod">Upload Mod</a>
+<input placeholder="Search" style="margin-left:30px;">
 </div>
-
-<p>
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 

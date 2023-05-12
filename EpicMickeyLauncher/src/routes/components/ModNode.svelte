@@ -112,16 +112,18 @@
     .modNodeDiv {
         z-index: -1;
         border: 2px solid white;
+        background-color: rgb(31, 31, 31);
         border-radius: 20px;
         padding: 10px 10px;
         width: 50%;
         margin-right: auto;
         margin-left: auto;
         margin-bottom: 20px;
+        box-shadow: 2px 2px 10px rgb(0, 0, 0);
     }
 
     .modNodeImg {
-        z-index: -1;
+        z-index: 1;
         width: 120px;
         height: 120px;
         bottom: 133px;

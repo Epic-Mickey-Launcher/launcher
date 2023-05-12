@@ -4,6 +4,7 @@
     import Userprofilemodnode from "./components/userprofilemodnode.svelte";
     import { OnSignedIn, POST, loggedin, staticAssetsLink } from "./library/networking";
     import { GetData, SetData } from "./library/datatransfer";
+    import { Subscribe } from "./library/callback";
     
     let isownerofprofile;
     let modNodeGroup;
@@ -14,6 +15,8 @@
      
     let profilepage;
     let err;
+
+    let callback
 
     onMount(async () => {
 
@@ -65,12 +68,9 @@
                 }
             })
        })
+
         }
-
-        OnSignedIn(cb)
-
-        // @ts-ignore
-       
+        Subscribe("SignedIn", cb)
     })
 </script>
 
@@ -78,6 +78,8 @@
     <img class="pfp" src={pfplink} alt="">
     <br>
     <span style="font-size:30px;">{username}</span>
+    <p>
+    <span style="border:1px solid red;padding:3px;color:red;display:none;">ADMIN</span>
     <p>
     <span>{bio}</span>
     <div style="border: 2px solid yellow;width:120px;margin:auto;border-radius:30px;display:none;"><p style="color:yellow;">role</p></div>
