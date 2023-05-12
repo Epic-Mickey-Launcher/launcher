@@ -15,10 +15,11 @@ export function Invoke(name, args) {
     allcallbacks.forEach(e => {
         e.callback(args)
 
-        if(e.persistent == false){
-            let index = allcallbacks.indexOf(e)
+        if(!e.persistent){
+            
+            let index = callbacks.indexOf(e)
 
-            allcallbacks.splice(index, 1)
+            callbacks.splice(index, 1)
         }
     })
 }

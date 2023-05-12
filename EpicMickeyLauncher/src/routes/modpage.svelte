@@ -36,7 +36,7 @@
                 ownercontrols.style.display = "block"
             }
         }
-        })
+        }, false)
 
         if(loggedin)
         {
@@ -58,6 +58,13 @@
         {
             window.open("#/modmarket", "_self")
         }
+    }
+
+    function UpdateMod()
+    {
+        console.log(modinfo.id)
+        SetData("modupload_id", modinfo.id)
+        window.open("#/uploadmod", "_self")
     }
 
 
@@ -134,7 +141,7 @@
         <button on:click={() => window.open("#/modmarket", "_self")}>Go back to Mod Market</button>
         <p>
         <div style="display:none;" bind:this={ownercontrols}>
-            <button>Update Mod</button> <button on:click={DeleteMod}>Delete Mod</button>
+            <button on:click={UpdateMod}>Update Mod</button> <button on:click={DeleteMod}>Delete Mod</button>
         </div>
     </div>
 </div>
