@@ -1,10 +1,11 @@
 <script>
     import { onMount } from "svelte";
     import { GetData, SetData } from "./library/datatransfer";
-    import { POST, staticAssetsLink } from "./library/networking";
+    import { GetId, GetToken, POST, loggedin, staticAssetsLink } from "./library/networking";
     import { ReadFile, WriteFile } from "./library/configfiles";
     import ModInstall from "./components/ModInstall.svelte";
     import { invoke } from "@tauri-apps/api/tauri";
+    import { Subscribe } from "./library/callback";
 
     let authoraccountexists = true;
     let modid;
@@ -24,8 +25,41 @@
         else{
             authorname = userinfo.username;
         }
+
+
+        Subscribe("SignedIn", (m) => {
+        if(m.error != 1)
+        {
+            console.log(modinfo)
+            if(modinfo.author == m.id)
+            {
+                ownercontrols.style.display = "block"
+            }
+        }
+        })
+
+        if(loggedin)
+        {
+            let id = await GetId();
+            if(modinfo.author == id)
+            {
+                ownercontrols.style.display = "block"
+            }
+        }
+
         CheckIfDownloaded()
     })
+
+    async function DeleteMod()
+    {
+        let id = await GetToken();
+        let res = await POST("deletemod", {token:id, id: modid})
+        if(res.error === 0)
+        {
+            window.open("#/modmarket", "_self")
+        }
+    }
+
 
     function Download()
     {
@@ -81,6 +115,7 @@
         window.open("#/profilepage", "_self")
     }
 
+    let ownercontrols;
     let downloadStatus = "Download";
 
 </script>
@@ -97,6 +132,10 @@
         <p>
         <button bind:this={downloadButton}  on:click={Download}>{downloadStatus}</button>
         <button on:click={() => window.open("#/modmarket", "_self")}>Go back to Mod Market</button>
+        <p>
+        <div style="display:none;" bind:this={ownercontrols}>
+            <button>Update Mod</button> <button on:click={DeleteMod}>Delete Mod</button>
+        </div>
     </div>
 </div>
 

@@ -10,6 +10,11 @@ export async function SignIn(userinfo){
  await Login(userinfo)
 }
 
+export async function SetLoggedIn(l)
+{
+  loggedin = l
+}
+
 export async function Register(userinfo){
   let info = await POST("register", {username: userinfo.username, password:userinfo.password})
 
@@ -25,6 +30,14 @@ export async function UploadMod(modfile, cb){
   let info = await GetUserInfo()
   let moduploadresult = await MultipartPOST("modupload", {token: info.token, modfile:modfile})
   cb()
+}
+
+export async function GetToken()
+{
+  return accountinfo.token;
+}
+export async function GetId(){
+  return accountinfo.id;
 }
 
 export async function OnSignedIn(cb){
@@ -51,10 +64,19 @@ export async function Login(userinfo){
        password:userinfo.password
       })
    }
-   accountinfo = finalinfo
- await WriteToken(finalinfo.token)
- loggedin = true;
- Invoke("SignedIn", finalinfo)
+
+   if(finalinfo != null)
+   {
+    accountinfo = finalinfo
+    await WriteToken(finalinfo.token)
+    loggedin = true;
+    Invoke("SignedIn", finalinfo)
+   }
+   else{
+    loggedin = false
+    Invoke("SignedIn", {error:1})
+   }
+
 }
 
 export async function GetUserInfo(){

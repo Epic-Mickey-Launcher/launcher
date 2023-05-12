@@ -1,4 +1,5 @@
 <script>
+    import { Subscribe } from "./library/callback";
     import { Register, SignIn } from "./library/networking";
 
     let user;
@@ -9,7 +10,6 @@
    if(type == 1)
    {
 //login
-console.log("butts farts")
 await SignIn({username:user, password:pass});
 
    }
@@ -17,6 +17,12 @@ await SignIn({username:user, password:pass});
 //register
 await Register({username:user, password:pass})
    }
+   Subscribe("SignedIn", (c) => {
+      if(c.error != 1)
+      {
+         window.open("#/profilepage", "_self")
+      }
+   }, false)
     }
 
 </script>

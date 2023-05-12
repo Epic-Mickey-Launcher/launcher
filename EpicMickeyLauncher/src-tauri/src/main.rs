@@ -39,6 +39,7 @@ struct ChangedFiles {
 #[derive(Serialize, Deserialize)]
 struct ModInfo {
     name: String,
+    game: String,
     description: String,
     dependencies: Vec<String>,
     custom_textures_path: String,
@@ -52,7 +53,8 @@ fn main() {
             playgame,
             download_mod,
             change_mod_status,
-            delete_mod
+            delete_mod,
+            validate_mod
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -182,6 +184,90 @@ async fn delete_mod(json: String, dumploc: String, gameid: String) {
     }
 
     println!("Proccess ended");
+}
+
+#[derive(Serialize, Deserialize)]
+struct ValidationInfo{
+    modname: String,
+    modicon: String,
+    validated: bool
+}
+
+#[tauri::command]
+async fn validate_mod(url: String, local: bool) -> ValidationInfo {
+
+    let mut path_imgcache = dirs_next::config_dir().expect("could not get config dir");
+    path_imgcache.push("cache");
+
+    fs::create_dir_all(&mut path_imgcache).expect("Failed to create folders.");
+
+    path_imgcache.push("temp.png");
+
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/TMP");
+
+    let mut json_path = path.clone();
+    json_path.push("mod.json");
+
+    let mut icon_path = path.clone();
+ 
+
+    let buffer;
+    if !local {
+        buffer = reqwest::get(url)
+            .await
+            .expect("fail")
+            .bytes()
+            .await
+            .expect("get bytes FAIL");
+    } else {
+        let f = File::open(url).expect("Failed to open local file");
+        let mut reader = BufReader::new(f);
+        let mut buff = Vec::new();
+        reader
+            .read_to_end(&mut buff)
+            .expect("Failed to read bytes from local file");
+        let mut buffer_to_bytes = BytesMut::new();
+        buffer_to_bytes.put(buff.as_slice());
+        buffer = buffer_to_bytes.into();
+    }
+
+    fs::create_dir_all(&mut path).expect("Failed to create folders.");
+
+    let bytes = buffer;
+    zip_extract::extract(Cursor::new(bytes), &path, false).expect("failed to extract");
+ 
+    let mut validation = ValidationInfo {
+        modname:"".to_string(),
+        modicon:"".to_string(),
+        validated: false
+    };
+
+    if Path::exists(&json_path){
+        
+        let json_string = fs::read_to_string(&json_path).expect("mod.json does not exist or could not be read");
+        let json_data: ModInfo = serde_json::from_str(&json_string).expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+        icon_path.push(json_data.icon_path);
+        
+        if Path::exists(&icon_path)
+        {
+            fs::copy(icon_path, &path_imgcache).expect("Could not copy icon file to cache");
+            validation.validated = true;
+            validation.modicon = path_imgcache.to_str().expect("Couldn't convert path to string.").to_string();
+            validation.modname = json_data.name;
+            fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+            validation
+        }
+        else{
+            fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+            validation
+        }
+    }
+    else{
+        fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+        validation
+    }
+
 }
 
 #[tauri::command]

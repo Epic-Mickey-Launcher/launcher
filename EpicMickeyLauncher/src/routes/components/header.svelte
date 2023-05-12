@@ -1,18 +1,27 @@
+<svelte:options accessors={true} />
 <script>
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
     import { ReadToken } from "../library/configfiles";
-    import {Login, staticAssetsLink } from "../library/networking";
+    import {Login, SetLoggedIn, loggedin, staticAssetsLink } from "../library/networking";
     import {Subscribe} from "../library/callback.js"
     let pfp;
 
-    let loggedin = false;
+    export async function ForceSetPFP(p)
+    {
+       pfp = p
+    }
+
 
     onMount(async () => {
         let cb = (userinfo) => {
-            if (userinfo.error == 0) {
-                loggedin = true;
+            if (userinfo.error != 1) {
+                SetLoggedIn(true)
                 pfp = staticAssetsLink + "img/" + userinfo.pfp + "?" + new Date().getTime();;
+            }
+            else{
+                SetLoggedIn(false)
+                pfp = "img/loggedoutpfp.jpeg";
             }
         };
 
@@ -117,7 +126,8 @@
         display: flex;
         columns: 1rem 1rem;
         width: 100%;
-        background-color: #555555;
+        background: rgb(66,66,66);
+background: linear-gradient(143deg, rgba(66,66,66,1) 0%, rgba(62,62,62,1) 100%);
         padding: 5px 0px;
         justify-content: left;
     }

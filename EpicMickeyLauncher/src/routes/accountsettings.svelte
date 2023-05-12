@@ -1,6 +1,8 @@
 <script>
     import { onMount } from "svelte";
-    import { GetUserInfo, OnSignedIn, POST } from "./library/networking";
+    import { GetToken, GetUserInfo, OnSignedIn, POST, SetLoggedIn, loggedin } from "./library/networking";
+    import { SetData } from "./library/datatransfer";
+    import { WriteToken } from "./library/configfiles";
 
     let username;
     let password;
@@ -40,6 +42,29 @@
         }
          }
     }
+
+async function Logout()
+{
+    WriteToken("")
+    SetLoggedIn(false)
+    window.open("#/", "_self") 
+}
+
+    async function DeleteAccount()
+    {
+        if(confirm("Are you sure you want to delete your account? All the mods you currently have on your account will stay up on the Mod Market.")){
+            let token = await GetToken()
+            let res = await POST("deleteacc", {token: token})
+
+            if(res.error === 0)
+            {
+                WriteToken("")
+                
+                window.open("#/", "_self")
+            }
+        }
+    }
+
     function getpfpdata(file) {
    var reader = new FileReader();
    reader.readAsDataURL(file);
@@ -74,8 +99,8 @@
 <span>Upload a new profile picture: </span> <input bind:files={files} type="file"> <img src="img/waren.png" alt="" style="width:30px;margin-bottom:-10px;">
 
 <p>
-<button>Log Out</button>
+<button on:click={Logout}>Log Out</button>
 <p></p>
-<button>Delete Account</button>
+<button on:click={DeleteAccount}>Delete Account</button>
 <p></p>
 <button style="width:30%;" on:click={ApplyChanges}>Apply Changes</button>

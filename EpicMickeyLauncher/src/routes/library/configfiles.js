@@ -1,5 +1,5 @@
 
-import {BaseDirectory, exists, writeTextFile, readTextFile, createDir} from "@tauri-apps/api/fs"
+import {BaseDirectory, exists, writeTextFile, readTextFile, createDir,} from "@tauri-apps/api/fs"
 import { appLocalDataDir }  from '@tauri-apps/api/path';
 
 async function DataFolderExists(){
@@ -38,6 +38,8 @@ export async function WriteFile(content, file)
 {
   await writeTextFile({path: file, contents: content})
 }
+
+
 export async function ReadFile(file)
 {
   let content = await readTextFile(file)
