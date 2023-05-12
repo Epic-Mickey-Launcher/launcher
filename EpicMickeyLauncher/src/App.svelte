@@ -13,14 +13,24 @@
     import ProfilePage from "./routes/profilepage.svelte";
     import modpage from "./routes/modpage.svelte";
     import accountsettings from "./routes/accountsettings.svelte";
-    import { Login } from "./routes/library/networking";
+    import { Login, loggedin } from "./routes/library/networking";
+    import { Invoke } from "./routes/library/callback";
+
+    let header;
 
     async function RouteLoaded() {
      //login
+
+     console.log(loggedin)
+
      let token = await ReadToken();
          if(token != "")
          {
             Login({token: token});
+         }
+         else{
+              Invoke("SignedIn", {error:1})
+              header.ForceSetPFP("img/loggedoutpfp.jpeg")
          }
     }
 
@@ -42,6 +52,6 @@
 </script>
 
 <main>
-    <Header/>
+    <Header bind:this={header}/>
     <Router {routes} on:routeLoaded={RouteLoaded}/>
 </main>
