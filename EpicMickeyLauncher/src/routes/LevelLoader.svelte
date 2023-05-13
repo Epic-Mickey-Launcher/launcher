@@ -132,6 +132,7 @@
         invoke("download_mod", {
             url: selectedPath,
             name: filename,
+            modid: Date.now().toString(),
             dumploc: data.path,
             gameid: gameid,
         }).then(async (json) => {

@@ -1,15 +1,26 @@
 
-import {BaseDirectory, exists, writeTextFile, readTextFile} from "@tauri-apps/api/fs"
-import { appLocalDataDir } from '@tauri-apps/api/path';
+import {BaseDirectory, exists, writeTextFile, readTextFile, createDir,} from "@tauri-apps/api/fs"
+import { appLocalDataDir }  from '@tauri-apps/api/path';
+
+async function DataFolderExists(){
+  let path = await appLocalDataDir()
+  let pathExists = await exists(path);
+  if(!pathExists)
+  {
+    await createDir(path)
+  }
+}
 
 export async function WriteToJSON(content, file)
 {
+  DataFolderExists()
   let path = await appLocalDataDir()
   await writeTextFile({path: path + file, contents: content})
 }
 
 export async function ReadJSON(file)
 {
+  DataFolderExists()
   let path = await appLocalDataDir()
   let content = await readTextFile(path + file)
   return JSON.parse(content);
@@ -17,6 +28,7 @@ export async function ReadJSON(file)
 
 export async function ReadJSONSync(file)
 {
+  DataFolderExists()
   let path = await appLocalDataDir()
   let content = await readTextFile(path + file)
   return JSON.parse(content);
@@ -26,6 +38,8 @@ export async function WriteFile(content, file)
 {
   await writeTextFile({path: file, contents: content})
 }
+
+
 export async function ReadFile(file)
 {
   let content = await readTextFile(file)
@@ -34,6 +48,38 @@ export async function ReadFile(file)
 export async function FileExists(path){
   return await exists(path)
 }
+
+//for the wii versions of EM1/2
+export async function ReturnGameID(game)
+{
+  switch (game) {
+
+    case "EM1":
+      return "SEME4Q"
+    case "EM2":
+      return "SERE4Q"     
+      
+    default:
+      return undefined
+  }
+}
+
+export async function WriteToken(token)
+{
+  await WriteFile(token, await appLocalDataDir() + "TOKEN")
+}
+
+export async function ReadToken(token)
+{
+  if(await FileExists(await appLocalDataDir() + "TOKEN"))
+  {
+    return await ReadFile(await appLocalDataDir() + "TOKEN")
+  }
+  else{
+    return await ""
+  }
+}
+
 
 export async function InitConfFiles()
 {

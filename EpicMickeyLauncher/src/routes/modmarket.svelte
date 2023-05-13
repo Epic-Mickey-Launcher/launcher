@@ -7,7 +7,7 @@
       return jsonData;
    }
 
-   import { GET, POST } from "./library/networking.js";
+   import { GET, POST, serverLink, staticAssetsLink } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
    import ModsData from "./data/mods.json";
@@ -45,30 +45,38 @@
    }
 
    async function GetAllMods(modlisttoget) {
-      let data;
-      if (modlisttoget == "EM1") {
-         data = ModsData;
-      } else {
-         data = ModsDataEM2;
-      }
-      data.forEach(async (e) => {
+      
+      let data = await GET("getmods")
+       
+      console.log(data)
+     
+      data.modlist.forEach(async (e) => {
+
+         if(e.game == currentSelectedGame)
+         {
          let modNode = new ModNode({
             target: ModList,
          });
-         modNode.modName = e.title;
-         modNode.iconLink = e.iconLink;
+
+         console.log(serverLink + e.icon)
+
+         modNode.modid = e.id;
+         modNode.modName = e.name;
+         modNode.moddataobj = e;
+         modNode.iconLink = staticAssetsLink + e.icon;
          modNode.description = e.description;
-         modNode.downloadLink = e.downloadLink;
+         modNode.downloadLink = staticAssetsLink + e.download;
          modNode.author = e.author;
          modNode.gamedata = jsonData.find((r) => r.game == currentSelectedGame);
          modNode.Init();
 
-         allspawnednodes.push(modNode);
+         allspawnednodes.push(modNode);  
+         }
       });
    }
 </script>
-
-<select
+<div style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;">
+   <select
    class="dropdown"
    bind:value={selectedgamebuild}
    on:change={() => LoadModList()}
@@ -84,6 +92,9 @@
       {/each}
    {/await}
 </select>
+<a href="#/uploadmod">Upload Mod</a>
+<input placeholder="Search" style="margin-left:30px;">
+</div>
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
@@ -115,6 +126,8 @@
       text-align: center;
    }
    .dropdown {
+
+      margin-right:30px;
       background-color: black;
    }
 </style>

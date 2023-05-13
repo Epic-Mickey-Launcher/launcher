@@ -1,7 +1,11 @@
+//note 2self or whoever. macos directory system uses / and not \
+
 #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+
+use std::env;
 
 use bytes::{BufMut, BytesMut};
 use fs_extra::dir::CopyOptions;
@@ -26,6 +30,7 @@ use fs_extra::dir::copy;
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles {
     name: String,
+    modid: String,
     files: Vec<String>,
     texturefiles: Vec<String>,
     active: bool,
@@ -34,9 +39,12 @@ struct ChangedFiles {
 #[derive(Serialize, Deserialize)]
 struct ModInfo {
     name: String,
-    data_path: String,
-    texture_path: String,
+    game: String,
+    description: String,
     dependencies: Vec<String>,
+    custom_textures_path: String,
+    custom_game_files_path: String,
+    icon_path: String,
 }
 
 fn main() {
@@ -45,7 +53,8 @@ fn main() {
             playgame,
             download_mod,
             change_mod_status,
-            delete_mod
+            delete_mod,
+            validate_mod
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -64,7 +73,7 @@ fn remove_first(s: &str) -> Option<&str> {
 }
 
 #[tauri::command]
-async fn change_mod_status(json: String, dumploc: String, gameid: String) {
+async fn change_mod_status(json: String, dumploc: String, gameid: String, modid: String) {
     let data: ChangedFiles = serde_json::from_str(&json).unwrap();
 
     let texturefiles = data.texturefiles;
@@ -82,7 +91,7 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String) {
     let name = data.name;
 
     if active {
-        download_mod("".to_string(), name, dumploc, gameid).await;
+        download_mod("".to_string(), name, dumploc, gameid, modid).await;
     } else {
         //this is identical to delete_mod so combining both into a function would be a good practice
 
@@ -102,9 +111,8 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String) {
             }
         }
 
-        let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
-        dolphin_path.push(Path::new(&gameid));
+        let mut dolphin_path = find_dolphin_dir(gameid);
+    
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -158,9 +166,7 @@ async fn delete_mod(json: String, dumploc: String, gameid: String) {
             }
         }
 
-        let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
-        let dolphin_texture = format!(r"Dolphin Emulator\Load\Textures\{}", gameid);
-        dolphin_path.push(Path::new(&dolphin_texture));
+        let mut dolphin_path = find_dolphin_dir(gameid);
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -180,13 +186,102 @@ async fn delete_mod(json: String, dumploc: String, gameid: String) {
     println!("Proccess ended");
 }
 
-#[tauri::command]
-async fn download_mod(url: String, name: String, dumploc: String, gameid: String) -> String {
-    let mut path = PathBuf::new();
-    path.push("C:/EMLStuff/Data/cachedMods");
-    path.push(&name);
+#[derive(Serialize, Deserialize)]
+struct ValidationInfo{
+    modname: String,
+    modicon: String,
+    validated: bool
+}
 
-    if !Path::new(&path).exists() {
+#[tauri::command]
+async fn validate_mod(url: String, local: bool) -> ValidationInfo {
+
+    let mut path_imgcache = dirs_next::config_dir().expect("could not get config dir");
+    path_imgcache.push("cache");
+
+    fs::create_dir_all(&mut path_imgcache).expect("Failed to create folders.");
+
+    path_imgcache.push("temp.png");
+
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/TMP");
+
+    let mut json_path = path.clone();
+    json_path.push("mod.json");
+
+    let mut icon_path = path.clone();
+ 
+
+    let buffer;
+    if !local {
+        buffer = reqwest::get(url)
+            .await
+            .expect("fail")
+            .bytes()
+            .await
+            .expect("get bytes FAIL");
+    } else {
+        let f = File::open(url).expect("Failed to open local file");
+        let mut reader = BufReader::new(f);
+        let mut buff = Vec::new();
+        reader
+            .read_to_end(&mut buff)
+            .expect("Failed to read bytes from local file");
+        let mut buffer_to_bytes = BytesMut::new();
+        buffer_to_bytes.put(buff.as_slice());
+        buffer = buffer_to_bytes.into();
+    }
+
+    fs::create_dir_all(&mut path).expect("Failed to create folders.");
+
+    let bytes = buffer;
+    zip_extract::extract(Cursor::new(bytes), &path, false).expect("failed to extract");
+ 
+    let mut validation = ValidationInfo {
+        modname:"".to_string(),
+        modicon:"".to_string(),
+        validated: false
+    };
+
+    if Path::exists(&json_path){
+        
+        let json_string = fs::read_to_string(&json_path).expect("mod.json does not exist or could not be read");
+        let json_data: ModInfo = serde_json::from_str(&json_string).expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+        icon_path.push(json_data.icon_path);
+        
+        if Path::exists(&icon_path)
+        {
+            fs::copy(icon_path, &path_imgcache).expect("Could not copy icon file to cache");
+            validation.validated = true;
+            validation.modicon = path_imgcache.to_str().expect("Couldn't convert path to string.").to_string();
+            validation.modname = json_data.name;
+            fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+            validation
+        }
+        else{
+            fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+            validation
+        }
+    }
+    else{
+        fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+        validation
+    }
+
+}
+
+#[tauri::command]
+async fn download_mod(url: String, name: String, dumploc: String, gameid: String, modid: String) -> String {
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/cachedMods");
+
+    let mut full_path = path.clone();
+    full_path.push(&modid);
+
+
+    let os = env::consts::OS;
+
+    if !Path::new(&full_path).exists() {
         // download
         println!("started downloading");
         println!("{}", url);
@@ -215,25 +310,33 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         let bytes = buffer;
 
         // install
-        fs::create_dir_all("C:/EMLStuff/Data/cachedMods").expect("Failed to create folders.");
-
-        let mut file =
-            File::create("C:/EMLStuff/Data/TEMP.zip").expect("failed to create temp file");
-        file.write_all(&bytes).expect("failed to write");
+        fs::create_dir_all(&mut path).expect("Failed to create folders.");
 
         //cache file for later downloads
-        zip_extract::extract(Cursor::new(bytes), &path, false).expect("failed to extract");
+        zip_extract::extract(Cursor::new(bytes), &full_path, false).expect("failed to extract");
 
         println!("done downloading");
     }
 
+    
+
+    let mut path_json = full_path.clone();
+    path_json.push("mod.json");
+
+    
+
+    let json_string = fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
+
+    let json_data: ModInfo = serde_json::from_str(&json_string).expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+
     //inject files
 
-    let mut path_textures = path.clone();
-    let mut path_datafiles = path.clone();
+    let mut path_textures = full_path.clone();
+    let mut path_datafiles = full_path.clone();
 
-    path_textures.push("custtext");
-    path_datafiles.push("files/DATA/files");
+    path_textures.push(&json_data.custom_textures_path);
+    path_datafiles.push(&json_data.custom_game_files_path);
+    
     let mut files_to_restore: Vec<String> = Vec::new();
 
     //inject DATA files into current dump
@@ -274,16 +377,19 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             if !p.path().is_file() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
 
-                if p_str.ends_with(r"/files") {
+                let extra_slash = if json_data.custom_game_files_path.starts_with(r"\") || json_data.custom_game_files_path.starts_with("/") {""} else {r"\"};
+
+                let dont_end_with = format!(r"{}{}", extra_slash, json_data.custom_game_files_path);
+
+                if p_str.ends_with(&dont_end_with) {
                     continue;
                 }
 
-                let p_str_shortened = &p_str.replace(&path_datafiles_str, "");
+                let p_str_shortened = p_str.replace(&path_datafiles_str, "");
 
                 //get rid of slash
 
-                let p_str_final =
-                    remove_first(&p_str_shortened).expect("couldn't remove slash from string");
+                let p_str_final = remove_first(&p_str_shortened).expect("couldn't remove slash from string");
 
                 dirs.push(p_str_final.to_string());
             }
@@ -330,8 +436,8 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             destination.push(&path_backup);
             destination.push(file);
 
-            if std::path::Path::new(&source).exists()
-                && !std::path::Path::new(&destination).exists()
+
+            if std::path::Path::new(&source).exists() && !std::path::Path::new(&destination).exists()
             {
                 fs::copy(&source, destination).expect("couldn't copy file to backup");
             }
@@ -357,10 +463,9 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
     let mut texturefiles: Vec<String> = Vec::new();
 
-    let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
+    let mut dolphin_path = find_dolphin_dir(gameid);
 
-    dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
-    dolphin_path.push(Path::new(&gameid));
+    fs::create_dir_all(&dolphin_path).expect("Failed to create dolphin folder.");
 
     //inject texture files into dolphin config
     if Path::new(&path_textures).exists() {
@@ -398,6 +503,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         name: name,
         files: files_to_restore,
         texturefiles: texturefiles,
+        modid: modid,
         active: true,
     };
 
@@ -405,4 +511,22 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
     println!("Process ended successfully");
     json.into()
+}
+
+fn find_dolphin_dir(gameid: String) -> PathBuf
+{
+    let os = env::consts::OS;
+
+    let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
+
+    if os == "macos"{
+        dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
+        dolphin_path.push(Path::new(r"Dolphin/Load/Textures/"));
+    }
+    else{
+        dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
+    }
+    dolphin_path.push(Path::new(&gameid));
+
+    dolphin_path
 }
