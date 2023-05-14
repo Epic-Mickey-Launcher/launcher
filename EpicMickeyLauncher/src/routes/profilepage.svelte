@@ -24,17 +24,14 @@
 
        let userinfo = m;
 
-       console.log(userinfo)
-
-       //used for when visiting other users profiles 
+       //used for visiting other users profiles 
        let idofprofile = await GetData("profile_id")
 
        let profileinfo;
     
 
-       if(idofprofile != "")
+       if(idofprofile != null)
        {
-        console.log("Punch Bob")
         profileinfo = await POST("getprofileinfo", {id: idofprofile, username:null});
         SetData("profile_id", "")
        }
@@ -47,7 +44,7 @@
         profileinfo = await POST("getprofileinfo", {id: userinfo.id, username:null});
        }
 
-       console.log(profileinfo)
+   
 
         isownerofprofile = userinfo.id == profileinfo.id;
        

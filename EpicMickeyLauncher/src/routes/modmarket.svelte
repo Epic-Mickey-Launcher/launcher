@@ -47,8 +47,6 @@
    async function GetAllMods(modlisttoget) {
       
       let data = await GET("getmods")
-       
-      console.log(data)
      
       data.modlist.forEach(async (e) => {
 
@@ -57,8 +55,6 @@
          let modNode = new ModNode({
             target: ModList,
          });
-
-         console.log(serverLink + e.icon)
 
          modNode.modid = e.id;
          modNode.modName = e.name;

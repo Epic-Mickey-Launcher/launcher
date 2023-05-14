@@ -30,7 +30,6 @@
         Subscribe("SignedIn", (m) => {
         if(m.error != 1)
         {
-            console.log(modinfo)
             if(modinfo.author == m.id)
             {
                 ownercontrols.style.display = "block"
@@ -62,7 +61,6 @@
 
     function UpdateMod()
     {
-        console.log(modinfo.id)
         SetData("modupload_id", modinfo.id)
         window.open("#/uploadmod", "_self")
     }
@@ -70,8 +68,6 @@
 
     function Download()
     {
-        console.log(dumploc)
-
         let gameid;
         gameid = "SEME4Q";
 

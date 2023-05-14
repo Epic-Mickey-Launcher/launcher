@@ -32,7 +32,6 @@
         modInstallElement.description = "This might take a while...";
 
         let gameid;
-        console.log(gamedata);
         if (gamedata.game == "EM1") {
             gameid = "SEME4Q";
         } else {
