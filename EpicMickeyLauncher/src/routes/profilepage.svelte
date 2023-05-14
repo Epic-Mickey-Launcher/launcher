@@ -32,7 +32,7 @@
        let profileinfo;
     
 
-       if(idofprofile != "")
+       if(idofprofile != null)
        {
         console.log("Punch Bob")
         profileinfo = await POST("getprofileinfo", {id: idofprofile, username:null});
@@ -70,7 +70,7 @@
        })
 
         }
-        Subscribe("SignedIn", cb)
+        Subscribe("SignedIn", cb, false)
     })
 </script>
 
