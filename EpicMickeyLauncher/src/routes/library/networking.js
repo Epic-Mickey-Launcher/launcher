@@ -81,7 +81,6 @@ export async function Login(userinfo){
 
 export async function GetUserInfo(){
   if(accountinfo == null){
-    console.log("User is not logged in!")
     return {error:0}
   }
   else{

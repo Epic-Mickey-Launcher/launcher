@@ -71,7 +71,7 @@
 
         }
         else{
-            console.log("nuh uh")
+   
         }
 	}
 

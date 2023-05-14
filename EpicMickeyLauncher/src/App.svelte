@@ -21,8 +21,6 @@
     async function RouteLoaded() {
      //login
 
-     console.log(loggedin)
-
      let token = await ReadToken();
          if(token != "")
          {
