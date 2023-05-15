@@ -17,6 +17,11 @@
         invoke("playgame", {
             dolphin: d.dolphinPath,
             exe: filepath + "/sys/main.dol",
+        }).then(res => {
+            if(res == 1)
+            {
+                alert("Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.")
+            }
         });
     }
 
@@ -130,7 +135,7 @@
     }
 
     .gamelogo:hover {
-        opacity: 0;
+        transform: scale(1.1);
     }
 
     .gamebuttonimage {

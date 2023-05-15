@@ -94,6 +94,15 @@
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
+<!--
+TODO: add a limit to amount of mods that can be on one page and filter them through different chunks
+<div style="display:flex;margin:auto;justify-content:center;width:100%;">
+   <button style="margin-right:10px;" class="hyperlinkbutton">1</button>
+   <button style="margin-right:10px;" class="hyperlinkbutton">2</button>
+   <button style="margin-right:10px;" class="hyperlinkbutton">3</button>
+</div>
+-->
+
 <div class="warning" bind:this={warning}>
    <p style="position:relative;top:400px;">
       You don't have any game builds set up yet!

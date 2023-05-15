@@ -9,9 +9,9 @@
     let isownerofprofile;
     let modNodeGroup;
 
-    let username;
-    let bio;
-    let pfplink;
+    let username = "";
+    let bio = "";
+    let pfplink = "";
      
     let profilepage;
     let err;
@@ -33,7 +33,7 @@
        if(idofprofile != null)
        {
         profileinfo = await POST("getprofileinfo", {id: idofprofile, username:null});
-        SetData("profile_id", "")
+        SetData("profile_id", null)
        }
        else{
         if(!loggedin) {

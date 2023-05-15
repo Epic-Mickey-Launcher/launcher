@@ -61,11 +61,16 @@ fn main() {
 }
 
 #[tauri::command]
-fn playgame(dolphin: String, exe: String) {
-    Command::new(dolphin)
+fn playgame(dolphin: String, exe: String) -> i32 {
+    if Path::new(&dolphin).exists() {
+
+        Command::new(dolphin)
         .arg(&exe)
         .spawn()
         .expect("ls command failed to start");
+        return 0
+    }
+    1
 }
 
 fn remove_first(s: &str) -> Option<&str> {
@@ -377,7 +382,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             if !p.path().is_file() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
 
-                let extra_slash = if json_data.custom_game_files_path.starts_with(r"\") || json_data.custom_game_files_path.starts_with("/") {""} else {r"\"};
+                let extra_slash = if json_data.custom_game_files_path.starts_with(r"\") || json_data.custom_game_files_path.starts_with("/") {""} else {r"/"};
 
                 let dont_end_with = format!(r"{}{}", extra_slash, json_data.custom_game_files_path);
 

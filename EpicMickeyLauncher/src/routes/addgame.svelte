@@ -45,6 +45,13 @@
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
+    if(jsonData.find(r => r.game == gametype) != null)
+    {
+      alert(gametype + " has already been added to your game list. There is no need for two versions of it.")
+      window.open("#/", "_self");
+      return;
+    }
+
     let newData = { path: path + "/DATA", game: gametype, platform: "wii" };
 
     jsonData.push(newData);

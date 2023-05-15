@@ -30,7 +30,7 @@
 
         if(authorinfo.username == null){
             authoraccountexists = false;
-             authorname = "Deleted Account"
+             authorname = "Unknown Account"
         }
         else{
             authorname = authorinfo.username;
@@ -101,7 +101,7 @@
 
 <div class="modNodeDiv">
     <h3>{modName}</h3>
-    <h4>Author:<button on:click={OpenProfileOfAuthor} class="hyperlinkbutton">{authorname}</button> </h4>
+    <h4>Author:<button style="margin-left:5px;" on:click={OpenProfileOfAuthor} class="hyperlinkbutton">{authorname}</button> </h4>
     <h5>Description: {description}</h5>
     <img class="modNodeImg" alt="" src={iconLink} />
     <button bind:this={downloadButton} on:click={Download}>Download</button>
