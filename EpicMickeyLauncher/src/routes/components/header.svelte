@@ -108,6 +108,7 @@
         margin: auto;
         margin-right: 10px;
     }
+    
 
     .pfp {
         pointer-events: none;
