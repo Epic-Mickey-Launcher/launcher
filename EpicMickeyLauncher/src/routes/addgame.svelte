@@ -23,7 +23,6 @@
     path = selectedPath;
     let folderExists = await exists(path + "/DATA");
     if (folderExists) {
-
       //TODO: find a better identifier for different versions because this Sucks!!!
       let verdat = await FileExists(path + "/DATA/files/VERSIONDATA.TXT");
 
@@ -45,9 +44,11 @@
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
-    if(jsonData.find(r => r.game == gametype) != null)
-    {
-      alert(gametype + " has already been added to your game list. There is no need for two versions of it.")
+    if (jsonData.find((r) => r.game == gametype) != null) {
+      alert(
+        gametype +
+          " has already been added to your game list. There is no need for two versions of it."
+      );
       window.open("#/", "_self");
       return;
     }

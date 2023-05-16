@@ -17,17 +17,16 @@
         invoke("playgame", {
             dolphin: d.dolphinPath,
             exe: filepath + "/sys/main.dol",
-        }).then(res => {
-            if(res == 1)
-            {
-                alert("Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.")
+        }).then((res) => {
+            if (res == 1) {
+                alert(
+                    "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings."
+                );
             }
         });
     }
 
-    onMount(async () =>{
-
-    })
+    onMount(async () => {});
 
     function OpenLevelLoader() {
         objectbuffer.set({ game: game, path: filepath });
@@ -46,7 +45,7 @@
             <button on:click={OpenGame} class="gameplaybutton">Play</button>
             <button on:click={OpenLevelLoader} class="gamesettings">...</button>
         </div>
-      
+
         <plaintext class="error">{errorMSG}</plaintext>
         <plaintext class="nameofbuild">sds</plaintext>
     </div>

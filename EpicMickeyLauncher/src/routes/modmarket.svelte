@@ -7,7 +7,12 @@
       return jsonData;
    }
 
-   import { GET, POST, serverLink, staticAssetsLink } from "./library/networking.js";
+   import {
+      GET,
+      POST,
+      serverLink,
+      staticAssetsLink,
+   } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
    import ModsData from "./data/mods.json";
@@ -45,51 +50,53 @@
    }
 
    async function GetAllMods(modlisttoget) {
-      
-      let data = await GET("getmods")
-     
+      let data = await GET("getmods");
+
       data.modlist.forEach(async (e) => {
+         if (e.game == currentSelectedGame) {
+            let modNode = new ModNode({
+               target: ModList,
+            });
 
-         if(e.game == currentSelectedGame)
-         {
-         let modNode = new ModNode({
-            target: ModList,
-         });
+            modNode.modid = e.id;
+            modNode.modName = e.name;
+            modNode.moddataobj = e;
+            modNode.iconLink = staticAssetsLink + e.icon;
+            modNode.description = e.description;
+            modNode.downloadLink = staticAssetsLink + e.download;
+            modNode.author = e.author;
+            modNode.gamedata = jsonData.find(
+               (r) => r.game == currentSelectedGame
+            );
+            modNode.Init();
 
-         modNode.modid = e.id;
-         modNode.modName = e.name;
-         modNode.moddataobj = e;
-         modNode.iconLink = staticAssetsLink + e.icon;
-         modNode.description = e.description;
-         modNode.downloadLink = staticAssetsLink + e.download;
-         modNode.author = e.author;
-         modNode.gamedata = jsonData.find((r) => r.game == currentSelectedGame);
-         modNode.Init();
-
-         allspawnednodes.push(modNode);  
+            allspawnednodes.push(modNode);
          }
       });
    }
 </script>
-<div style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;">
-   <select
-   class="dropdown"
-   bind:value={selectedgamebuild}
-   on:change={() => LoadModList()}
-   bind:this={GamesDropdown}
+
+<div
+   style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;"
 >
-   {#await SetJsonData()}
-      <p>Loading Mod List...</p>
-   {:then data}
-      {#each data as gamebuild}
-         <option value={gamebuild.game}>
-            {gamebuild.game}
-         </option>
-      {/each}
-   {/await}
-</select>
-<a href="#/uploadmod">Upload Mod</a>
-<input placeholder="Search" style="margin-left:30px;">
+   <select
+      class="dropdown"
+      bind:value={selectedgamebuild}
+      on:change={() => LoadModList()}
+      bind:this={GamesDropdown}
+   >
+      {#await SetJsonData()}
+         <p>Loading Mod List...</p>
+      {:then data}
+         {#each data as gamebuild}
+            <option value={gamebuild.game}>
+               {gamebuild.game}
+            </option>
+         {/each}
+      {/await}
+   </select>
+   <a href="#/uploadmod">Upload Mod</a>
+   <input placeholder="Search" style="margin-left:30px;" />
 </div>
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
@@ -131,8 +138,7 @@ TODO: add a limit to amount of mods that can be on one page and filter them thro
       text-align: center;
    }
    .dropdown {
-
-      margin-right:30px;
+      margin-right: 30px;
       background-color: black;
    }
 </style>

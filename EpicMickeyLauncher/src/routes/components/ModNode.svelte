@@ -11,28 +11,26 @@
     export let iconLink = "";
     export let downloadLink = "";
     export let author = "";
-    export let modid = ""
+    export let modid = "";
     let authoraccountexists = true;
     let authorname = "";
     export let gamedata;
 
     let downloadButton;
 
-    function ViewPage(){
-        SetData("modpage_id", modid)
-        SetData("modpage_dumploc", gamedata.path)
-        window.open("#/modpage", "_self")
+    function ViewPage() {
+        SetData("modpage_id", modid);
+        SetData("modpage_dumploc", gamedata.path);
+        window.open("#/modpage", "_self");
     }
 
     export async function Init() {
+        let authorinfo = await POST("getaccount", { id: author });
 
-        let authorinfo = await POST("getaccount", {id:author})
-
-        if(authorinfo.username == null){
+        if (authorinfo.username == null) {
             authoraccountexists = false;
-             authorname = "Unknown Account"
-        }
-        else{
+            authorname = "Unknown Account";
+        } else {
             authorname = authorinfo.username;
         }
 
@@ -55,12 +53,11 @@
         }
     }
 
-    async function OpenProfileOfAuthor(){
-        if(!authoraccountexists)return;
-        SetData("profile_id", author)
-        window.open("#/profilepage", "_self")
+    async function OpenProfileOfAuthor() {
+        if (!authoraccountexists) return;
+        SetData("profile_id", author);
+        window.open("#/profilepage", "_self");
     }
-
 
     async function Download() {
         let modInstallElement = new ModInstall({
@@ -101,7 +98,13 @@
 
 <div class="modNodeDiv">
     <h3>{modName}</h3>
-    <h4>Author:<button style="margin-left:5px;" on:click={OpenProfileOfAuthor} class="hyperlinkbutton">{authorname}</button> </h4>
+    <h4>
+        Author:<button
+            style="margin-left:5px;"
+            on:click={OpenProfileOfAuthor}
+            class="hyperlinkbutton">{authorname}</button
+        >
+    </h4>
     <h5>Description: {description}</h5>
     <img class="modNodeImg" alt="" src={iconLink} />
     <button bind:this={downloadButton} on:click={Download}>Download</button>

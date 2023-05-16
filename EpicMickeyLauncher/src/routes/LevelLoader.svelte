@@ -19,6 +19,15 @@
     let levelLoader;
     let unsavedCmdline;
 
+    let currentLevelsToShow = [];
+
+    function SelectCategory(name) {
+        let pathtoimg = "img/" + name.toLowerCase().replace(" ", "");
+        currentLevelsToShow = levelsData.find(
+            (r) => r.categoryname == name
+        ).levels;
+    }
+
     let search = "";
 
     let selectedLevel = "";
@@ -64,18 +73,6 @@
     let levelEndIndex;
 
     onMount(async () => {
-        levelsData.forEach((level) => {
-            let btn = document.createElement("button");
-            btn.textContent = level.name;
-            btn.style.marginLeft = "3px";
-            btn.style.marginTop = "3px";
-            btn.onclick = function () {
-                SetLevel(level);
-            };
-            levelLoaderButtons.appendChild(btn);
-            buttons.push({ button: btn, level: level });
-        });
-
         let ModsData = await ReadFile(data.path + "/EMLMods.json");
 
         let ModsDataObject = JSON.parse(ModsData);
@@ -148,15 +145,35 @@
     }
 
     function SetLevel(lvl) {
-        unsavedCmdline = cmdline.substring(levelEndIndex, cmdline.length);
+        unsavedCmdline = "";
+        //turn all of the garbage on
+        unsavedCmdline = unsavedCmdline.replace("false", "true");
 
-        let newCmdLine = lvl.path + unsavedCmdline;
+        let newCmdLine = lvl.path;
 
-        unsavedCmdline = newCmdLine;
+        unsavedCmdline = newCmdLine + " -Set PlayerEnableAllAbilities=true";
 
         levelEndIndex = lvl.path.length;
 
-        selectedLevel = lvl.path + "*";
+        selectedLevel = lvl.path;
+    }
+
+    async function PlayGame() {
+        cmdline = unsavedCmdline;
+
+        await WriteFile(cmdline, data.path + "/files/cmdline.txt");
+
+        let d = await ReadJSON("conf.json");
+        invoke("playgame", {
+            dolphin: d.dolphinPath,
+            exe: data.path + "/sys/main.dol",
+        }).then((res) => {
+            if (res == 1) {
+                alert(
+                    "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings."
+                );
+            }
+        });
     }
 
     async function DeleteFromGameList() {
@@ -181,25 +198,6 @@
             levelLoader.style.display = "none";
         } else {
             await window.open("#/", "_self");
-        }
-    }
-
-    function Search(e) {
-        if (input != "") {
-            buttons.forEach((b) => {
-                b.button.style.display = "none";
-            });
-            let allValid = buttons.filter((r) =>
-                r.level.name.toLowerCase().includes(input.toLowerCase())
-            );
-
-            allValid.forEach((b) => {
-                b.button.style.display = "inline-block";
-            });
-        } else {
-            buttons.forEach((b) => {
-                b.button.style.display = "inline-block";
-            });
         }
     }
 
@@ -230,22 +228,44 @@
         <h1>Level Loader</h1>
         <hr />
         <p />
+        <div style="display:flex;align-items:center;justify-content:center;">
+            <div
+                style="width:256px;height:512px; border-radius:10px 0px 0px 10px; overflow: hidden;"
+            >
+                <img
+                    alt=""
+                    style="position:relative;width:256px;height:512px;filter: blur(3px);"
+                    src="/img/em1levelloader/ms.png"
+                />
+                <div
+                    style="position:relative;bottom:500px;display:flex;justify-content:center;flex-direction:column;align-items:center;"
+                >
+                    {#each levelsData as category}
+                        <button
+                            on:click={() =>
+                                SelectCategory(category.categoryname)}
+                            style="width:230px;height:30px;margin-top:10px;"
+                            >{category.categoryname}</button
+                        >
+                    {/each}
+                </div>
+            </div>
 
-        <input
-            style="margin-left: 12px;"
-            bind:value={input}
-            on:input={Search}
-            placeholder="Search..."
-        />
-
-        <div
-            bind:this={levelLoaderButtons}
-            style="background-color:#242424;padding:10px"
-        />
-
-        <div style="width:256px;height:512px;  overflow: hidden;z-index:-2;">
-        <img alt="" style="position:relative;width:256px;height:512px;  filter: blur(3px); " src="/img/em1levelloader/ms.png"> 
-        <button>poodispenserhere </button>  
+            <div
+                style="width:256px;height:512px;border-radius:0px 10px 10px 0px; overflow:hidden;background-color:#1f1f1f;overflow-y: scroll;"
+            >
+                <div
+                    style="position:relative;width:256px;display:flex;justify-content:center;flex-direction:column;align-items:center;"
+                >
+                    {#each currentLevelsToShow as lvl}
+                        <button
+                            on:click={() => SetLevel(lvl)}
+                            style="width:230px;height:30px;margin-top:10px;"
+                            >{lvl.name}</button
+                        >
+                    {/each}
+                </div>
+            </div>
         </div>
 
         <p>Selected Level: {selectedLevel}</p>
@@ -253,13 +273,41 @@
         <hr />
 
         <p>
-            <button on:click={() => ExitLevelLoader(1)}
-                >Set Level and return to Settings</button
-            >
-            <button on:click={() => ExitLevelLoader(2)}
-                >Set Level and Return to Game List</button
+            <button class="play" on:click={() => PlayGame()}>Play</button>
+            <button
+                class="play"
+                style="        border-radius: 0px 10px 10px 0px;"
+                on:click={() => ExitLevelLoader(1)}
+                >Save Level and Return</button
             >
             <plaintext><s>stolen</s> borrowed from RampantLeaf</plaintext>
         </p>
     </div>
+
+    <style>
+        .play {
+            padding: 10px 20px;
+            background: rgb(2, 0, 36);
+            background: linear-gradient(
+                143deg,
+                rgba(2, 0, 36, 1) 0%,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(229, 0, 255, 1) 0%,
+                rgba(133, 0, 196, 1) 100%
+            );
+            border: none;
+            border-radius: 10px 0px 0px 10px;
+            transition-duration: 0.2s;
+        }
+
+        .play:hover {
+            background: linear-gradient(
+                0deg,
+                rgba(2, 0, 36, 1) 0%,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(229, 0, 255, 1) 0%,
+                rgba(133, 0, 196, 1) 100%
+            );
+        }
+    </style>
 </main>

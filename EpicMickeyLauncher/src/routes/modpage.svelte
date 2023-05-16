@@ -1,7 +1,13 @@
 <script>
     import { onMount } from "svelte";
     import { GetData, SetData } from "./library/datatransfer";
-    import { GetId, GetToken, POST, loggedin, staticAssetsLink } from "./library/networking";
+    import {
+        GetId,
+        GetToken,
+        POST,
+        loggedin,
+        staticAssetsLink,
+    } from "./library/networking";
     import { ReadFile, WriteFile } from "./library/configfiles";
     import ModInstall from "./components/ModInstall.svelte";
     import { invoke } from "@tauri-apps/api/tauri";
@@ -9,65 +15,58 @@
 
     let authoraccountexists = true;
     let modid;
-    let authorname = ""
+    let authorname = "";
     let dumploc;
     let modinfo;
 
     onMount(async () => {
         modid = GetData("modpage_id");
         dumploc = GetData("modpage_dumploc");
-        modinfo = await POST("getmod", {id:modid})
-        let userinfo = await POST("getaccount", {id:modinfo.author})
-        if(userinfo.username == null){
-             authorname = "Unknown Account"
-             authoraccountexists = false;
-        }
-        else{
+        modinfo = await POST("getmod", { id: modid });
+        let userinfo = await POST("getaccount", { id: modinfo.author });
+        if (userinfo.username == null) {
+            authorname = "Unknown Account";
+            authoraccountexists = false;
+        } else {
             authorname = userinfo.username;
         }
 
+        Subscribe(
+            "SignedIn",
+            (m) => {
+                if (m.error != 1) {
+                    if (modinfo.author == m.id) {
+                        ownercontrols.style.display = "block";
+                    }
+                }
+            },
+            false
+        );
 
-        Subscribe("SignedIn", (m) => {
-        if(m.error != 1)
-        {
-            if(modinfo.author == m.id)
-            {
-                ownercontrols.style.display = "block"
-            }
-        }
-        }, false)
-
-        if(loggedin)
-        {
+        if (loggedin) {
             let id = await GetId();
-            if(modinfo.author == id)
-            {
-                ownercontrols.style.display = "block"
+            if (modinfo.author == id) {
+                ownercontrols.style.display = "block";
             }
         }
 
-        CheckIfDownloaded()
-    })
+        CheckIfDownloaded();
+    });
 
-    async function DeleteMod()
-    {
+    async function DeleteMod() {
         let id = await GetToken();
-        let res = await POST("deletemod", {token:id, id: modid})
-        if(res.error === 0)
-        {
-            window.open("#/modmarket", "_self")
+        let res = await POST("deletemod", { token: id, id: modid });
+        if (res.error === 0) {
+            window.open("#/modmarket", "_self");
         }
     }
 
-    function UpdateMod()
-    {
-        SetData("modupload_id", modinfo.id)
-        window.open("#/uploadmod", "_self")
+    function UpdateMod() {
+        SetData("modupload_id", modinfo.id);
+        window.open("#/uploadmod", "_self");
     }
 
-
-    function Download()
-    {
+    function Download() {
         let gameid;
         gameid = "SEME4Q";
 
@@ -91,55 +90,65 @@
             currentMods.push(changedFiles);
             await WriteFile(
                 JSON.stringify(currentMods),
-                dumploc+ "/EMLMods.json"
+                dumploc + "/EMLMods.json"
             );
 
             modInstallElement.$destroy();
-            CheckIfDownloaded()
+            CheckIfDownloaded();
         });
     }
     let downloadButton;
-    async function CheckIfDownloaded()
-    {
-       let dataStr = await ReadFile( dumploc+ "/EMLMods.json");
-       let dataJson = JSON.parse(dataStr);
-       let json = dataJson.find(r => r.modid == modid);
-       downloadStatus = "Download";
-       if(json != null)
-       {
-         downloadButton.disabled = true;
-          downloadStatus = "Already Installed";
-       }
+    async function CheckIfDownloaded() {
+        let dataStr = await ReadFile(dumploc + "/EMLMods.json");
+        let dataJson = JSON.parse(dataStr);
+        let json = dataJson.find((r) => r.modid == modid);
+        downloadStatus = "Download";
+        if (json != null) {
+            downloadButton.disabled = true;
+            downloadStatus = "Already Installed";
+        }
     }
 
-    async function OpenProfileOfAuthor(){
-        if(!authoraccountexists)return;
-        SetData("profile_id", modinfo.author)
-        window.open("#/profilepage", "_self")
+    async function OpenProfileOfAuthor() {
+        if (!authoraccountexists) return;
+        SetData("profile_id", modinfo.author);
+        window.open("#/profilepage", "_self");
     }
 
     let ownercontrols;
     let downloadStatus = "Download";
-
 </script>
 
 {#if modinfo != null}
-<div style="display:flex;width:100%;height:100%;justify-content:center;">
-    <img src={staticAssetsLink + modinfo.icon} alt="" style="border-radius:20px;margin-right:20px;width:200px;height:200px;">
-    <div>
-        <span style="font-size:30px;">{modinfo.name}</span>
-        <p>
-        <button on:click={OpenProfileOfAuthor} class="hyperlinkbutton">{authorname}</button>
-        <p>
-        <span>{modinfo.description}</span>
-        <p>
-        <button bind:this={downloadButton}  on:click={Download}>{downloadStatus}</button>
-        <button on:click={() => window.open("#/modmarket", "_self")}>Go back to Mod Market</button>
-        <p>
-        <div style="display:none;" bind:this={ownercontrols}>
-            <button on:click={UpdateMod}>Update Mod</button> <button on:click={DeleteMod}>Delete Mod</button>
+    <div style="display:flex;width:100%;height:100%;justify-content:center;">
+        <img
+            src={staticAssetsLink + modinfo.icon}
+            alt=""
+            style="border-radius:20px;margin-right:20px;width:200px;height:200px;"
+        />
+        <div>
+            <span style="font-size:30px;">{modinfo.name}</span>
+            <p>
+                <button on:click={OpenProfileOfAuthor} class="hyperlinkbutton"
+                    >{authorname}</button
+                >
+            </p>
+            <p>
+                <span>{modinfo.description}</span>
+            </p>
+            <p>
+                <button bind:this={downloadButton} on:click={Download}
+                    >{downloadStatus}</button
+                >
+                <button on:click={() => window.open("#/modmarket", "_self")}
+                    >Go back to Mod Market</button
+                >
+            </p>
+            <p />
+            <div style="display:none;" bind:this={ownercontrols}>
+                <button on:click={UpdateMod}>Update Mod</button>
+                <button on:click={DeleteMod}>Delete Mod</button>
+            </div>
         </div>
     </div>
-</div>
-
 {/if}

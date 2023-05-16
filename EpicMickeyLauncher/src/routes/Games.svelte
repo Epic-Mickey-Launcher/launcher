@@ -15,9 +15,9 @@
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
 
-    let confExists = await FileExists(appLocalDataDirPath + "conf.json")
-    if(!confExists) {
-       window.open("#/quickstart", "_self")
+    let confExists = await FileExists(appLocalDataDirPath + "conf.json");
+    if (!confExists) {
+      window.open("#/quickstart", "_self");
     }
 
     let jsonExists = await exists(appLocalDataDirPath + "games.json");
@@ -59,7 +59,6 @@
     }
   }
 </script>
-
 
 <h1 style="text-align:center">Games</h1>
 <hr style="width:500px" />

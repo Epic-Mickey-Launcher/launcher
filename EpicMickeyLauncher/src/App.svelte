@@ -1,14 +1,14 @@
 <script lang="ts">
-    import Header from "./routes/components/header.svelte"
-    import {InitConfFiles, ReadToken} from "./routes/library/configfiles.js"
-    import Router from "svelte-spa-router"
-    import Games from "./routes/Games.svelte"
-    import AddGame from "./routes/addgame.svelte"
-    import QuickStart from "./routes/quickstart.svelte"
-    import Register from "./routes/register.svelte"
-    import Settings from "./routes/settings.svelte"
-    import uploadmod from "./routes/uploadmod.svelte"
-    import LevelLoader from "./routes/LevelLoader.svelte"
+    import Header from "./routes/components/header.svelte";
+    import { InitConfFiles, ReadToken } from "./routes/library/configfiles.js";
+    import Router from "svelte-spa-router";
+    import Games from "./routes/Games.svelte";
+    import AddGame from "./routes/addgame.svelte";
+    import QuickStart from "./routes/quickstart.svelte";
+    import Register from "./routes/register.svelte";
+    import Settings from "./routes/settings.svelte";
+    import uploadmod from "./routes/uploadmod.svelte";
+    import LevelLoader from "./routes/LevelLoader.svelte";
     import ModMarket from "./routes/modmarket.svelte";
     import ProfilePage from "./routes/profilepage.svelte";
     import modpage from "./routes/modpage.svelte";
@@ -19,17 +19,15 @@
     let header;
 
     async function RouteLoaded() {
-     //login
+        //login
 
-     let token = await ReadToken();
-         if(token != "")
-         {
-            Login({token: token});
-         }
-         else{
-              Invoke("SignedIn", {error:1})
-              header.ForceSetPFP("img/loggedoutpfp.jpeg")
-         }
+        let token = await ReadToken();
+        if (token != "") {
+            Login({ token: token });
+        } else {
+            Invoke("SignedIn", { error: 1 });
+            header.ForceSetPFP("img/loggedoutpfp.jpeg");
+        }
     }
 
     let routes = {
@@ -45,11 +43,11 @@
         "/profilepage": ProfilePage,
         "/accountsettings": accountsettings,
         "/*": Games,
-    }
-    InitConfFiles()
+    };
+    InitConfFiles();
 </script>
 
 <main>
-    <Header bind:this={header}/>
-    <Router {routes} on:routeLoaded={RouteLoaded}/>
+    <Header bind:this={header} />
+    <Router {routes} on:routeLoaded={RouteLoaded} />
 </main>
