@@ -230,16 +230,13 @@
         <p />
         <div style="display:flex;align-items:center;justify-content:center;">
             <div
-                style="width:256px;height:512px; border-radius:10px 0px 0px 10px; overflow: hidden;"
+                style="width:256px;height:512px; border-radius:10px 0px 0px 10px; overflow: hidden;background-color:#1f1f1f;"
             >
-                <img
-                    alt=""
-                    style="position:relative;width:256px;height:512px;filter: blur(3px);"
-                    src="/img/em1levelloader/ms.png"
-                />
                 <div
-                    style="position:relative;bottom:500px;display:flex;justify-content:center;flex-direction:column;align-items:center;"
+                    style="position:relative;display:flex;justify-content:center;flex-direction:column;align-items:center;"
                 >
+
+
                     {#each levelsData as category}
                         <button
                             on:click={() =>

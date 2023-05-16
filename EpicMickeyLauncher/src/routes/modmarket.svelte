@@ -15,8 +15,6 @@
    } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
-   import ModsData from "./data/mods.json";
-   import ModsDataEM2 from "./data/modsem2.json";
    import { ReadJSON } from "./library/configfiles.js";
 
    let warning;
