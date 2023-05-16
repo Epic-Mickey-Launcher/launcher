@@ -243,6 +243,11 @@
             style="background-color:#242424;padding:10px"
         />
 
+        <div style="width:256px;height:512px;  overflow: hidden;z-index:-2;">
+        <img alt="" style="position:relative;width:256px;height:512px;  filter: blur(3px); " src="/img/em1levelloader/ms.png"> 
+        <button>poodispenserhere </button>  
+        </div>
+
         <p>Selected Level: {selectedLevel}</p>
 
         <hr />
