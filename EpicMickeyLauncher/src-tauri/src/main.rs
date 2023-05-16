@@ -275,6 +275,11 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
 
 }
 
+fn correct_all_slashes(path: String) -> String
+{
+        path.replace(r"\", "/")
+}
+
 #[tauri::command]
 async fn download_mod(url: String, name: String, dumploc: String, gameid: String, modid: String) -> String {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
@@ -367,10 +372,10 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
         let path_datafiles_clone_str = path_datafiles.clone();
 
-        let path_datafiles_str = path_datafiles_clone_str
+        let path_datafiles_str = correct_all_slashes(path_datafiles_clone_str
             .into_os_string()
             .into_string()
-            .unwrap();
+            .unwrap());
 
         let mut dirs: Vec<String> = Vec::new();
 
@@ -380,19 +385,15 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             let p = entry.unwrap();
 
             if !p.path().is_file() {
-                let p_str = p.path().to_str().expect("Couldn't convert path to string.");
+                let p_str = correct_all_slashes(p.path().to_str().expect("Couldn't convert path to string.").to_string());
 
-                let extra_slash = if json_data.custom_game_files_path.starts_with(r"\") || json_data.custom_game_files_path.starts_with("/") {r"\"} else { if os == "windows" { "/" } else { r""}};
-
-                let dont_end_with = format!(r"{}{}", extra_slash, json_data.custom_game_files_path);
+                let dont_end_with = format!(r"{}{}", "/", json_data.custom_game_files_path);
 
                 if p_str.ends_with(&dont_end_with) {
                     continue;
                 }
 
                 let p_str_shortened = p_str.replace(&path_datafiles_str, "");
-
-                //get rid of slash
 
                 let p_str_final = remove_first(&p_str_shortened).expect("couldn't remove slash from string");
 
