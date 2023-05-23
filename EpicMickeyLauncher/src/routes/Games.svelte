@@ -65,18 +65,17 @@
 <h1 style="text-align:center">Games</h1>
 <hr style="width:500px" />
 <p />
-
-<button on:click={AddGame} class="addgamebutton">+ Add Game Build</button>
-
 <div bind:this={gameNodeDiv} class="gamegrid" />
 <p style="margin-bottom:50px;" />
-
+<button on:click={AddGame} class="addgamebutton">+</button>
 <style>
   .addgamebutton {
     margin: 0 auto;
     display: block;
-    font-size: 15px;
-    width: 32%;
+    font-size: 20px;
+    border-radius:100%;
+    width: 50px;
+    height:50px;
     border: 1px solid;
     padding: 10px 0px;
     border-color: rgb(138, 138, 138);

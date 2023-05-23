@@ -22,7 +22,7 @@
     let currentLevelsToShow = [];
 
     function SelectCategory(name) {
-        let pathtoimg = "img/" + name.toLowerCase().replace(" ", "");
+        LoadImage(name);
         currentLevelsToShow = levelsData.find(
             (r) => r.categoryname == name
         ).levels;
@@ -32,9 +32,64 @@
 
     let selectedLevel = "";
 
+    let selectedCategoryName = "";
+    let selectedCategoryImg = "img/EM1banner.png";
+
     objectbuffer.subscribe((value) => {
         data = value;
     });
+
+    function LoadImage(categoryname) {
+        selectedCategoryName = categoryname;
+
+        switch (categoryname) {
+            case "Mean Street":
+                selectedCategoryImg = "img/em1levelloader/ms.png";
+                break;
+            case "OsTown":
+                selectedCategoryImg = "img/em1levelloader/ostown.png";
+                break;
+            case "Bog Easy":
+                selectedCategoryImg = "img/em1levelloader/be.png";
+                break;
+            case "Projector Levels":
+                selectedCategoryImg = "img/em1levelloader/2d.png";
+                break;
+            case "Dark Beauty Castle":
+                selectedCategoryImg = "img/em1levelloader/dbc.png";
+                break;
+            case "Ventureland":
+                selectedCategoryImg = "img/em1levelloader/vl.png";
+                break;
+            case "Mickey Junk Mountain":
+                selectedCategoryImg = "img/em1levelloader/mjm.png";
+                break;
+            case "E3":
+                selectedCategoryImg = "img/em1levelloader/e3.png";
+                break;
+            case "Tomorrow City":
+                selectedCategoryImg = "img/em1levelloader/tc.png";
+                break;
+            case "Interior":
+                selectedCategoryImg = "img/em1levelloader/interior.png";
+                break;
+            case "Tests":
+                selectedCategoryImg = "img/em1levelloader/test.png";
+                break;
+            case "Gremlin Village":
+                selectedCategoryImg = "img/em1levelloader/gv.png";
+                break;
+            case "Pirates of the Wasteland":
+                selectedCategoryImg = "img/em1levelloader/potw.png";
+                break;
+            case "Miscellaneous":
+                selectedCategoryImg = "img/em1levelloader/misc.png";
+                break;
+            case "Lonesome Manor":
+                selectedCategoryImg = "img/em1levelloader/lm.png";
+                break;
+        }
+    }
 
     function OpenLevelLoader() {
         mainSettings.style.display = "none";
@@ -225,23 +280,34 @@
     </div>
 
     <div bind:this={levelLoader} style="display:none;">
-        <h1>Level Loader</h1>
-        <hr />
+        <h1 style="text-align:center;">Level Loader</h1>
         <p />
         <div style="display:flex;align-items:center;justify-content:center;">
             <div
-                style="width:256px;height:512px; border-radius:10px 0px 0px 10px; overflow: hidden;background-color:#1f1f1f;"
+                style="overflow:hidden; position:absolute;height:112px;width:256px;bottom:480px;right:790px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
+            >
+                <img
+                    style="filter:blur(3px);height:112px;width:256px;"
+                    alt=""
+                    src={selectedCategoryImg}
+                />
+                <span
+                    style="z-index:5;font-size:50px;position:relative;bottom:80px;left:0px;width:112px;font-size:25px;text-align:center;"
+                    >{selectedCategoryName}</span
+                >
+            </div>
+            <br />
+            <div
+                style="width:256px;height:400px; margin-top:112px; border-radius:0px 0px 0px 10px; overflow: hidden;background-color:#1f1f1f;"
             >
                 <div
-                    style="position:relative;display:flex;justify-content:center;flex-direction:column;align-items:center;"
+                    style="position:relative;display:grid;width:256px;height:400px;grid-auto-flow: row; rows:2em;"
                 >
-
-
                     {#each levelsData as category}
                         <button
                             on:click={() =>
                                 SelectCategory(category.categoryname)}
-                            style="width:230px;height:30px;margin-top:10px;"
+                            style="width:100%;height:100%;"
                             >{category.categoryname}</button
                         >
                     {/each}
@@ -251,13 +317,9 @@
             <div
                 style="width:256px;height:512px;border-radius:0px 10px 10px 0px; overflow:hidden;background-color:#1f1f1f;overflow-y: scroll;"
             >
-                <div
-                    style="position:relative;width:256px;display:flex;justify-content:center;flex-direction:column;align-items:center;"
-                >
+                <div style="position:relative;width:256px;display:grid;">
                     {#each currentLevelsToShow as lvl}
-                        <button
-                            on:click={() => SetLevel(lvl)}
-                            style="width:230px;height:30px;margin-top:10px;"
+                        <button on:click={() => SetLevel(lvl)} style=""
                             >{lvl.name}</button
                         >
                     {/each}
