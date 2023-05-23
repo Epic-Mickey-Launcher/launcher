@@ -7,14 +7,18 @@
     import { onMount } from "svelte";
     export let game = "";
     export let filepath = "";
-
+    export let platform = "";
     export let imgBackgroundURL = undefined;
     export let imgLogoURL = undefined;
     export let errorMSG = "";
+ 
+    let platformlogo;
 
     async function OpenGame() {
         let d = await ReadJSON("conf.json");
-        invoke("playgame", {
+        if(platform == "wii")
+        {
+            invoke("playgame", {
             dolphin: d.dolphinPath,
             exe: filepath + "/sys/main.dol",
         }).then((res) => {
@@ -24,9 +28,35 @@
                 );
             }
         });
+        }
+        else{
+            invoke("playgame", {
+            dolphin: filepath + "/DEM2.exe",
+            exe: "",
+        }).then((res) => {
+            if (res == 1) {
+                alert(
+                    "Game failed to open."
+                );
+            }
+        });
+        }
     }
 
-    onMount(async () => {});
+    export function Init(){
+        switch(platform) {
+            case "wii":
+            platformlogo.src = "img/Wii.svg";
+            break;
+            case "pc":
+            platformlogo.src = "img/windows.svg";
+            break;
+        }
+    }
+
+    onMount(async () => {
+        
+    });
 
     function OpenLevelLoader() {
         objectbuffer.set({ game: game, path: filepath });
@@ -41,9 +71,13 @@
             <img class="gamelogo" src={imgLogoURL} alt="" />
         </div>
 
-        <div style="position:relative;bottom:110px;left:400px;">
+        <div style="position:relative;bottom:120px;left:400px;">
             <button on:click={OpenGame} class="gameplaybutton">Play</button>
             <button on:click={OpenLevelLoader} class="gamesettings">...</button>
+            <p>
+                <div style="position:relative;bottom:13px;align-self:right;align-items:right;width:200px;text-align:right;right:115px;">
+                    <img style="width:15px;height:15px;" alt="platform" bind:this={platformlogo} src="img/Wii.svg">
+                </div>
         </div>
 
         <plaintext class="error">{errorMSG}</plaintext>

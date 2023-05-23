@@ -23,8 +23,8 @@
       await SetJsonData();
 
       if (jsonData[0] != null) {
-         currentSelectedGame = jsonData[0].game;
-         await GetAllMods(currentSelectedGame);
+         currentSelectedGame = jsonData[0];
+         await GetAllMods();
       } else {
          warning.style.display = "block";
       }
@@ -44,14 +44,47 @@
 
       currentSelectedGame = selectedgamebuild;
 
-      await GetAllMods(selectedgamebuild);
+      await GetAllMods();
    }
 
-   async function GetAllMods(modlisttoget) {
+   let search;
+
+   function Search()
+   {
+         allspawnednodes.forEach(e => {
+            let element = e;
+            if(search.value != ""){
+               element.visible = element.modName.toLowerCase().includes(search.value.toLowerCase());
+               if(!element.visible)
+               {
+                  element.visible = element.authorname.toLowerCase().includes(search.value.toLowerCase());
+               }
+            }
+            else{
+               element.visible = true;
+            }
+         })
+   }
+
+   async function GetAllMods() {
       let data = await GET("getmods");
 
       data.modlist.forEach(async (e) => {
-         if (e.game == currentSelectedGame) {
+         //HACK: dumb way of bypassing a db update
+
+         let comparingPlatform = "wii";
+         if(e.platform != null)
+         {
+            comparingPlatform = e.platform;
+         }
+
+         let platform = "wii"
+         if(currentSelectedGame.platform != null)
+         {
+            platform = currentSelectedGame.platform;
+         }
+
+         if (e.game == currentSelectedGame.game && comparingPlatform == platform) {
             let modNode = new ModNode({
                target: ModList,
             });
@@ -64,7 +97,7 @@
             modNode.downloadLink = staticAssetsLink + e.download;
             modNode.author = e.author;
             modNode.gamedata = jsonData.find(
-               (r) => r.game == currentSelectedGame
+               (r) => r.game == currentSelectedGame.game && r.platform == currentSelectedGame.platform
             );
             modNode.Init();
 
@@ -87,14 +120,14 @@
          <p>Loading Mod List...</p>
       {:then data}
          {#each data as gamebuild}
-            <option value={gamebuild.game}>
-               {gamebuild.game}
+            <option value={gamebuild}>
+               {gamebuild.game + "(" + gamebuild.platform + ")"}
             </option>
          {/each}
       {/await}
    </select>
    <a href="#/uploadmod">Upload Mod</a>
-   <input placeholder="Search" style="margin-left:30px;" />
+   <input bind:this={search} on:input={Search} placeholder="Search" style="margin-left:30px;" />
 </div>
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />

@@ -34,7 +34,7 @@
     let jsonData = JSON.parse(t);
 
     jsonData.forEach((dat) => {
-      CreateNode(dat.game, dat.path);
+      CreateNode(dat.game, dat.path, dat.platform);
     });
   });
 
@@ -42,13 +42,15 @@
     window.open("#/addgame", "_self");
   }
 
-  function CreateNode(game, directory) {
+  function CreateNode(game, directory, platform) {
     var element = new GameNode({
       target: gameNodeDiv,
     });
 
     element.filepath = directory;
     element.game = game;
+    element.platform = platform;
+    element.Init();
 
     if (game == "EM1") {
       element.imgLogoURL = "/img/emlogo.png";

@@ -12,8 +12,9 @@
     export let downloadLink = "";
     export let author = "";
     export let modid = "";
+    export let visible = true;
     let authoraccountexists = true;
-    let authorname = "";
+    export let authorname = "";
     export let gamedata;
 
     let downloadButton;
@@ -95,7 +96,7 @@
         });
     }
 </script>
-
+{#if visible}
 <div class="modNodeDiv">
     <h3>{modName}</h3>
     <h4>
@@ -110,7 +111,7 @@
     <button bind:this={downloadButton} on:click={Download}>Download</button>
     <button on:click={ViewPage}>View Page</button>
 </div>
-
+{/if}
 <style>
     .modNodeDiv {
         z-index: -1;
