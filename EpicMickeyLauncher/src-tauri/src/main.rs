@@ -62,15 +62,34 @@ fn main() {
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
-    if Path::new(&dolphin).exists() {
+    let os = env::consts::OS;
+    if Path::new(&dolphin).exists() && Path::new(&exe).exists() {
 
-        Command::new(dolphin)
+    if os == "windows"
+    {
+    
+
+            Command::new("open")
+            .arg("-a")
+            .arg(&dolphin)
+            .spawn()
+            .expect("ls command failed to start");
+            return 0;
+        
+    }
+    else
+    {
+        Command::new("open")
+        .arg("-a")
+        .arg(&dolphin)
         .arg(&exe)
         .spawn()
         .expect("ls command failed to start");
-        return 0
+            return 0;
+        
     }
-    1
+}
+return 0;
 }
 
 fn remove_first(s: &str) -> Option<&str> {
@@ -260,18 +279,10 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
             validation.validated = true;
             validation.modicon = path_imgcache.to_str().expect("Couldn't convert path to string.").to_string();
             validation.modname = json_data.name;
-            fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
-            validation
-        }
-        else{
-            fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
-            validation
         }
     }
-    else{
-        fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
-        validation
-    }
+    fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+    validation
 
 }
 

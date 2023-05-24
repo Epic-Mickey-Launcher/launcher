@@ -4,11 +4,14 @@
     import { open } from "@tauri-apps/api/dialog";
     async function SetDolphinPath() {
         const selectedPath = await open({
-            title: "Select folder",
+            title: "Select file",
+            directory: false,
             multiple: false,
         });
 
-        if (selectedPath.includes("Dolphin.exe")) {
+        console.log(selectedPath);
+
+        if (selectedPath.includes("Dolphin.exe") || selectedPath.includes("Dolphin.app")) {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = selectedPath;
             await WriteToJSON(JSON.stringify(dat), "conf.json");
