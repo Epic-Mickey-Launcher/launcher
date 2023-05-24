@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { ReadJSON, WriteToJSON } from "./library/configfiles.js";
     import { open } from "@tauri-apps/api/dialog";
+    import { invoke } from "@tauri-apps/api/tauri";
     async function SetDolphinPath() {
         const selectedPath = await open({
             title: "Select file",
@@ -20,7 +21,12 @@
     }
 
     let currentDolphinPath = "";
+    let os = "";
     onMount(async () => {
+        invoke("get_os").then((_os) => {
+               os = _os;
+               console.log(_os)
+        })
         await SetCurrentDolphinPath();
     });
 
@@ -35,5 +41,7 @@
 <p />
 <button on:click={SetDolphinPath}>Assign Dolphin Path</button>
 <plaintext style="display:inline"><em>{currentDolphinPath}</em></plaintext>
-
+<h2>Automatically Download & Assign</h2>
+<button>Download Dolphin</button>
+<button>Download Wiims ISO Tool</button>
 <style></style>

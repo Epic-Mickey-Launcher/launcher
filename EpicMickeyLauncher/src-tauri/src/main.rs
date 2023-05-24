@@ -47,6 +47,20 @@ struct ModInfo {
     icon_path: String,
 }
 
+async fn download_zip(url: String, foldername: String) -> i32{
+        let buffer = reqwest::get(url)
+            .await
+            .expect("fail")
+            .bytes()
+            .await
+            .expect("get bytes FAIL");
+
+            let mut path = PathBuf::new();
+            path.push(foldername);
+            zip_extract::extract(Cursor::new(buffer), &path, false).expect("failed to extract");
+            return 0;
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -54,10 +68,15 @@ fn main() {
             download_mod,
             change_mod_status,
             delete_mod,
-            validate_mod
+            validate_mod,
+            get_os
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+#[tauri::command]
+fn get_os() -> &'static str {
+    env::consts::OS
 }
 
 #[tauri::command]
