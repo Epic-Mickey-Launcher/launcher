@@ -1,7 +1,7 @@
 <svelte:options accessors={true} />
 
 <script>
-    import { objectbuffer } from "../library/datatransfer.js";
+    import { SetData, objectbuffer } from "../library/datatransfer.js";
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadJSON } from "../library/configfiles.js";
     import { onMount } from "svelte";
@@ -11,6 +11,7 @@
     export let imgBackgroundURL = undefined;
     export let imgLogoURL = undefined;
     export let errorMSG = "";
+    export let data;
  
     let platformlogo;
 
@@ -59,7 +60,7 @@
     });
 
     function OpenLevelLoader() {
-        objectbuffer.set({ game: game, path: filepath });
+        SetData("levelloaderdata", data)
         window.open("#/levelloader", "_self");
     }
 </script>

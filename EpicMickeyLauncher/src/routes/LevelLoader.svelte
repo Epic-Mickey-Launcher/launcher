@@ -8,7 +8,7 @@
         WriteFile,
         WriteToJSON,
     } from "./library/configfiles";
-    import { objectbuffer } from "./library/datatransfer.js";
+    import { GetData, objectbuffer } from "./library/datatransfer.js";
     import { invoke } from "@tauri-apps/api/tauri";
     import { open } from "@tauri-apps/api/dialog";
     import ModInstall from "./components/ModInstall.svelte";
@@ -35,9 +35,7 @@
     let selectedCategoryName = "";
     let selectedCategoryImg = "img/EM1banner.png";
 
-    objectbuffer.subscribe((value) => {
-        data = value;
-    });
+    data = GetData("levelloaderdata")
 
     function LoadImage(categoryname) {
         selectedCategoryName = categoryname;
@@ -107,6 +105,8 @@
         let modNode = new ModNode({
             target: modNodeGrid,
         });
+
+        console.log(data)
 
         modNode.index = index;
         modNode.gamedata = data;
@@ -184,6 +184,7 @@
             modid: Date.now().toString(),
             dumploc: data.path,
             gameid: gameid,
+            platform: data.platform
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
             let currentMods = JSON.parse(

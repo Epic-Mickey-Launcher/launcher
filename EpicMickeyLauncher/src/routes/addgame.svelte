@@ -8,6 +8,7 @@
     ReadFile,
     FileExists,
   } from "./library/configfiles.js";
+    import { invoke } from "@tauri-apps/api/tauri";
   let addgamedumpDiv;
   let dumpFound;
   let error = "";
@@ -17,10 +18,11 @@
   async function AddGameDump() {
     const selectedPath = await open({
       title: "Select folder",
-      directory: true,
+      multiple: false,
     });
 
-    path = selectedPath;
+    path = selectedPath.toString();
+    console.log(path)
     let exeExists = await FileExists(path + "/DEM2.exe");
     let wiiFolderExists = await exists(path + "/DATA");
     if (wiiFolderExists) {
@@ -45,6 +47,15 @@
       platform = "pc";
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
+    }
+    else if(path.endsWith(".iso"))
+    {
+      let jsonData = await ReadJSON("conf.json");
+
+         if(jsonData.WITPath != "")
+         {
+          invoke("extract_iso", {witpath: jsonData.WITPath, isopath: path})
+         }
     }
     else{
       error = "Error: Folder does not contain any version of Epic Mickey!";

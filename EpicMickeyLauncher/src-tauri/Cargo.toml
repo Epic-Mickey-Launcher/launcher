@@ -12,6 +12,7 @@ rust-version = "1.57"
 tauri-build = { version = "1.2", features = [] }
 
 [dependencies]
+sevenz-rust = "0.2.11"
 dirs-next = "2.0.0"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }

@@ -80,6 +80,7 @@
             dumploc: gamedata.path,
             modid: modid.toString(),
             gameid: gameid,
+            platform: gamedata.platform
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
             let currentMods = JSON.parse(

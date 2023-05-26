@@ -30,7 +30,7 @@
         modInstallElement.modName = modName;
         modInstallElement.action = "Deleting";
         modInstallElement.description = "This might take a while...";
-
+        console.log(gamedata)
         let gameid;
         if (gamedata.game == "EM1") {
             gameid = "SEME4Q";
@@ -42,6 +42,7 @@
             json: json,
             dumploc: dumploc,
             gameid: gameid,
+            platform: gamedata.platform
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring);
@@ -83,6 +84,7 @@
             dumploc: dumploc,
             modid: jsonToObject.modid,
             gameid: gameid,
+            platform: gamedata.platform
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring);

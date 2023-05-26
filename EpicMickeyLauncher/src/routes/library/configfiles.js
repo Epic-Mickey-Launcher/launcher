@@ -93,7 +93,7 @@ export async function InitConfFiles() {
 
   if (!confJsonExists) {
     WriteToJSON(JSON.stringify({
-      dolphinPath: ""
+      dolphinPath: "", WITPath:""
     }), "conf.json")
   }
 }

@@ -34,15 +34,15 @@
     let jsonData = JSON.parse(t);
 
     jsonData.forEach((dat) => {
-      CreateNode(dat.game, dat.path, dat.platform);
+      CreateNode(dat.game, dat.path, dat.platform, dat);
     });
   });
 
   function AddGame() {
     window.open("#/addgame", "_self");
   }
-
-  function CreateNode(game, directory, platform) {
+  //todo: remove useless variables game, directory, platform
+  function CreateNode(game, directory, platform, dat) {
     var element = new GameNode({
       target: gameNodeDiv,
     });
@@ -50,6 +50,7 @@
     element.filepath = directory;
     element.game = game;
     element.platform = platform;
+    element.data = dat;
     element.Init();
 
     if (game == "EM1") {

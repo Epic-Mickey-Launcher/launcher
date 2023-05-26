@@ -31,7 +31,7 @@
             authorname = userinfo.username;
         }
 
-        if(modinfo.youtubevideo != null){
+        if(modinfo.youtubevideo != null && modinfo.youtubevideo != ""){
             youtubevideoembed.style.display = "block";
             youtubelink = "https://www.youtube.com/embed/" + modinfo.youtubevideo;
         }
@@ -87,6 +87,7 @@
             dumploc: dumploc,
             modid: modinfo.id.toString(),
             gameid: gameid,
+            platform: "pc", //todo: fix this shit
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
             let currentMods = JSON.parse(
@@ -109,8 +110,13 @@
         let json = dataJson.find((r) => r.modid == modid);
         downloadStatus = "Download";
         if (json != null) {
+           if(json.update != modinfo.update){
+            downloadStatus = "Update Available!";
+           }
+           else{
             downloadButton.disabled = true;
             downloadStatus = "Already Installed";
+           }
         }
     }
 
