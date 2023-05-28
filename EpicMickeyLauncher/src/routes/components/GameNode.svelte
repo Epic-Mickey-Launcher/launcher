@@ -32,7 +32,7 @@
         }
         else{
             invoke("playgame", {
-            dolphin: filepath + "/DEM2.exe",
+            dolphin: filepath + "/Launch.exe",
             exe: "",
         }).then((res) => {
             if (res == 1) {

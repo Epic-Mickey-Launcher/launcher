@@ -18,6 +18,7 @@
   async function AddGameDump() {
     const selectedPath = await open({
       title: "Select folder",
+      directory:true,
       multiple: false,
     });
 
@@ -88,6 +89,17 @@
     if (!fileExists) {
       await WriteFile("[]", path + "/EMLMods.json");
     }
+
+    //theres no reason it shouldnt but better to be safe than sorry
+    let conffileexists = await exists(path + "/ConfigFiles.ini");
+
+    //enables level loader inside of em2
+    if (conffileexists) {
+      let conffilecontent = await ReadFile(path + "/ConfigFiles.ini");
+      conffilecontent = conffilecontent.replace("ShowDevLevelLoad=false", "ShowDevLevelLoad=true");
+      await WriteFile(conffilecontent, path + "/ConfigFiles.ini")
+    }
+
 
     window.open("#/", "_self");
   }

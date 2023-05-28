@@ -35,6 +35,7 @@ struct ChangedFiles {
     files: Vec<String>,
     texturefiles: Vec<String>,
     active: bool,
+    update:i32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -102,7 +103,8 @@ fn main() {
             validate_mod,
             get_os,
             download_zip,
-            extract_iso
+            extract_iso,
+            delete_mod_cache
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -114,17 +116,24 @@ fn get_os() -> &'static str {
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
-    let os = env::consts::OS;
-    if Path::new(&dolphin).exists() && Path::new(&exe).exists() {
+    let os = env::consts::OS; 
+    println!("{}",&dolphin);
+    if Path::new(&dolphin).exists(){
 
     if os == "windows"
     {
+        if dolphin.ends_with(".exe"){
+            Command::new(&dolphin)
+            .spawn()
+            .expect("could not open exe");
+        }
+        else if Path::new(&exe).exists() {
             Command::new(&dolphin)
             .arg(&exe)
             .spawn()
-            .expect("ls command failed to start");
-            return 0;
-        
+            .expect("could not open dolphin");
+        }
+        return 0;
     }
     else
     {
@@ -133,9 +142,8 @@ fn playgame(dolphin: String, exe: String) -> i32 {
         .arg(&dolphin)
         .arg(&exe)
         .spawn()
-        .expect("ls command failed to start");
+        .expect("could not open dolphin");
             return 0;
-        
     }
 }
 return 0;
@@ -281,6 +289,16 @@ struct ValidationInfo{
     modname: String,
     modicon: String,
     validated: bool
+}
+
+#[tauri::command]
+fn delete_mod_cache(modid: String){
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/cachedMods");
+    path.push(modid);
+    if path.exists() {
+        fs::remove_dir_all(path).expect("Could not remove mod cache");
+    }
 }
 
 #[tauri::command]
@@ -594,6 +612,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         texturefiles: texturefiles,
         modid: modid,
         active: true,
+        update:0,
     };
 
     let json = serde_json::to_string(&changed_files_json).unwrap();

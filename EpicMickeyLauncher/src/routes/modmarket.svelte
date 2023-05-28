@@ -16,6 +16,7 @@
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
    import { ReadJSON } from "./library/configfiles.js";
+    import { SetData } from "./library/datatransfer.js";
 
    let warning;
 
@@ -38,6 +39,9 @@
    let allspawnednodes = [];
 
    async function LoadModList() {
+
+      SetData("gameinfo", selectedgamebuild);
+
       allspawnednodes.forEach((element) => {
          element.$destroy();
       });
@@ -96,6 +100,8 @@
             modNode.description = e.description;
             modNode.downloadLink = staticAssetsLink + e.download;
             modNode.author = e.author;
+            modNode.update = e.update;
+            modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
                (r) => r.game == currentSelectedGame.game && r.platform == currentSelectedGame.platform
             );

@@ -12,11 +12,14 @@
     export let downloadLink = "";
     export let author = "";
     export let modid = "";
+    export let update = 0;
     export let visible = true;
     let authoraccountexists = true;
     export let authorname = "";
     export let gamedata;
-
+    let downloadStatus = "Download"
+    export let json = "";
+    let canupdate = false;
     let downloadButton;
 
     function ViewPage() {
@@ -41,16 +44,19 @@
             description = newDesc;
         }
 
-        let modsData = JSON.parse(
-            await ReadFile(gamedata.path + "/EMLMods.json")
-        );
-
-        if (modsData.find((r) => r.modid == modid)) {
-            downloadButton.textContent = "Already Installed";
+        let dataStr = await ReadFile(gamedata.path + "/EMLMods.json");
+        let dataJson = JSON.parse(dataStr);
+        let json = dataJson.find((r) => r.modid == modid);
+        downloadStatus = "Download";
+        if (json != null) {
+           if(json.update != update){
+            canupdate = true;
+            downloadStatus = "Update Available";
+           }
+           else{
             downloadButton.disabled = true;
-        } else {
-            downloadButton.disabled = false;
-            downloadButton.textContent = "Download";
+            downloadStatus = "Already Installed";
+           }
         }
     }
 
@@ -74,6 +80,24 @@
             gameid = "SERE4Q";
         }
 
+        if(canupdate){
+            let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
+        let data = JSON.parse(datastring);
+        let existingmod = data.find(r => r.modid == modid);
+
+            modInstallElement.action = "Updating";
+            await invoke("delete_mod", {
+            json: JSON.stringify(existingmod),
+            dumploc: gamedata.path,
+            gameid: gameid,
+            platform: gamedata.platform
+        })
+            let delete_index = data.indexOf(existingmod);
+            data.splice(delete_index, 1);
+            await WriteFile(JSON.stringify(data), gamedata.path + "/EMLMods.json");
+            await invoke("delete_mod_cache", {modid: modid});
+        }
+
         invoke("download_mod", {
             url: downloadLink,
             name: modName,
@@ -83,6 +107,7 @@
             platform: gamedata.platform
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
+            changedFiles.update = update;
             let currentMods = JSON.parse(
                 await ReadFile(gamedata.path + "/EMLMods.json")
             );
@@ -109,7 +134,7 @@
     </h4>
     <h5>Description: {description}</h5>
     <img class="modNodeImg" alt="" src={iconLink} />
-    <button bind:this={downloadButton} on:click={Download}>Download</button>
+    <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
     <button on:click={ViewPage}>View Page</button>
 </div>
 {/if}

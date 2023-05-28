@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import levelsData from "./data/levels.json";
+    import levelsDataEM2 from "./data/levels_em2.json";
     import ModNode from "./components/SettingsModNode.svelte";
     import {
         ReadFile,
@@ -12,18 +13,21 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import { open } from "@tauri-apps/api/dialog";
     import ModInstall from "./components/ModInstall.svelte";
+    import { exists } from "@tauri-apps/api/fs";
     let data;
 
     let levelLoaderButtons;
     let mainSettings;
     let levelLoader;
     let unsavedCmdline;
-
+    let changelevelbutton;
     let currentLevelsToShow = [];
 
+    let currentLevelJSON;
+    
     function SelectCategory(name) {
         LoadImage(name);
-        currentLevelsToShow = levelsData.find(
+        currentLevelsToShow = currentLevelJSON.find(
             (r) => r.categoryname == name
         ).levels;
     }
@@ -34,8 +38,6 @@
 
     let selectedCategoryName = "";
     let selectedCategoryImg = "img/EM1banner.png";
-
-    data = GetData("levelloaderdata")
 
     function LoadImage(categoryname) {
         selectedCategoryName = categoryname;
@@ -106,7 +108,7 @@
             target: modNodeGrid,
         });
 
-        console.log(data)
+        console.log(data);
 
         modNode.index = index;
         modNode.gamedata = data;
@@ -127,7 +129,20 @@
 
     let levelEndIndex;
 
+    data = GetData("levelloaderdata");
+
+    if(data.game == "EM2" && data.platform == "wii" ){
+              currentLevelJSON = levelsDataEM2;
+        }
+        else if (data.game == "EM1"){
+            currentLevelJSON = levelsData;
+        }
+        else {
+            currentLevelJSON=[];
+        }
+
     onMount(async () => {
+
         let ModsData = await ReadFile(data.path + "/EMLMods.json");
 
         let ModsDataObject = JSON.parse(ModsData);
@@ -137,17 +152,23 @@
             CreateModNode(element, i);
         });
 
-        cmdline = await ReadFile(data.path + "/files/cmdline.txt");
+        let cmdlineexists = await exists(data.path + "/files/cmdline.txt");
 
-        unsavedCmdline = cmdline;
+        if (cmdlineexists) {
+            cmdline = await ReadFile(data.path + "/files/cmdline.txt");
 
-        for (let index = 0; index < cmdline.length; index++) {
-            if (cmdline.at(index) === "-") {
-                levelEndIndex = index - 1;
-                break;
+            unsavedCmdline = cmdline;
+
+            for (let index = 0; index < cmdline.length; index++) {
+                if (cmdline.at(index) === "-") {
+                    levelEndIndex = index - 1;
+                    break;
+                }
             }
+            selectedLevel = cmdline.substring(0, levelEndIndex);
+        } else {
+            changelevelbutton.style.display = "none";
         }
-        selectedLevel = cmdline.substring(0, levelEndIndex);
     });
 
     async function InstallLocalMod() {
@@ -184,7 +205,7 @@
             modid: Date.now().toString(),
             dumploc: data.path,
             gameid: gameid,
-            platform: data.platform
+            platform: data.platform,
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
             let currentMods = JSON.parse(
@@ -267,7 +288,9 @@
         <plaintext>Epic Mickey Settings</plaintext>
         <hr />
         <p />
-        <button on:click={OpenLevelLoader}>Change Level</button>
+        <button bind:this={changelevelbutton} on:click={OpenLevelLoader}
+            >Change Level</button
+        >
         <button on:click={OpenDirectory}>Open Directory</button>
         <button on:click={DeleteFromGameList}>Delete from Game List</button>
         <button on:click={GoBackToGames}>Back</button>
@@ -304,7 +327,7 @@
                 <div
                     style="position:relative;display:grid;width:256px;height:400px;grid-auto-flow: row; rows:2em;"
                 >
-                    {#each levelsData as category}
+                    {#each currentLevelJSON as category}
                         <button
                             on:click={() =>
                                 SelectCategory(category.categoryname)}

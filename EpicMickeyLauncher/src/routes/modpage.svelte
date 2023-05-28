@@ -17,9 +17,11 @@
     let modid;
     let authorname = "";
     let dumploc;
+    let gameinfo;
     let modinfo;
     let youtubevideoembed;
     onMount(async () => {
+        gameinfo = GetData("gameinfo");
         modid = GetData("modpage_id");
         dumploc = GetData("modpage_dumploc");
         modinfo = await POST("getmod", { id: modid });
@@ -71,7 +73,7 @@
         window.open("#/uploadmod", "_self");
     }
 
-    function Download() {
+    async function Download() {
         let gameid;
         gameid = "SEME4Q";
 
@@ -80,6 +82,24 @@
         });
         modInstallElement.modIcon = staticAssetsLink + modinfo.icon;
         modInstallElement.modName = modinfo.name;
+
+        let datastring = await ReadFile(dumploc + "/EMLMods.json");
+        let data = JSON.parse(datastring);
+        let existingmod = data.find(r => r.modid == modinfo.id);
+
+        if(update){
+            modInstallElement.action = "Updating";
+            await invoke("delete_mod", {
+            json: JSON.stringify(existingmod),
+            dumploc: dumploc,
+            gameid: gameid,
+            platform: gameinfo.platform
+        })
+            let delete_index = data.indexOf(existingmod);
+            data.splice(delete_index, 1);
+            await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
+            await invoke("delete_mod_cache", {modid: modinfo.id});
+        }
 
         invoke("download_mod", {
             url: staticAssetsLink + modinfo.download,
@@ -90,6 +110,7 @@
             platform: "pc", //todo: fix this shit
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
+            changedFiles.update = modinfo.update;
             let currentMods = JSON.parse(
                 await ReadFile(dumploc + "/EMLMods.json")
             );
@@ -98,11 +119,11 @@
                 JSON.stringify(currentMods),
                 dumploc + "/EMLMods.json"
             );
-
             modInstallElement.$destroy();
             CheckIfDownloaded();
         });
     }
+    let update = false;
     let downloadButton;
     async function CheckIfDownloaded() {
         let dataStr = await ReadFile(dumploc + "/EMLMods.json");
@@ -111,7 +132,8 @@
         downloadStatus = "Download";
         if (json != null) {
            if(json.update != modinfo.update){
-            downloadStatus = "Update Available!";
+            update = true;
+            downloadStatus = "Update Available";
            }
            else{
             downloadButton.disabled = true;
