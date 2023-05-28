@@ -62,10 +62,11 @@
     }
 
     async function DeleteAccount() {
-        if (
-            confirm(
+        let confirmation = await confirm(
                 "Are you sure you want to delete your account? All the mods you currently have on your account will stay up on the Mod Market."
-            )
+            );
+        if (
+          confirmation  
         ) {
             let token = await GetToken();
             let res = await POST("deleteacc", { token: token });

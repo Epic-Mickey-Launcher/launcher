@@ -71,7 +71,10 @@
     });
 
     async function DeleteMod() {
-        if(confirm("Are you sure?"))
+        
+        let confirmed = await confirm("Are you sure?");
+
+        if(confirmed)
         {
             let id = await GetToken();
         let res = await POST("deletemod", { token: id, id: modid });
