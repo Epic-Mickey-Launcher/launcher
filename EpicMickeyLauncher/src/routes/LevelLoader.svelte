@@ -119,11 +119,7 @@
         modNode.setChecked(element.active);
     }
 
-    let buttons = [];
-
     let cmdline = "";
-
-    let input = "";
 
     let modNodeGrid;
 
