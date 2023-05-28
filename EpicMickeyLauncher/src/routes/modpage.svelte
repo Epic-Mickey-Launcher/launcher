@@ -71,10 +71,13 @@
     });
 
     async function DeleteMod() {
-        let id = await GetToken();
+        if(confirm("Are you sure?"))
+        {
+            let id = await GetToken();
         let res = await POST("deletemod", { token: id, id: modid });
         if (res.error === 0) {
             window.open("#/modmarket", "_self");
+        }
         }
     }
 
