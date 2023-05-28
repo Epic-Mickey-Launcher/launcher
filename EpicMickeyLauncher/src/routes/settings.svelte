@@ -39,12 +39,13 @@
 
     let currentDolphinPath = "";
     let currentWITPath = "";
+    let currentNkitPath = "";
     let os = "";
 
     //HACK: there has to be a better way to do this
     const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/91/ba/dolphin-master-5.0-19368-x64.7z";
     const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
-    const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1111291487020396616/NKit.zip";
+    const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1112527174478614538/NKit.zip";
 
     async function DownloadWIT(){
         invoke("download_zip", {url: WIT_LINK_WINDOWS, foldername: "WIT"}).then(async (path) => {
@@ -59,7 +60,7 @@
     async function DownloadNKit(){
         invoke("download_zip", {url: NKIT_LINK_WINDOWS, foldername: "NKit"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
-            dat.NkitPath = path + "/ConvertToISO.exe";
+            dat.NkitPath = path;
             await WriteToJSON(JSON.stringify(dat), "conf.json");
             SetCurrentPaths();
         })
@@ -86,6 +87,7 @@
         let c = await ReadJSON("conf.json");
         currentDolphinPath = c.dolphinPath;
         currentWITPath = c.WITPath;
+        currentNkitPath = c.NkitPath;
     }
 </script>
 
@@ -97,8 +99,9 @@
 <p>
 <button on:click={SetWITPath}>Assign WIT Path</button>
 <span style="display:inline"><em>{currentWITPath}</em></span>
+<p>Nkit Path: {currentNkitPath}</p>
 <h2>Automatically Download & Assign</h2>
 <button on:click={DownloadDolphin}>Download Dolphin</button>
 <button on:click={DownloadWIT}>Download Wiims ISO Tool</button>
-<button on:click={DownloadWIT}>Download NKit</button>
+<button on:click={DownloadNKit}>Download NKit</button>
 <style></style>

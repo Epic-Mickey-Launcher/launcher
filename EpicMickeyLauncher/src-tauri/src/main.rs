@@ -49,19 +49,92 @@ struct ModInfo {
     icon_path: String,
 }
 #[tauri::command]
-async fn extract_iso(witpath: String, isopath: String) -> i32 {
-    fs::create_dir("tmp_iso_path").expect("couldn't create tmp iso path");
-    println!("{}", isopath);
-    Command::new(&witpath)
+async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: String) -> String {
+    let mut response = "".to_string();
+    let mut m_isopath = isopath;
+    let mut remove_nkit_processed = false;
+    if m_isopath.ends_with(".nkit.iso")
+    {
+         if &nkit != ""{
+            let mut proc_path = PathBuf::new();
+            proc_path.push(&nkit);
+            proc_path.push("ConvertToISO.exe");
+            let mut proc = Command::new(proc_path)
+            .arg(&m_isopath)
+            .spawn()
+            .expect("ls command failed to start");
+        proc.wait().expect("Could not wait for process"); 
+            println!("finished");
+        //HACK: probably the worst way to do this
+        let p = nkit + "/Processed/Wii/";
+        println!("{}", &p);
+        let paths = fs::read_dir(p).unwrap();
+        let mut foundfirst = false;
+        for path in paths {
+            if !foundfirst {
+                let binding = path.unwrap().path().to_str().expect("Can't get path").clone().to_string();
+                m_isopath = binding;
+                foundfirst = true;
+                remove_nkit_processed = true;
+            }
+        }
+ 
+         }
+         else{
+          return "err".to_string();
+         }
+    }
+
+   let mut proc = Command::new(&witpath)
     .arg("extract")
     .arg("--source")
-    .arg( &isopath )
+    .arg(& m_isopath )
     .arg("-D")
-    .arg("tmp_iso_path")
-    .arg("--allow-nkit")
+    .arg("c:/extractedwii")
     .spawn()
     .expect("ls command failed to start");
-return 0;
+proc.wait().expect("Could not wait for process");
+    
+    let mut path = dirs_next::document_dir().expect("could not get documents dir");
+    path.push("Epic Mickey Launcher");
+    path.push("Games");
+    path.push(gamename);
+
+    let without_data = path.clone();
+
+    path.push("DATA");
+
+    if !Path::new(&path).exists() {
+        fs::create_dir_all(&path).expect("Couldn't create game folder");
+    }
+
+    let options = CopyOptions {
+        depth: 0,
+        overwrite: true,
+        skip_exist: false,
+        buffer_size: 64000,
+        content_only: true,
+        copy_inside: false,
+    };
+    println!("{}", &path.display());
+
+    let mut source_path = PathBuf::new();
+    source_path.push("c:/");
+    source_path.push("extractedwii");
+    source_path.push("DATA");
+
+    //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me
+    copy(source_path, &path, &options).expect("failed to inject game files");
+
+
+    if remove_nkit_processed 
+    {
+        fs::remove_file(m_isopath).expect("failed to remove converted nkit iso");
+    }
+
+    response = without_data.display().to_string();
+
+    return response.to_string();
 }
 
 #[tauri::command]
@@ -104,7 +177,8 @@ fn main() {
             get_os,
             download_zip,
             extract_iso,
-            delete_mod_cache
+            delete_mod_cache,
+            check_iso
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -153,13 +227,11 @@ fn remove_first(s: &str) -> Option<&str> {
     s.chars().next().map(|c| &s[c.len_utf8()..])
 }
 
+#[tauri::command]
 fn check_iso(path: String) -> String {
-    const BUFFER_LEN: usize = 6;
-    let mut buffer = [0u8; BUFFER_LEN];
-    let filebuffer = fs::read(path).unwrap();
-    for i in 0..BUFFER_LEN  {
-        buffer[i] = filebuffer[i];
-    }
+    let mut f = File::open(path).expect("Couldn't open ISO");
+    let mut buffer = [0; 6];
+    f.read(&mut buffer).expect("failed to read game id");
     std::str::from_utf8(&buffer.as_slice()).unwrap().to_uppercase()
 }
 

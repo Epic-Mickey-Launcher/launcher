@@ -8,22 +8,59 @@
     ReadFile,
     FileExists,
   } from "./library/configfiles.js";
-    import { invoke } from "@tauri-apps/api/tauri";
+  import { invoke } from "@tauri-apps/api/tauri";
+  import ModInstall from "./components/ModInstall.svelte";
   let addgamedumpDiv;
   let dumpFound;
   let error = "";
   let gametype = "";
   let path;
 
-  async function AddGameDump() {
+  async function AddGameDump(iso) {
     const selectedPath = await open({
       title: "Select folder",
-      directory:true,
+      directory: !iso,
       multiple: false,
     });
 
     path = selectedPath.toString();
-    console.log(path)
+
+    if (iso) {
+      let d = await ReadJSON("conf.json");
+      await invoke("check_iso", { path: path }).then(async (id) => {
+        if (id == "SEME4Q" || id == "SERE4Q") {
+          let modInstallElement = new ModInstall({
+            target: document.body,
+          });
+          modInstallElement.action = "Extracting";
+          modInstallElement.modIcon = "img/waren.png";
+          modInstallElement.modName = "Epic Mickey";
+
+          let gamename = id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
+
+          //nkit: d.NkitPath, 
+          await invoke("extract_iso", { isopath: path, witpath:d.WITPath, nkit:d.NkitPath, gamename:gamename}).then(async (res) => {
+            modInstallElement.$destroy();
+              if(res != "-1")
+              {
+                 console.log("fartlock " + res)
+                  path = res;
+              }
+              else
+              {
+                //nkit cannot be converted because the toolkit is not installed
+                alert("You must install NKit in the Settings tab to extract this iso.");
+              }
+          })
+          console.log(path + " fart lock")
+        } else {
+          error = "Error: This is not an Epic Mickey 1/2 ISO!";
+          return;
+        }
+      });
+    }
+
+    console.log(path);
     let exeExists = await FileExists(path + "/DEM2.exe");
     let wiiFolderExists = await exists(path + "/DATA");
     if (wiiFolderExists) {
@@ -31,34 +68,24 @@
       let verdat = await FileExists(path + "/DATA/files/VERSIONDATA.TXT");
       if (verdat) {
         //EM1
-        gamename = "Epic Mickey 1 (Wii)"
+        gamename = "Epic Mickey 1 (Wii)";
         gametype = "EM1";
       } else {
         //EM2
-        gamename = "Epic Mickey 2 (Wii)"
+        gamename = "Epic Mickey 2 (Wii)";
         gametype = "EM2";
       }
-      path += "/DATA"
+      path += "/DATA";
       platform = "wii";
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
     } else if (exeExists) {
       gametype = "EM2";
-      gamename = "Epic Mickey 2 (PC)"
+      gamename = "Epic Mickey 2 (PC)";
       platform = "pc";
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
-    }
-    else if(path.endsWith(".iso"))
-    {
-      let jsonData = await ReadJSON("conf.json");
-
-         if(jsonData.WITPath != "")
-         {
-          invoke("extract_iso", {witpath: jsonData.WITPath, isopath: path})
-         }
-    }
-    else{
+    } else {
       error = "Error: Folder does not contain any version of Epic Mickey!";
     }
   }
@@ -69,7 +96,9 @@
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
-    if (jsonData.find((r) => r.game == gametype && r.platform == platform) != null) {
+    if (
+      jsonData.find((r) => r.game == gametype && r.platform == platform) != null
+    ) {
       alert(
         gametype +
           " has already been added to your game list. There is no need for two versions of it."
@@ -96,10 +125,12 @@
     //enables level loader inside of em2
     if (conffileexists) {
       let conffilecontent = await ReadFile(path + "/ConfigFiles.ini");
-      conffilecontent = conffilecontent.replace("ShowDevLevelLoad=false", "ShowDevLevelLoad=true");
-      await WriteFile(conffilecontent, path + "/ConfigFiles.ini")
+      conffilecontent = conffilecontent.replace(
+        "ShowDevLevelLoad=false",
+        "ShowDevLevelLoad=true"
+      );
+      await WriteFile(conffilecontent, path + "/ConfigFiles.ini");
     }
-
 
     window.open("#/", "_self");
   }
@@ -114,7 +145,14 @@
 
 <div id="addgamedump" bind:this={addgamedumpDiv}>
   <p />
-  <button on:click={AddGameDump} class="addgamebutton">Add Game Dump</button>
+  <button on:click={() => AddGameDump(false)} class="addgamebutton"
+    >Add Game Dump</button
+  >
+  <p>
+    <button on:click={() => AddGameDump(true)} class="addgamebutton"
+      >Add Game ISO</button
+    >
+  </p>
   <p style="text-align:center">{error}</p>
 </div>
 
