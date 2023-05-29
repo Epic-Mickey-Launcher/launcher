@@ -252,9 +252,9 @@
     async function DeleteFromGameList() {
         let dat = await ReadJSON("games.json");
 
-        let toDelete = await dat.find((r) => r.path === data.path);
+        let toDelete = await dat.find(r => r.path === data.path);
 
-        dat.splice(dat.indexOf(toDelete));
+        dat.splice(dat.indexOf(toDelete), 1);
 
         await WriteToJSON(JSON.stringify(dat), "games.json");
 

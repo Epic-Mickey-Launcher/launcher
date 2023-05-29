@@ -37,7 +37,8 @@
             target: document.body,
           });
           modInstallElement.action = "Extracting";
-          modInstallElement.modIcon = "img/waren.png";
+          modInstallElement.modIcon = gamename == "Epic Mickey 1" ? "img/emicon.png" : "img/em2icon.png";
+          modInstallElement.description = "This might take a really long time."
           modInstallElement.modName = gamename;
 
           //nkit: d.NkitPath, 
