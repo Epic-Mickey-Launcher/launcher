@@ -48,23 +48,35 @@ struct ModInfo {
     custom_game_files_path: String,
     icon_path: String,
 }
+
+#[derive(Serialize, Deserialize)]
+struct CheckISOResult{
+    id: String,
+    nkit: bool
+}
+
 #[tauri::command]
-async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: String) -> String {
+async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: String, is_nkit: bool) -> String {
+
+    if Path::new("c:/extractedwii").exists() {
+        fs::remove_dir_all("c:/extractedwii").expect("Failed to remove temp folder");   
+    }
+
     let mut response = "".to_string();
     let mut m_isopath = isopath;
     let mut remove_nkit_processed = false;
-    if m_isopath.ends_with(".nkit.iso")
+    if is_nkit
     {
          if &nkit != ""{
             let mut proc_path = PathBuf::new();
             proc_path.push(&nkit);
             proc_path.push("ConvertToISO.exe");
-            let mut proc = Command::new(proc_path)
+
+            Command::new(proc_path)
             .arg(&m_isopath)
-            .spawn()
-            .expect("ls command failed to start");
-        proc.wait().expect("Could not wait for process"); 
-            println!("finished");
+            .output()
+            .expect("NKit failed to start");
+
         //HACK: probably the worst way to do this
         let p = nkit + "/Processed/Wii/";
         println!("{}", &p);
@@ -85,16 +97,17 @@ async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: St
          }
     }
 
-   let mut proc = Command::new(&witpath)
+     Command::new(&witpath)
     .arg("extract")
     .arg("--source")
     .arg(& m_isopath )
     .arg("-D")
     .arg("c:/extractedwii")
-    .spawn()
-    .expect("ls command failed to start");
-proc.wait().expect("Could not wait for process");
-    
+    .output()
+    .expect("WIT failed to start");
+
+    println!("fart poop");
+
     let mut path = dirs_next::document_dir().expect("could not get documents dir");
     path.push("Epic Mickey Launcher");
     path.push("Games");
@@ -133,6 +146,10 @@ proc.wait().expect("Could not wait for process");
     }
 
     response = without_data.display().to_string();
+
+    if Path::new("c:/extractedwii").exists() {
+        fs::remove_dir_all("c:/extractedwii").expect("Failed to remove temp folder");
+    }
 
     return response.to_string();
 }
@@ -191,13 +208,13 @@ fn get_os() -> &'static str {
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
     let os = env::consts::OS; 
-    println!("{}",&dolphin);
     if Path::new(&dolphin).exists(){
 
     if os == "windows"
     {
         if dolphin.ends_with(".exe"){
             Command::new(&dolphin)
+            .arg(&exe)
             .spawn()
             .expect("could not open exe");
         }
@@ -228,11 +245,18 @@ fn remove_first(s: &str) -> Option<&str> {
 }
 
 #[tauri::command]
-fn check_iso(path: String) -> String {
+fn check_iso(path: String) -> CheckISOResult {
     let mut f = File::open(path).expect("Couldn't open ISO");
-    let mut buffer = [0; 6];
+    let mut buffer = [0; 1000];
     f.read(&mut buffer).expect("failed to read game id");
-    std::str::from_utf8(&buffer.as_slice()).unwrap().to_uppercase()
+    let id = std::str::from_utf8(&buffer[0..6]).unwrap().to_uppercase();
+    let nkit = std::str::from_utf8(&buffer[0x200..0x204]).unwrap().to_uppercase();
+    let is_nkit = if nkit == "NKIT" { true } else {false};
+    let res = CheckISOResult{
+               id: id,
+               nkit: is_nkit
+    };
+    res
 }
 
 #[tauri::command]

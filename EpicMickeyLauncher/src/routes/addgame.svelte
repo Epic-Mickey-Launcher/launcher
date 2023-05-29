@@ -21,25 +21,28 @@
       title: "Select folder",
       directory: !iso,
       multiple: false,
+      filters: [
+         {name:"ISO Images", extensions:["iso"]}
+        ] 
     });
 
     path = selectedPath.toString();
 
     if (iso) {
       let d = await ReadJSON("conf.json");
-      await invoke("check_iso", { path: path }).then(async (id) => {
-        if (id == "SEME4Q" || id == "SERE4Q") {
+      await invoke("check_iso", { path: path }).then(async (res) => {
+        if (res.id == "SEME4Q" || res.id == "SERE4Q") {
+          let gamename = res.id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
           let modInstallElement = new ModInstall({
             target: document.body,
           });
           modInstallElement.action = "Extracting";
           modInstallElement.modIcon = "img/waren.png";
-          modInstallElement.modName = "Epic Mickey";
-
-          let gamename = id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
+          modInstallElement.modName = gamename;
 
           //nkit: d.NkitPath, 
-          await invoke("extract_iso", { isopath: path, witpath:d.WITPath, nkit:d.NkitPath, gamename:gamename}).then(async (res) => {
+          await invoke("extract_iso", { isopath: path, witpath:d.WITPath, nkit:d.NkitPath, gamename:gamename, isNkit: res.nkit}).then(async (res) => {
+            console.log(res)
             modInstallElement.$destroy();
               if(res != "-1")
               {
