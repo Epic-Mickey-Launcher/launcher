@@ -35,7 +35,7 @@ struct ChangedFiles {
     files: Vec<String>,
     texturefiles: Vec<String>,
     active: bool,
-    update:i32,
+    update: i32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -50,63 +50,69 @@ struct ModInfo {
 }
 
 #[derive(Serialize, Deserialize)]
-struct CheckISOResult{
+struct CheckISOResult {
     id: String,
-    nkit: bool
+    nkit: bool,
 }
 
 #[tauri::command]
-async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: String, is_nkit: bool) -> String {
-
+async fn extract_iso(
+    witpath: String,
+    nkit: String,
+    isopath: String,
+    gamename: String,
+    is_nkit: bool,
+) -> String {
     if Path::new("c:/extractedwii").exists() {
-        fs::remove_dir_all("c:/extractedwii").expect("Failed to remove temp folder");   
+        fs::remove_dir_all("c:/extractedwii").expect("Failed to remove temp folder");
     }
 
     let mut response = "".to_string();
     let mut m_isopath = isopath;
     let mut remove_nkit_processed = false;
-    if is_nkit
-    {
-         if &nkit != ""{
+    if is_nkit {
+        if &nkit != "" {
             let mut proc_path = PathBuf::new();
             proc_path.push(&nkit);
             proc_path.push("ConvertToISO.exe");
 
             Command::new(proc_path)
-            .arg(&m_isopath)
-            .output()
-            .expect("NKit failed to start");
+                .arg(&m_isopath)
+                .output()
+                .expect("NKit failed to start");
 
-        //HACK: probably the worst way to do this
-        let p = nkit + "/Processed/Wii/";
-        println!("{}", &p);
-        let paths = fs::read_dir(p).unwrap();
-        let mut foundfirst = false;
-        for path in paths {
-            if !foundfirst {
-                let binding = path.unwrap().path().to_str().expect("Can't get path").clone().to_string();
-                m_isopath = binding;
-                foundfirst = true;
-                remove_nkit_processed = true;
+            //HACK: probably the worst way to do this
+            let p = nkit + "/Processed/Wii/";
+            println!("{}", &p);
+            let paths = fs::read_dir(p).unwrap();
+            let mut foundfirst = false;
+            for path in paths {
+                if !foundfirst {
+                    let binding = path
+                        .unwrap()
+                        .path()
+                        .to_str()
+                        .expect("Can't get path")
+                        .clone()
+                        .to_string();
+                    m_isopath = binding;
+                    foundfirst = true;
+                    remove_nkit_processed = true;
+                }
             }
+        } else {
+            return "err".to_string();
         }
- 
-         }
-         else{
-          return "err".to_string();
-         }
     }
 
-     Command::new(&witpath)
-    .arg("extract")
-    .arg("--source")
-    .arg(& m_isopath )
-    .arg("-D")
-    .arg("c:/extractedwii")
-    .output()
-    .expect("WIT failed to start");
-
-    println!("fart poop");
+    Command::new(&witpath)
+        .arg("extract")
+        .arg("--source")
+        .arg(&m_isopath)
+        .arg("-D")
+        .arg("c:/extractedwii")
+        .output()
+        .expect("WIT failed to start");
 
     let mut path = dirs_next::document_dir().expect("could not get documents dir");
     path.push("Epic Mickey Launcher");
@@ -139,9 +145,7 @@ async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: St
     //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me
     copy(source_path, &path, &options).expect("failed to inject game files");
 
-
-    if remove_nkit_processed 
-    {
+    if remove_nkit_processed {
         fs::remove_file(m_isopath).expect("failed to remove converted nkit iso");
     }
 
@@ -155,32 +159,33 @@ async fn extract_iso(witpath: String, nkit:String, isopath: String, gamename: St
 }
 
 #[tauri::command]
-async fn download_zip(url: String, foldername: String) -> PathBuf{
-        let buffer = reqwest::get(&url)
-            .await
-            .expect("fail")
-            .bytes()
-            .await
-            .expect("get bytes FAIL");
+async fn download_zip(url: String, foldername: String) -> PathBuf {
+    let buffer = reqwest::get(&url)
+        .await
+        .expect("fail")
+        .bytes()
+        .await
+        .expect("get bytes FAIL");
 
-            let mut path = dirs_next::document_dir().expect("Failed to get current directory.");
-            path.push("Epic Mickey Launcher");
-            path.push(foldername);
+    let mut path = dirs_next::document_dir().expect("Failed to get current directory.");
+    path.push("Epic Mickey Launcher");
+    path.push(foldername);
 
-            if !Path::new(&path).exists() {
-                fs::create_dir_all(&path).expect("Failed to create directory");
-            }
-            
-            if url.ends_with(".zip")
-            {
-                zip_extract::extract(Cursor::new(buffer), &path, false).expect("failed to extract");
-            }
-            else if url.ends_with(".7z") {
-                let mut file = File::create(path.to_str().unwrap().to_owned() + "/temp").expect("Could not create a temporary 7z file.");
-                file.write_all(&buffer).expect("could not create 7z buffer to temporary file");            
-                sevenz_rust::decompress_file(path.to_str().unwrap().to_owned() + "/temp", &path).expect("complete");
-            }
-            path
+    if !Path::new(&path).exists() {
+        fs::create_dir_all(&path).expect("Failed to create directory");
+    }
+
+    if url.ends_with(".zip") {
+        zip_extract::extract(Cursor::new(buffer), &path, false).expect("failed to extract");
+    } else if url.ends_with(".7z") {
+        let mut file = File::create(path.to_str().unwrap().to_owned() + "/temp")
+            .expect("Could not create a temporary 7z file.");
+        file.write_all(&buffer)
+            .expect("could not create 7z buffer to temporary file");
+        sevenz_rust::decompress_file(path.to_str().unwrap().to_owned() + "/temp", &path)
+            .expect("complete");
+    }
+    path
 }
 
 fn main() {
@@ -207,37 +212,32 @@ fn get_os() -> &'static str {
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
-    let os = env::consts::OS; 
-    if Path::new(&dolphin).exists(){
-
-    if os == "windows"
-    {
-        if dolphin.ends_with(".exe"){
-            Command::new(&dolphin)
-            .arg(&exe)
-            .spawn()
-            .expect("could not open exe");
-        }
-        else if Path::new(&exe).exists() {
-            Command::new(&dolphin)
-            .arg(&exe)
-            .spawn()
-            .expect("could not open dolphin");
-        }
-        return 0;
-    }
-    else
-    {
-        Command::new("open")
-        .arg("-a")
-        .arg(&dolphin)
-        .arg(&exe)
-        .spawn()
-        .expect("could not open dolphin");
+    let os = env::consts::OS;
+    if Path::new(&dolphin).exists() {
+        if os == "windows" {
+            if dolphin.ends_with(".exe") {
+                Command::new(&dolphin)
+                    .arg(&exe)
+                    .spawn()
+                    .expect("could not open exe");
+            } else if Path::new(&exe).exists() {
+                Command::new(&dolphin)
+                    .arg(&exe)
+                    .spawn()
+                    .expect("could not open dolphin");
+            }
             return 0;
+        } else {
+            Command::new("open")
+                .arg("-a")
+                .arg(&dolphin)
+                .arg(&exe)
+                .spawn()
+                .expect("could not open dolphin");
+            return 0;
+        }
     }
-}
-return 0;
+    return 0;
 }
 
 fn remove_first(s: &str) -> Option<&str> {
@@ -250,17 +250,25 @@ fn check_iso(path: String) -> CheckISOResult {
     let mut buffer = [0; 1000];
     f.read(&mut buffer).expect("failed to read game id");
     let id = std::str::from_utf8(&buffer[0..6]).unwrap().to_uppercase();
-    let nkit = std::str::from_utf8(&buffer[0x200..0x204]).unwrap().to_uppercase();
-    let is_nkit = if nkit == "NKIT" { true } else {false};
-    let res = CheckISOResult{
-               id: id,
-               nkit: is_nkit
+    let nkit = std::str::from_utf8(&buffer[0x200..0x204])
+        .unwrap()
+        .to_uppercase();
+    let is_nkit = if nkit == "NKIT" { true } else { false };
+    let res = CheckISOResult {
+        id: id,
+        nkit: is_nkit,
     };
     res
 }
 
 #[tauri::command]
-async fn change_mod_status(json: String, dumploc: String, gameid: String, modid: String, platform: String) {
+async fn change_mod_status(
+    json: String,
+    dumploc: String,
+    gameid: String,
+    modid: String,
+    platform: String,
+) {
     let data: ChangedFiles = serde_json::from_str(&json).unwrap();
 
     let texturefiles = data.texturefiles;
@@ -268,8 +276,7 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String, modid:
 
     let mut datafiles_path = PathBuf::new();
     datafiles_path.push(&dumploc);
-    if platform == "wii"
-    {
+    if platform == "wii" {
         datafiles_path.push("files");
     }
 
@@ -282,7 +289,15 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String, modid:
 
     if active {
         //todo: fix this shit
-        download_mod("".to_string(), name, dumploc, gameid, modid, "pc".to_string()).await;
+        download_mod(
+            "".to_string(),
+            name,
+            dumploc,
+            gameid,
+            modid,
+            "pc".to_string(),
+        )
+        .await;
     } else {
         //this is identical to delete_mod so combining both into a function would be a good practice
 
@@ -303,7 +318,6 @@ async fn change_mod_status(json: String, dumploc: String, gameid: String, modid:
         }
 
         let mut dolphin_path = find_dolphin_dir(gameid);
-    
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -335,8 +349,7 @@ async fn delete_mod(json: String, dumploc: String, gameid: String, platform: Str
     if active {
         let mut datafiles_path = PathBuf::new();
         datafiles_path.push(&dumploc);
-        if platform == "wii"
-        {
+        if platform == "wii" {
             datafiles_path.push("files");
         }
 
@@ -356,7 +369,7 @@ async fn delete_mod(json: String, dumploc: String, gameid: String, platform: Str
             if std::path::Path::new(&source_path).exists()
                 && std::path::Path::new(&destination_path).exists()
             {
-            fs::copy(source_path, destination_path).unwrap();
+                fs::copy(source_path, destination_path).unwrap();
             }
         }
 
@@ -381,14 +394,14 @@ async fn delete_mod(json: String, dumploc: String, gameid: String, platform: Str
 }
 
 #[derive(Serialize, Deserialize)]
-struct ValidationInfo{
+struct ValidationInfo {
     modname: String,
     modicon: String,
-    validated: bool
+    validated: bool,
 }
 
 #[tauri::command]
-fn delete_mod_cache(modid: String){
+fn delete_mod_cache(modid: String) {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml/cachedMods");
     path.push(modid);
@@ -399,7 +412,6 @@ fn delete_mod_cache(modid: String){
 
 #[tauri::command]
 async fn validate_mod(url: String, local: bool) -> ValidationInfo {
-
     let mut path_imgcache = dirs_next::config_dir().expect("could not get config dir");
     path_imgcache.push("cache");
 
@@ -414,7 +426,6 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
     json_path.push("mod.json");
 
     let mut icon_path = path.clone();
- 
 
     let buffer;
     if !local {
@@ -440,45 +451,52 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
 
     let bytes = buffer;
     zip_extract::extract(Cursor::new(bytes), &path, false).expect("failed to extract");
- 
+
     let mut validation = ValidationInfo {
-        modname:"".to_string(),
-        modicon:"".to_string(),
-        validated: false
+        modname: "".to_string(),
+        modicon: "".to_string(),
+        validated: false,
     };
 
-    if Path::exists(&json_path){
-        
-        let json_string = fs::read_to_string(&json_path).expect("mod.json does not exist or could not be read");
-        let json_data: ModInfo = serde_json::from_str(&json_string).expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+    if Path::exists(&json_path) {
+        let json_string =
+            fs::read_to_string(&json_path).expect("mod.json does not exist or could not be read");
+        let json_data: ModInfo = serde_json::from_str(&json_string)
+            .expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
         icon_path.push(json_data.icon_path);
-        
-        if Path::exists(&icon_path)
-        {
+
+        if Path::exists(&icon_path) {
             fs::copy(icon_path, &path_imgcache).expect("Could not copy icon file to cache");
             validation.validated = true;
-            validation.modicon = path_imgcache.to_str().expect("Couldn't convert path to string.").to_string();
+            validation.modicon = path_imgcache
+                .to_str()
+                .expect("Couldn't convert path to string.")
+                .to_string();
             validation.modname = json_data.name;
         }
     }
     fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
     validation
-
 }
 
-fn correct_all_slashes(path: String) -> String
-{
-        path.replace(r"\", "/")
+fn correct_all_slashes(path: String) -> String {
+    path.replace(r"\", "/")
 }
 
 #[tauri::command]
-async fn download_mod(url: String, name: String, dumploc: String, gameid: String, modid: String, platform: String) -> String {
+async fn download_mod(
+    url: String,
+    name: String,
+    dumploc: String,
+    gameid: String,
+    modid: String,
+    platform: String,
+) -> String {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml/cachedMods");
 
     let mut full_path = path.clone();
     full_path.push(&modid);
-
 
     let os = env::consts::OS;
 
@@ -518,16 +536,14 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         println!("done downloading");
     }
 
-    
-
     let mut path_json = full_path.clone();
     path_json.push("mod.json");
 
-    
+    let json_string =
+        fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
 
-    let json_string = fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
-
-    let json_data: ModInfo = serde_json::from_str(&json_string).expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+    let json_data: ModInfo = serde_json::from_str(&json_string)
+        .expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
 
     //inject files
 
@@ -536,7 +552,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
     path_textures.push(&json_data.custom_textures_path);
     path_datafiles.push(&json_data.custom_game_files_path);
-    
+
     let mut files_to_restore: Vec<String> = Vec::new();
 
     //inject DATA files into current dump
@@ -545,11 +561,9 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
         let dumploc_clone = dumploc.clone();
 
-
         path_final_location.push(&dumploc);
 
-        if platform == "wii"
-        {
+        if platform == "wii" {
             path_final_location.push("files");
         }
 
@@ -566,10 +580,12 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
 
         let path_datafiles_clone_str = path_datafiles.clone();
 
-        let path_datafiles_str = correct_all_slashes(path_datafiles_clone_str
-            .into_os_string()
-            .into_string()
-            .unwrap());
+        let path_datafiles_str = correct_all_slashes(
+            path_datafiles_clone_str
+                .into_os_string()
+                .into_string()
+                .unwrap(),
+        );
 
         let mut dirs: Vec<String> = Vec::new();
 
@@ -579,18 +595,24 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             let p = entry.unwrap();
 
             if !p.path().is_file() {
-                let p_str = correct_all_slashes(p.path().to_str().expect("Couldn't convert path to string.").to_string());
+                let p_str = correct_all_slashes(
+                    p.path()
+                        .to_str()
+                        .expect("Couldn't convert path to string.")
+                        .to_string(),
+                );
 
                 //HACK: this can probably be done better right?
-                let dont_end_with = format!(r"{}{}", "/", json_data.custom_game_files_path) ;
+                let dont_end_with = format!(r"{}{}", "/", json_data.custom_game_files_path);
 
                 if p_str.ends_with(&dont_end_with) {
                     continue;
                 }
- 
+
                 let p_str_shortened = p_str.replace(&path_datafiles_str, "");
 
-                let p_str_final = remove_first(&p_str_shortened).expect("couldn't remove slash from string");
+                let p_str_final =
+                    remove_first(&p_str_shortened).expect("couldn't remove slash from string");
 
                 dirs.push(p_str_final.to_string());
             }
@@ -614,7 +636,12 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             let p = entry.unwrap();
 
             if p.path().is_file() {
-                let p_str = correct_all_slashes(p.path().to_str().expect("Couldn't convert path to string.").to_string());
+                let p_str = correct_all_slashes(
+                    p.path()
+                        .to_str()
+                        .expect("Couldn't convert path to string.")
+                        .to_string(),
+                );
 
                 let p_str_shortened = &p_str.replace(&path_datafiles_str, "");
 
@@ -630,8 +657,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         for file in &files {
             let mut source = PathBuf::new();
             source.push(&dumploc);
-            if platform == "wii"
-            {
+            if platform == "wii" {
                 source.push("files");
             }
             source.push(file);
@@ -640,7 +666,8 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
             destination.push(&path_backup);
             destination.push(file);
 
-            if std::path::Path::new(&source).exists() && !std::path::Path::new(&destination).exists()
+            if std::path::Path::new(&source).exists()
+                && !std::path::Path::new(&destination).exists()
             {
                 fs::copy(&source, destination).expect("couldn't copy file to backup");
             }
@@ -708,7 +735,7 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
         texturefiles: texturefiles,
         modid: modid,
         active: true,
-        update:0,
+        update: 0,
     };
 
     let json = serde_json::to_string(&changed_files_json).unwrap();
@@ -717,17 +744,15 @@ async fn download_mod(url: String, name: String, dumploc: String, gameid: String
     json.into()
 }
 
-fn find_dolphin_dir(gameid: String) -> PathBuf
-{
+fn find_dolphin_dir(gameid: String) -> PathBuf {
     let os = env::consts::OS;
 
     let mut dolphin_path = dirs_next::document_dir().expect("Failed to get documents path");
 
-    if os == "macos"{
+    if os == "macos" {
         dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
         dolphin_path.push(Path::new(r"Dolphin/Load/Textures/"));
-    }
-    else{
+    } else {
         dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
     }
     dolphin_path.push(Path::new(&gameid));
