@@ -150,7 +150,7 @@ async fn download_zip(url: String, foldername: String) -> PathBuf{
             path.push("Epic Mickey Launcher");
             path.push(foldername);
 
-            if Path::new(&path).exists() {
+            if !Path::new(&path).exists() {
                 fs::create_dir_all(&path).expect("Failed to create directory");
             }
             
