@@ -130,7 +130,7 @@
             }
         })
         await DeleteAllConfigFiles();
-        window.open("#/Games");
+        window.open("#/Games", "_self");
         }
     }
 

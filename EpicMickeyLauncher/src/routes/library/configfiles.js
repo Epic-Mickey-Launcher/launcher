@@ -111,7 +111,7 @@ export async function InitConfFiles() {
 
   if (!confJsonExists) {
     WriteToJSON(JSON.stringify({
-      dolphinPath: "", WITPath:""
+      dolphinPath: "", WITPath:"", NkitPath:""
     }), "conf.json")
   }
 }
