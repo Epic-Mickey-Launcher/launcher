@@ -82,6 +82,23 @@ export async function ReadToken(token) {
   }
 }
 
+export async function DeleteAllConfigFiles()
+{
+
+  let appdir = await appLocalDataDir();
+
+  let gamesJsonExists = await exists(appdir + "games.json");
+  let confJsonExists = await exists(appdir + "conf.json");
+
+  if (gamesJsonExists) {
+    await removeFile(appdir + "games.json");
+  }
+
+  if (confJsonExists) {
+    await removeFile(appdir + "conf.json");
+  }
+}
+
 
 export async function InitConfFiles() {
   let gamesJsonExists = await exists(await appLocalDataDir() + "games.json");

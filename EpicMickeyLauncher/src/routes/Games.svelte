@@ -8,7 +8,8 @@
   } from "@tauri-apps/api/fs";
   import { appLocalDataDir } from "@tauri-apps/api/path";
   import { onMount } from "svelte";
-  import { ReadJSON, WriteToJSON, FileExists } from "./library/configfiles.js";
+  import { ReadJSON, WriteToJSON, FileExists, InitConfFiles } from "./library/configfiles.js";
+    import { init } from "svelte/internal";
 
   let gameNodeDiv;
 
@@ -17,7 +18,7 @@
 
     let confExists = await FileExists(appLocalDataDirPath + "conf.json");
     if (!confExists) {
-      window.open("#/quickstart", "_self");
+      InitConfFiles();
     }
 
     let jsonExists = await exists(appLocalDataDirPath + "games.json");

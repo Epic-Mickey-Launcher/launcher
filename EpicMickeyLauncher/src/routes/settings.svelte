@@ -1,9 +1,10 @@
 <script>
     import { onMount } from "svelte";
-    import { ReadJSON, WriteToJSON } from "./library/configfiles.js";
+    import { DeleteAllConfigFiles, FileExists, ReadJSON, WriteToJSON } from "./library/configfiles.js";
     import { open } from "@tauri-apps/api/dialog";
     import { invoke } from "@tauri-apps/api/tauri";
     import ModInstall from "./components/ModInstall.svelte";
+    import { removeFile } from "@tauri-apps/api/fs";
     async function SetDolphinPath() {
         const selectedPath = await open({
             title: "Select Dolphin.exe",
@@ -113,6 +114,26 @@
         currentWITPath = c.WITPath;
         currentNkitPath = c.NkitPath;
     }
+
+    async function RemoveAllConfFiles()
+    {
+        let confirmation = await confirm("Are you sure?");
+        if(confirmation)
+        {
+            let c = await ReadJSON("games.json");
+        c.forEach(async (d) => {
+            let path = d.path + "/EMLMods.json"
+            let fileExists = await FileExists(path);
+            if(fileExists)
+            {
+                await removeFile(path);
+            }
+        })
+        await DeleteAllConfigFiles();
+        window.open("#/Games");
+        }
+    }
+
 </script>
 
 <h1>Settings</h1>
@@ -128,4 +149,6 @@
 <button on:click={DownloadDolphin}>Download Dolphin</button>
 <button on:click={DownloadWIT}>Download Wiims ISO Tool</button>
 <button on:click={DownloadNKit}>Download NKit</button>
+<h2>Factory Reset</h2>
+<button on:click={RemoveAllConfFiles} >Remove all config files</button>
 <style></style>

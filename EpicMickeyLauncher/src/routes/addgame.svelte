@@ -10,11 +10,20 @@
   } from "./library/configfiles.js";
   import { invoke } from "@tauri-apps/api/tauri";
   import ModInstall from "./components/ModInstall.svelte";
+    import { onMount } from "svelte";
   let addgamedumpDiv;
   let dumpFound;
   let error = "";
   let gametype = "";
   let path;
+  let isobutton;
+
+  onMount(async () => {
+    let d = await ReadJSON("conf.json");
+    if(d.WITPath == "" || d.WITPath == null){
+         isobutton.disabled = true;
+    }
+  })
 
   async function AddGameDump(iso) {
     const selectedPath = await open({
@@ -45,7 +54,7 @@
           await invoke("extract_iso", { isopath: path, witpath:d.WITPath, nkit:d.NkitPath, gamename:gamename, isNkit: res.nkit}).then(async (res) => {
             console.log(res)
             modInstallElement.$destroy();
-              if(res != "-1")
+              if(res != "err_nkit")
               {
                  console.log("fartlock " + res)
                   path = res;
@@ -153,7 +162,7 @@
     >Add Game Dump</button
   >
   <p>
-    <button on:click={() => AddGameDump(true)} class="addgamebutton"
+    <button bind:this={isobutton} on:click={() => AddGameDump(true)} class="addgamebutton"
       >Add Game ISO</button
     >
   </p>

@@ -107,7 +107,7 @@ async fn extract_iso(
                 }
             }
         } else {
-            return "err".to_string();
+            return "err_nkit".to_string();
         }
     }
 
