@@ -7,12 +7,16 @@
       return jsonData;
    }
 
-   import { GET, POST, serverLink, staticAssetsLink } from "./library/networking.js";
+   import {
+      GET,
+      POST,
+      serverLink,
+      staticAssetsLink,
+   } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
-   import ModsData from "./data/mods.json";
-   import ModsDataEM2 from "./data/modsem2.json";
    import { ReadJSON } from "./library/configfiles.js";
+    import { SetData } from "./library/datatransfer.js";
 
    let warning;
 
@@ -20,8 +24,8 @@
       await SetJsonData();
 
       if (jsonData[0] != null) {
-         currentSelectedGame = jsonData[0].game;
-         await GetAllMods(currentSelectedGame);
+         currentSelectedGame = jsonData[0];
+         await GetAllMods();
       } else {
          warning.style.display = "block";
       }
@@ -35,68 +39,113 @@
    let allspawnednodes = [];
 
    async function LoadModList() {
+
+      SetData("gameinfo", selectedgamebuild);
+
       allspawnednodes.forEach((element) => {
          element.$destroy();
       });
 
       currentSelectedGame = selectedgamebuild;
 
-      await GetAllMods(selectedgamebuild);
+      await GetAllMods();
    }
 
-   async function GetAllMods(modlisttoget) {
-      
-      let data = await GET("getmods")
-       
-      console.log(data)
-     
+   let search;
+
+   function Search()
+   {
+         allspawnednodes.forEach(e => {
+            let element = e;
+            if(search.value != ""){
+               element.visible = element.modName.toLowerCase().includes(search.value.toLowerCase());
+               if(!element.visible)
+               {
+                  element.visible = element.authorname.toLowerCase().includes(search.value.toLowerCase());
+               }
+            }
+            else{
+               element.visible = true;
+            }
+         })
+   }
+
+   async function GetAllMods() {
+      let data = await GET("getmods");
+
       data.modlist.forEach(async (e) => {
+         //HACK: dumb way of bypassing a db update
 
-         if(e.game == currentSelectedGame)
+         let comparingPlatform = "wii";
+         if(e.platform != null)
          {
-         let modNode = new ModNode({
-            target: ModList,
-         });
+            comparingPlatform = e.platform;
+         }
 
-         console.log(serverLink + e.icon)
+         let platform = "wii"
+         if(currentSelectedGame.platform != null)
+         {
+            platform = currentSelectedGame.platform;
+         }
 
-         modNode.modid = e.id;
-         modNode.modName = e.name;
-         modNode.moddataobj = e;
-         modNode.iconLink = staticAssetsLink + e.icon;
-         modNode.description = e.description;
-         modNode.downloadLink = staticAssetsLink + e.download;
-         modNode.author = e.author;
-         modNode.gamedata = jsonData.find((r) => r.game == currentSelectedGame);
-         modNode.Init();
+         if (e.game == currentSelectedGame.game && comparingPlatform == platform) {
+            let modNode = new ModNode({
+               target: ModList,
+            });
 
-         allspawnednodes.push(modNode);  
+            modNode.modid = e.id;
+            modNode.modName = e.name;
+            modNode.moddataobj = e;
+            modNode.iconLink = staticAssetsLink + e.icon;
+            modNode.description = e.description;
+            modNode.downloadLink = staticAssetsLink + e.download;
+            modNode.author = e.author;
+            modNode.update = e.update;
+            modNode.json = JSON.stringify(e);
+            modNode.gamedata = jsonData.find(
+               (r) => r.game == currentSelectedGame.game && r.platform == currentSelectedGame.platform
+            );
+            modNode.Init();
+
+            allspawnednodes.push(modNode);
          }
       });
    }
 </script>
-<div style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;">
-   <select
-   class="dropdown"
-   bind:value={selectedgamebuild}
-   on:change={() => LoadModList()}
-   bind:this={GamesDropdown}
+
+<div
+   style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;"
 >
-   {#await SetJsonData()}
-      <p>Loading Mod List...</p>
-   {:then data}
-      {#each data as gamebuild}
-         <option value={gamebuild.game}>
-            {gamebuild.game}
-         </option>
-      {/each}
-   {/await}
-</select>
-<a href="#/uploadmod">Upload Mod</a>
-<input placeholder="Search" style="margin-left:30px;">
+   <select
+      class="dropdown"
+      bind:value={selectedgamebuild}
+      on:change={() => LoadModList()}
+      bind:this={GamesDropdown}
+   >
+      {#await SetJsonData()}
+         <p>Loading Mod List...</p>
+      {:then data}
+         {#each data as gamebuild}
+            <option value={gamebuild}>
+               {gamebuild.game + "(" + gamebuild.platform + ")"}
+            </option>
+         {/each}
+      {/await}
+   </select>
+   <a href="#/uploadmod">Upload Mod</a>
+   <input bind:this={search} on:input={Search} placeholder="Search" style="margin-left:30px;" />
 </div>
 
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
+
+<!--
+TODO: add a limit to amount of mods that can be on one page and filter them through different chunks
+<div style="display:flex;margin:auto;justify-content:center;width:100%;">
+   <button style="margin-right:10px;" class="hyperlinkbutton">1</button>
+   <button style="margin-right:10px;" class="hyperlinkbutton">2</button>
+   <button style="margin-right:10px;" class="hyperlinkbutton">3</button>
+</div>
+-->
 
 <div class="warning" bind:this={warning}>
    <p style="position:relative;top:400px;">
@@ -126,8 +175,7 @@
       text-align: center;
    }
    .dropdown {
-
-      margin-right:30px;
+      margin-right: 30px;
       background-color: black;
    }
 </style>

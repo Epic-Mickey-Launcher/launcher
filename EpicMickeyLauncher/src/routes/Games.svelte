@@ -15,9 +15,9 @@
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
 
-    let confExists = await FileExists(appLocalDataDirPath + "conf.json")
-    if(!confExists) {
-       window.open("#/quickstart", "_self")
+    let confExists = await FileExists(appLocalDataDirPath + "conf.json");
+    if (!confExists) {
+      window.open("#/quickstart", "_self");
     }
 
     let jsonExists = await exists(appLocalDataDirPath + "games.json");
@@ -34,21 +34,24 @@
     let jsonData = JSON.parse(t);
 
     jsonData.forEach((dat) => {
-      CreateNode(dat.game, dat.path);
+      CreateNode(dat.game, dat.path, dat.platform, dat);
     });
   });
 
   function AddGame() {
     window.open("#/addgame", "_self");
   }
-
-  function CreateNode(game, directory) {
+  //todo: remove useless variables game, directory, platform
+  function CreateNode(game, directory, platform, dat) {
     var element = new GameNode({
       target: gameNodeDiv,
     });
 
     element.filepath = directory;
     element.game = game;
+    element.platform = platform;
+    element.data = dat;
+    element.Init();
 
     if (game == "EM1") {
       element.imgLogoURL = "/img/emlogo.png";
@@ -60,22 +63,20 @@
   }
 </script>
 
-
 <h1 style="text-align:center">Games</h1>
 <hr style="width:500px" />
 <p />
-
-<button on:click={AddGame} class="addgamebutton">+ Add Game Build</button>
-
 <div bind:this={gameNodeDiv} class="gamegrid" />
 <p style="margin-bottom:50px;" />
-
+<button on:click={AddGame} class="addgamebutton">+</button>
 <style>
   .addgamebutton {
     margin: 0 auto;
     display: block;
-    font-size: 15px;
-    width: 32%;
+    font-size: 20px;
+    border-radius:100%;
+    width: 50px;
+    height:50px;
     border: 1px solid;
     padding: 10px 0px;
     border-color: rgb(138, 138, 138);
