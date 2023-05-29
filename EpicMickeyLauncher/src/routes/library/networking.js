@@ -133,3 +133,9 @@ export async function GET(route) {
   const content = await res.json();
   return content;
 }
+
+export async function GETEXT(route) {
+  const res = await fetch(route)
+  const content = await res.json();
+  return content;
+}

@@ -25,6 +25,7 @@ scan_dir = "0.3.3"
 walkdir = "2.3.2"
 bytes = "1.4.0"
 json = "0.12.4"
+open = "4.1.0"
 
 [features]
 default = ["custom-protocol"]

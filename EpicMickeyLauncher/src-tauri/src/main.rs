@@ -26,6 +26,7 @@ extern crate scan_dir;
 extern crate sevenz_rust;
 extern crate walkdir;
 extern crate zip_extract;
+extern crate open;
 use fs_extra::dir::copy;
 
 #[derive(Serialize, Deserialize)]
@@ -53,6 +54,11 @@ struct ModInfo {
 struct CheckISOResult {
     id: String,
     nkit: bool,
+}
+
+#[tauri::command]
+fn open_link(url: String){
+   open::that(url).expect("Failed to open URL in default browser");
 }
 
 #[tauri::command]
@@ -200,7 +206,8 @@ fn main() {
             download_zip,
             extract_iso,
             delete_mod_cache,
-            check_iso
+            check_iso,
+            open_link
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

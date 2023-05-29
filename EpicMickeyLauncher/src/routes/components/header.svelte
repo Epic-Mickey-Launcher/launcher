@@ -4,20 +4,36 @@
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
     import { ReadToken } from "../library/configfiles";
+    import { getVersion } from '@tauri-apps/api/app';
     import {
+    GET,
+        GETEXT,
         Login,
         SetLoggedIn,
         loggedin,
         staticAssetsLink,
     } from "../library/networking";
     import { Subscribe } from "../library/callback.js";
+    import { invoke } from "@tauri-apps/api/tauri";
     let pfp;
-
+    let latestDownloadLink = "";
+    let updateHyperLink;
     export async function ForceSetPFP(p) {
         pfp = p;
     }
 
     onMount(async () => {
+
+        let info = await GETEXT("https://api.github.com/repos/KjubDusJub/Epic-Mickey-Launcher/releases")
+        let info_stable = info.filter(r => !r.prerelease);
+        let newest_release = info[info_stable.length - 1];
+        let current_version = getVersion();
+        if(newest_release.tag_name != current_version)
+        {
+            latestDownloadLink = newest_release.html_url;
+            updateHyperLink.style.display = "block";
+        }
+
         let cb = (userinfo) => {
             if (userinfo.error != 1) {
                 SetLoggedIn(true);
@@ -38,6 +54,11 @@
     });
 
     export const HeaderVisible = writable(true);
+    
+    function OpenLatestDownloadPage()
+    {
+        invoke("open_link", {url:latestDownloadLink});
+    }
 
     let header;
 
@@ -82,8 +103,8 @@
                 class="headerButton endheaderbuttons">Settings</button
             >
 
-            <a href="" style="margin:auto 10px;color:lime;display:none;"
-                >Update Available!</a
+            <button class="hyperlinkbutton" on:click={OpenLatestDownloadPage} bind:this={updateHyperLink} style="margin:auto 10px;color:lime;display:none;"
+                >Update Available!</button
             >
 
             <div class="pfpbutton">
