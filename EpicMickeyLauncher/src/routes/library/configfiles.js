@@ -4,7 +4,7 @@ import {
   writeTextFile,
   readTextFile,
   createDir,
-  readFile
+  removeFile
 } from "@tauri-apps/api/fs"
 import {
   appLocalDataDir

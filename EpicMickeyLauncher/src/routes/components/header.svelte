@@ -24,16 +24,6 @@
 
     onMount(async () => {
 
-        let info = await GETEXT("https://api.github.com/repos/KjubDusJub/Epic-Mickey-Launcher/releases")
-        let info_stable = info.filter(r => !r.prerelease);
-        let newest_release = info[info_stable.length - 1];
-        let current_version = getVersion();
-        if(newest_release.tag_name != current_version)
-        {
-            latestDownloadLink = newest_release.html_url;
-            updateHyperLink.style.display = "block";
-        }
-
         let cb = (userinfo) => {
             if (userinfo.error != 1) {
                 SetLoggedIn(true);
@@ -51,6 +41,18 @@
 
         // @ts-ignore
         Subscribe("SignedIn", cb, true);
+
+        let info = await GETEXT("https://api.github.com/repos/KjubDusJub/Epic-Mickey-Launcher/releases")
+        let info_stable = info.filter(r => !r.prerelease);
+        let newest_release = info_stable[0];
+        let current_version = await getVersion();
+        if(newest_release.tag_name != current_version)
+        {
+            latestDownloadLink = newest_release.html_url;
+            updateHyperLink.style.display = "block";
+        }
+
+
     });
 
     export const HeaderVisible = writable(true);
