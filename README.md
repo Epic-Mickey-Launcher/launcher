@@ -1,6 +1,10 @@
-# Epic Mickey Launcher
- 
+<img src="https://eml.memerdev.com/emlLogo.png" width="400">
+
+Easiest way to Play, Mod & Enjoy Epic Mickey
+
 Made in Svelte & Tauri
+
+<img src="https://github.com/KjubDusJub/Epic-Mickey-Launcher/assets/57041363/26a049cb-ff50-4052-89cc-013a87158153" width="400">
 
 # Roadmap
 
@@ -12,3 +16,4 @@ Made in Svelte & Tauri
 - Add at least partial support to Linux & Mac ✅
 - Auto Downloader for WIT, NKit & Dolphin ✅
 - ISO Self Extraction (with WIT & NKit) ✅
+- Add some extra polish⌛
