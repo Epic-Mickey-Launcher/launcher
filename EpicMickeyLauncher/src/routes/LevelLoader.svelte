@@ -298,7 +298,7 @@
 
         <button on:click={InstallLocalMod}>Install Local Mod</button>
     </div>
-
+    
     <div bind:this={levelLoader} style="display:none;">
         <h1 style="text-align:center;">Level Loader</h1>
         <p />

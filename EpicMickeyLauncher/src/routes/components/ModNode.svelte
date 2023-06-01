@@ -124,42 +124,49 @@
 </script>
 {#if visible}
 <div class="modNodeDiv">
-    <h3>{modName}</h3>
-    <h4>
-        Author:<button
-            style="margin-left:5px;"
-            on:click={OpenProfileOfAuthor}
-            class="hyperlinkbutton">{authorname}</button
-        >
-    </h4>
-    <h5>Description: {description}</h5>
-    <img class="modNodeImg" alt="" src={iconLink} />
-    <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
-    <button on:click={ViewPage}>View Page</button>
+        <span class="spanHyperLink" on:click={ViewPage} style="font-weight:bold;">{modName}</span>
+        <h4>
+            Author:<button
+                style="margin-left:5px;"
+                on:click={OpenProfileOfAuthor}
+                class="hyperlinkbutton">{authorname}</button
+            >
+        </h4>
+        <h5>Description: {description}</h5>
+        <div class="imgArea">
+            <img class="modNodeImg" alt="" src={iconLink} />
+            <br>
+            <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
+            <br>
+
+        </div>
+
 </div>
 {/if}
 <style>
     .modNodeDiv {
         z-index: -1;
-        border: 2px solid white;
-        background-color: rgb(31, 31, 31);
+        background-color: rgb(41, 41, 41);
         border-radius: 20px;
         padding: 10px 10px;
         width: 50%;
+        height:100px;
         margin-right: auto;
         margin-left: auto;
         margin-bottom: 20px;
         box-shadow: 2px 2px 10px rgb(0, 0, 0);
     }
-
+    .imgArea{
+        text-align: right;
+        bottom: 125px;
+        right: 0px;
+        float: right;
+        position: relative;
+    }
     .modNodeImg {
         z-index: 1;
-        width: 120px;
-        height: 120px;
-        bottom: 133px;
-        right: 10px;
-        float: right;
+        width: 80px;
+        height: 80px;
         border-radius: 10px;
-        position: relative;
     }
 </style>
