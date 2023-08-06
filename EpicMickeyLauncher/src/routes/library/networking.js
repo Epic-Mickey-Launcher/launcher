@@ -41,13 +41,14 @@ function isNullOrWhitespace( input ) {
   return input == input.trim();
 }
 
-export async function UploadMod(modfile, cb, r, e) {
+export async function UploadMod(modfile, cb, r, e, checked) {
   let info = await GetUserInfo()
   let moduploadresult = await MultipartPOST("modupload", {
     token: info.token,
     modfile: modfile,
     filetype: e,
-    replacing: r
+    replacing: r,
+    automaticPublish: checked
   })
   cb()
 }

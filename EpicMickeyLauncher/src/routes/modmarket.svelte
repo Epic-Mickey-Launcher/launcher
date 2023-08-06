@@ -9,6 +9,7 @@
 
    import {
       GET,
+      GetToken,
       POST,
       serverLink,
       staticAssetsLink,
@@ -71,7 +72,10 @@
    }
 
    async function GetAllMods() {
-      let data = await GET("getmods");
+
+      let token = await GetToken();
+
+      let data = await POST("getmods", { token: token });
 
       data.modlist.forEach(async (e) => {
          //HACK: dumb way of bypassing a db update

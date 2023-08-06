@@ -27,8 +27,8 @@
         gameinfo = GetData("gameinfo");
         modid = GetData("modpage_id");
         dumploc = GetData("modpage_dumploc");
-        modinfo = await POST("getmod", { id: modid });
         let token = await GetToken();
+        modinfo = await POST("getmod", { id: modid, token: token  });
         let impressions = await POST("getmodimpressions", { token: token, mod: modid });
         downloads = impressions.downloads;
         likes = impressions.likes;
@@ -47,6 +47,16 @@
             youtubevideoembed.style.display = "block";
             youtubelink = "https://www.youtube.com/embed/" + modinfo.youtubevideo;
         }
+
+        console.log(modinfo.published)
+
+        modPublished = false;
+
+        if(modinfo.published == undefined || modinfo.published === true)
+        {
+            modPublished = true;
+        }
+    
 
         Subscribe(
             "SignedIn",
@@ -87,6 +97,14 @@
     function UpdateMod() {
         SetData("modupload_id", modinfo.id);
         window.open("#/uploadmod", "_self");
+    }
+
+    async function PublishMod() {
+        let token = await GetToken();
+        let res = await POST("publishmod", { token: token, id: modid });
+        if (res.finished === true) {
+            window.open("#/modmarket", "_self");
+        }
     }
 
     async function LikeMod(){
@@ -184,9 +202,13 @@
     let ownercontrols;
     let youtubelink;
     let downloadStatus = "Download";
+ 
+    let modPublished = true;
+
 </script>
 
 {#if modinfo != null}
+
     <div style="display:flex;width:100%;height:100%;justify-content:center;">
         <img
             src={staticAssetsLink + modinfo.icon}
@@ -222,5 +244,16 @@ src={youtubelink}>
                 <button on:click={DeleteMod}>Delete Mod</button>
             </div>
         </div>
+
     </div>
+
+    {#if !modPublished}
+
+<span style="display:flex;width:100;align-items:center;justify-content:center;">
+    <p>
+    <span style="color:yellow;">This mod has not been published yet and is only visible to you.</span>
+    <button style="margin-left:10px;" on:click={PublishMod}>Publish</button>
+</span>
+
+    {/if}
 {/if}
