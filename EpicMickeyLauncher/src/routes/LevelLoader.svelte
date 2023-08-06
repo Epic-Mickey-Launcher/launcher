@@ -359,7 +359,7 @@
                 on:click={() => ExitLevelLoader(1)}
                 >Save Level and Return</button
             >
-            <plaintext><s>stolen</s> borrowed from RampantLeaf</plaintext>
+            <plaintext><s>stolen</s> borrowed from RampantLeaf & SlayCap</plaintext>
         </p>
     </div>
 

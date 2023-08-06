@@ -79,7 +79,7 @@
         } else {
             gameid = "SERE4Q";
         }
-
+        
         if(canupdate){
             let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
         let data = JSON.parse(datastring);
@@ -125,13 +125,15 @@
 {#if visible}
 <div class="modNodeDiv">
         <span class="spanHyperLink" on:click={ViewPage} style="font-weight:bold;">{modName}</span>
-        <h4>
+        <p>
+        <span>
             Author:<button
                 style="margin-left:5px;"
                 on:click={OpenProfileOfAuthor}
                 class="hyperlinkbutton">{authorname}</button
             >
-        </h4>
+        </span> <span>|</span>
+        <p>
         <h5>Description: {description}</h5>
         <div class="imgArea">
             <img class="modNodeImg" alt="" src={iconLink} />

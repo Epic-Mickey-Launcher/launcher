@@ -28,7 +28,7 @@
     $: if (files) {
         let file = files[0];
 
-        if (file.name.endsWith(".zip")) {
+        if (file.name.endsWith(".zip") || file.name.endsWith(".tar")) {
             uploadFile(file, () => {
                 waitDiv.style.display = "none";
                 resultDiv.style.display = "block";
@@ -73,6 +73,7 @@
                     resultDiv.style.display = "block";
                 } else {
                     modInstallElement.$destroy();
+                    await alert("Mod Request Failed!")
                 }
             }
         );
@@ -84,7 +85,8 @@
         } else {
             uploadModDiv.style.display = "none";
             waitDiv.style.display = "block";
-            UploadMod(file, cb, replacingMod);
+        
+            UploadMod(file, cb, replacingMod, file.type);
             replacingMod = null;
         }
     }
