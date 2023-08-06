@@ -9,6 +9,7 @@
 
    import {
       GET,
+      GetToken,
       POST,
       serverLink,
       staticAssetsLink,
@@ -71,7 +72,10 @@
    }
 
    async function GetAllMods() {
-      let data = await GET("getmods");
+
+      let token = await GetToken();
+
+      let data = await POST("getmods", { token: token });
 
       data.modlist.forEach(async (e) => {
          //HACK: dumb way of bypassing a db update
@@ -114,7 +118,7 @@
 </script>
 
 <div
-   style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 20px 20px 0px 0px;"
+   style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 10px;"
 >
    <select
       class="dropdown"
@@ -135,7 +139,7 @@
    <a href="#/uploadmod">Upload Mod</a>
    <input bind:this={search} on:input={Search} placeholder="Search" style="margin-left:30px;" />
 </div>
-
+<p>
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
 <!--

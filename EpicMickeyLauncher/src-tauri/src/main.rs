@@ -6,18 +6,16 @@
 )]
 
 use std::env;
-
-use bytes::{BufMut, BytesMut};
 use fs_extra::dir::CopyOptions;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::BufReader;
 use std::io::Cursor;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
+use futures_util::StreamExt;
 use walkdir::WalkDir;
 extern crate dirs_next;
 extern crate fs_extra;
@@ -165,33 +163,75 @@ async fn extract_iso(
 }
 
 #[tauri::command]
-async fn download_zip(url: String, foldername: String) -> PathBuf {
-    let buffer = reqwest::get(&url)
-        .await
-        .expect("fail")
-        .bytes()
-        .await
-        .expect("get bytes FAIL");
+async fn download_tool(url: String, foldername: String) -> PathBuf {
 
-    let mut path = dirs_next::document_dir().expect("Failed to get current directory.");
-    path.push("Epic Mickey Launcher");
-    path.push(foldername);
+    let mut to_pathbuf = PathBuf::new();
+    to_pathbuf.push(foldername);
+    download_zip(url, &to_pathbuf, false).await;
+    to_pathbuf
+}
 
-    if !Path::new(&path).exists() {
-        fs::create_dir_all(&path).expect("Failed to create directory");
+async fn download_zip(url: String, foldername: &PathBuf, local: bool) -> PathBuf {
+
+    fs::create_dir_all(&foldername).expect("Failed to create");
+
+    let mut temporary_archive_path_buf = foldername.clone();
+
+    temporary_archive_path_buf.push("temp");
+
+    let temporary_archive_path = temporary_archive_path_buf.to_str().unwrap().to_string();
+
+    let mut buffer;
+
+    let mut f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
+
+    if !local {
+        buffer = reqwest::get(&url)
+            .await.unwrap()
+            .bytes_stream();
+
+        while let Some(item) = buffer.next().await {
+            f.write_all(&item.unwrap()).expect("Failed to write to tmpzip");
+        }
+           
+    } else {
+        //horrible solution
+        fs::copy(&url, &temporary_archive_path).expect("Failed to copy local file");
     }
 
+    let mut output = PathBuf::new();
+
+    output.push(foldername);
+
+    extract_archive(url, temporary_archive_path, &output);
+    
+    output
+}
+
+fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
     if url.ends_with(".zip") {
-        zip_extract::extract(Cursor::new(buffer), &path, false).expect("failed to extract");
+    
+        let mut f = File::open(&input_path).expect("Failed to open tmpzip");
+
+        let mut buffer = Vec::new();
+        
+        f.read_to_end(&mut buffer).expect("Failed to read tmpzip");
+
+        zip_extract::extract(Cursor::new(buffer), &output_path, false).expect("failed to extract");
     } else if url.ends_with(".7z") {
-        let mut file = File::create(path.to_str().unwrap().to_owned() + "/temp")
-            .expect("Could not create a temporary 7z file.");
-        file.write_all(&buffer)
-            .expect("could not create 7z buffer to temporary file");
-        sevenz_rust::decompress_file(path.to_str().unwrap().to_owned() + "/temp", &path)
+        sevenz_rust::decompress_file(&input_path, &output_path)
             .expect("complete");
     }
-    path
+    else if url.ends_with(".tar")
+    {
+        Command::new("tar")
+        .arg("-xf")
+        .arg(input_path)
+        .arg("-C")
+        .arg(&output_path)
+        .output()
+        .expect("Tar failed to extract");
+    }
 }
 
 fn main() {
@@ -203,11 +243,11 @@ fn main() {
             delete_mod,
             validate_mod,
             get_os,
-            download_zip,
             extract_iso,
             delete_mod_cache,
             check_iso,
-            open_link
+            open_link,
+            download_tool
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -324,7 +364,7 @@ async fn change_mod_status(
             }
         }
 
-        let mut dolphin_path = find_dolphin_dir(gameid);
+        let dolphin_path = find_dolphin_dir(gameid);
 
         for file in texturefiles {
             let mut path = PathBuf::new();
@@ -419,6 +459,8 @@ fn delete_mod_cache(modid: String) {
 
 #[tauri::command]
 async fn validate_mod(url: String, local: bool) -> ValidationInfo {
+    println!("Validating mod");
+
     let mut path_imgcache = dirs_next::config_dir().expect("could not get config dir");
     path_imgcache.push("cache");
 
@@ -434,30 +476,9 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
 
     let mut icon_path = path.clone();
 
-    let buffer;
-    if !local {
-        buffer = reqwest::get(url)
-            .await
-            .expect("fail")
-            .bytes()
-            .await
-            .expect("get bytes FAIL");
-    } else {
-        let f = File::open(url).expect("Failed to open local file");
-        let mut reader = BufReader::new(f);
-        let mut buff = Vec::new();
-        reader
-            .read_to_end(&mut buff)
-            .expect("Failed to read bytes from local file");
-        let mut buffer_to_bytes = BytesMut::new();
-        buffer_to_bytes.put(buff.as_slice());
-        buffer = buffer_to_bytes.into();
-    }
-
-    fs::create_dir_all(&mut path).expect("Failed to create folders.");
-
-    let bytes = buffer;
-    zip_extract::extract(Cursor::new(bytes), &path, false).expect("failed to extract");
+    download_zip(url, &path, local).await;
+    
+    println!("Finished Downloading mod for validation");
 
     let mut validation = ValidationInfo {
         modname: "".to_string(),
@@ -483,6 +504,7 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
         }
     }
     fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+    println!("Finished Validating mod");
     validation
 }
 
@@ -509,37 +531,10 @@ async fn download_mod(
 
     if !Path::new(&full_path).exists() {
         // download
-        println!("started downloading");
 
-        let buffer;
+        let is_local = !url.starts_with("http");
 
-        if url.starts_with("http") {
-            buffer = reqwest::get(url)
-                .await
-                .expect("fail")
-                .bytes()
-                .await
-                .expect("get bytes FAIL");
-        } else {
-            let f = File::open(url).expect("Failed to open local file");
-            let mut reader = BufReader::new(f);
-            let mut buff = Vec::new();
-            reader
-                .read_to_end(&mut buff)
-                .expect("Failed to read bytes from local file");
-            let mut buffer_to_bytes = BytesMut::new();
-            buffer_to_bytes.put(buff.as_slice());
-            buffer = buffer_to_bytes.into();
-        }
-
-        let bytes = buffer;
-
-        // install
-        fs::create_dir_all(&mut path).expect("Failed to create folders.");
-
-        //cache file for later downloads
-        zip_extract::extract(Cursor::new(bytes), &full_path, false).expect("failed to extract");
-
+        download_zip(url, &full_path, is_local).await;
         println!("done downloading");
     }
 

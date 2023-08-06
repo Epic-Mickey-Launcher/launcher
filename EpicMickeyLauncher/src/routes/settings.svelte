@@ -55,7 +55,7 @@
         });
         modInstallElement.modName = "Wiimms ISO Tools";
         modInstallElement.modIcon = "img/waren.png";
-        invoke("download_zip", {url: WIT_LINK_WINDOWS, foldername: "WIT"}).then(async (path) => {
+        invoke("download_tool", {url: WIT_LINK_WINDOWS, foldername: "WIT"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
             let fn = WIT_LINK_WINDOWS.split('/')[WIT_LINK_WINDOWS.split('/').length - 1].replace(".zip", "");
             dat.WITPath = path + "/" + fn + "/bin/wit.exe";
@@ -74,7 +74,7 @@
         modInstallElement.modIcon = "img/waren.png";
 
 
-        invoke("download_zip", {url: NKIT_LINK_WINDOWS, foldername: "NKit"}).then(async (path) => {
+        invoke("download_tool", {url: NKIT_LINK_WINDOWS, foldername: "NKit"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
             dat.NkitPath = path;
             await WriteToJSON(JSON.stringify(dat), "conf.json");
@@ -91,7 +91,7 @@
         modInstallElement.modName = "Dolphin";
         modInstallElement.modIcon = "img/dolphin.png";
 
-        invoke("download_zip", {url: DOLPHIN_LINK_WINDOWS, foldername: "Dolphin"}).then(async (path) => {
+        invoke("download_tool", {url: DOLPHIN_LINK_WINDOWS, foldername: "Dolphin"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = path + "/Dolphin-x64/Dolphin.exe";
             await WriteToJSON(JSON.stringify(dat), "conf.json");

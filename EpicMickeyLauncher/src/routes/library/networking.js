@@ -36,12 +36,19 @@ export async function Register(userinfo) {
   })
 }
 
-export async function UploadMod(modfile, cb, r) {
+function isNullOrWhitespace( input ) {
+  console.log(input)
+  return input == input.trim();
+}
+
+export async function UploadMod(modfile, cb, r, e, checked) {
   let info = await GetUserInfo()
   let moduploadresult = await MultipartPOST("modupload", {
     token: info.token,
     modfile: modfile,
-    replacing: r
+    filetype: e,
+    replacing: r,
+    automaticPublish: checked
   })
   cb()
 }
@@ -65,6 +72,13 @@ export async function OnSignedIn(cb) {
 export async function Login(userinfo) {
   loggedin = false;
   let finalinfo;
+
+  if(userinfo.token === "")
+  {
+    if(isNullOrWhitespace(userinfo.username) || isNullOrWhitespace(userinfo.password)) {
+      return
+    }
+  }
 
   if (userinfo.token != null) {
     finalinfo = await POST("signintoken", {
