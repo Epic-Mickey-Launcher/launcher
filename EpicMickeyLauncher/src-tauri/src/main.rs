@@ -170,6 +170,8 @@ extracted_iso_path.push("c:/extractedwii");
 async fn download_tool(url: String, foldername: String) -> PathBuf {
 
     let mut to_pathbuf = PathBuf::new();
+    to_pathbuf.push(dirs_next::document_dir().expect("could not get documents dir"));
+    to_pathbuf.push("Epic Mickey Launcher");
     to_pathbuf.push(foldername);
     download_zip(url, &to_pathbuf, false).await;
     to_pathbuf
