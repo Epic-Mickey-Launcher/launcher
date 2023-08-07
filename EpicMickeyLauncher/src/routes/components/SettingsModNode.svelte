@@ -89,7 +89,7 @@
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring);
             json = jsonString;
-            active = jsonToObject.active;
+            active = !jsonToObject.active;
             data[index] = jsonToObject;
             await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
             modInstallElement.$destroy();

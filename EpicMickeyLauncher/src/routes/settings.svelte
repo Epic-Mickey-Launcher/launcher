@@ -45,7 +45,7 @@
     let os = "";
 
     //HACK: there has to be a better way to do this
-    const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/91/ba/dolphin-master-5.0-19368-x64.7z";
+    const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/40/56/dolphin-master-5.0-18498-x64.7z";
     const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
     const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1112527174478614538/NKit.zip";
 

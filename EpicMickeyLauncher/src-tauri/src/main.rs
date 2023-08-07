@@ -67,15 +67,22 @@ async fn extract_iso(
     gamename: String,
     is_nkit: bool,
 ) -> String {
-    if Path::new("c:/extractedwii").exists() {
-        fs::remove_dir_all("c:/extractedwii").expect("Failed to remove temp folder");
+
+     let mut extracted_iso_path = PathBuf::new();
+extracted_iso_path.push("c:/extractedwii");
+     /*  extracted_iso_path.push(&witpath);
+     extracted_iso_path.pop();
+    extracted_iso_path.push("extracted_iso");  */
+
+    if Path::new(&extracted_iso_path).exists() {
+        fs::remove_dir_all(&extracted_iso_path).expect("Failed to create temp folder");
     }
 
     let mut response = "".to_string();
     let mut m_isopath = isopath;
     let mut remove_nkit_processed = false;
     if is_nkit {
-        if &nkit != "" {
+        if nkit != "" {
             let mut proc_path = PathBuf::new();
             proc_path.push(&nkit);
             proc_path.push("ConvertToISO.exe");
@@ -108,15 +115,13 @@ async fn extract_iso(
             return "err_nkit".to_string();
         }
     }
-
     Command::new(&witpath)
         .arg("extract")
-        .arg("--source")
         .arg(&m_isopath)
         .arg("-D")
         .arg("c:/extractedwii")
-        .output()
-        .expect("WIT failed to start");
+    .output().expect("failed to execute process");
+
 
     let mut path = dirs_next::document_dir().expect("could not get documents dir");
     path.push("Epic Mickey Launcher");
@@ -142,8 +147,7 @@ async fn extract_iso(
     println!("{}", &path.display());
 
     let mut source_path = PathBuf::new();
-    source_path.push("c:/");
-    source_path.push("extractedwii");
+    source_path.push(&extracted_iso_path);
     source_path.push("DATA");
 
     //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me
@@ -155,8 +159,8 @@ async fn extract_iso(
 
     response = without_data.display().to_string();
 
-    if Path::new("c:/extractedwii").exists() {
-        fs::remove_dir_all("c:/extractedwii").expect("Failed to remove temp folder");
+    if Path::new(&extracted_iso_path).exists() {
+        fs::remove_dir_all(extracted_iso_path).expect("Failed to remove temp folder");
     }
 
     return response.to_string();
@@ -209,6 +213,7 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool) -> PathBuf
 }
 
 fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
+    println!("{}", url);
     if url.ends_with(".zip") {
     
         let mut f = File::open(&input_path).expect("Failed to open tmpzip");
@@ -316,69 +321,31 @@ async fn change_mod_status(
     modid: String,
     platform: String,
 ) {
-    let data: ChangedFiles = serde_json::from_str(&json).unwrap();
-
-    let texturefiles = data.texturefiles;
-    let files = data.files;
-
-    let mut datafiles_path = PathBuf::new();
-    datafiles_path.push(&dumploc);
-    if platform == "wii" {
-        datafiles_path.push("files");
-    }
-
-    let mut backup_path = PathBuf::new();
-    backup_path.push(&dumploc);
-    backup_path.push("backup");
+    let mut data: ChangedFiles = serde_json::from_str(&json).unwrap();
 
     let active = data.active;
-    let name = data.name;
+
+    let name = &data.name;
 
     if active {
         //todo: fix this shit
         download_mod(
             "".to_string(),
-            name,
+            name.to_string(),
             dumploc,
             gameid,
             modid,
-            "pc".to_string(),
+            platform,
         )
         .await;
     } else {
-        //this is identical to delete_mod so combining both into a function would be a good practice
 
-        for file in files {
-            let mut source_path = PathBuf::new();
-            source_path.push(&backup_path);
-            source_path.push(&file);
+        //HACK!!
+        data.active = !data.active;
 
-            let mut destination_path = PathBuf::new();
-            destination_path.push(&datafiles_path);
-            destination_path.push(&file);
+        let json = serde_json::to_string(&data).expect("failed to serialize");
 
-            if std::path::Path::new(&source_path).exists()
-                && std::path::Path::new(&destination_path).exists()
-            {
-                fs::copy(source_path, destination_path).unwrap();
-            }
-        }
-
-        let dolphin_path = find_dolphin_dir(gameid);
-
-        for file in texturefiles {
-            let mut path = PathBuf::new();
-
-            path.push(&dolphin_path);
-
-            let path_final = remove_first(&file).expect("couldn't remove slash from string");
-
-            path.push(path_final);
-
-            if std::path::Path::new(&path).exists() {
-                fs::remove_file(&path).unwrap();
-            }
-        }
+       delete_mod(json, dumploc, gameid, platform).await;
     }
 
     println!("Proccess ended");
@@ -527,16 +494,22 @@ async fn download_mod(
     let mut full_path = path.clone();
     full_path.push(&modid);
 
+
     let os = env::consts::OS;
 
-    if !Path::new(&full_path).exists() {
+   
         // download
 
-        let is_local = !url.starts_with("http");
+        if !full_path.exists()
+        {
+            fs::create_dir_all(&full_path).expect("Couldn't create mod cache folder");
 
-        download_zip(url, &full_path, is_local).await;
-        println!("done downloading");
-    }
+            let is_local = !url.starts_with("http");
+
+            download_zip(url, &full_path, is_local).await;
+            println!("done downloading");
+        
+        }
 
     let mut path_json = full_path.clone();
     path_json.push("mod.json");
@@ -756,6 +729,12 @@ fn find_dolphin_dir(gameid: String) -> PathBuf {
         dolphin_path.push(Path::new(r"Dolphin/Load/Textures/"));
     } else {
         dolphin_path.push(Path::new(r"Dolphin Emulator\Load\Textures\"));
+
+        if !dolphin_path.exists()  {
+            dolphin_path.clear();
+            dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
+            dolphin_path.push("Dolphin Emulator/Load/Textures");
+        }
     }
     dolphin_path.push(Path::new(&gameid));
 
