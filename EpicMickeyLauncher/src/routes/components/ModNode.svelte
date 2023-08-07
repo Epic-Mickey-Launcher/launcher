@@ -4,7 +4,7 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
     import { SetData } from "../library/datatransfer";
-    import { POST } from "../library/networking";
+    import { GetToken, POST } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
     export let modName = "";
     export let description = "";
@@ -117,6 +117,9 @@
                 gamedata.path + "/EMLMods.json"
             );
 
+            let token = await GetToken();
+            await POST("addmodimpression", {token: token, modid: modid, impression:{download:true, like:false}}) 
+
             Init();
             modInstallElement.$destroy();
         });
@@ -124,6 +127,8 @@
 </script>
 {#if visible}
 <div class="modNodeDiv">
+
+    <div>
         <span class="spanHyperLink" on:click={ViewPage} style="font-weight:bold;">{modName}</span>
         <p>
         <span>
@@ -132,38 +137,45 @@
                 on:click={OpenProfileOfAuthor}
                 class="hyperlinkbutton">{authorname}</button
             >
-        </span> <span>|</span>
+        </span>
         <p>
-        <h5>Description: {description}</h5>
+        <span>{description}</span>
+    </div>
+
         <div class="imgArea">
             <img class="modNodeImg" alt="" src={iconLink} />
             <br>
             <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
             <br>
-
         </div>
-
 </div>
 {/if}
 <style>
+  .break {
+  flex-basis: 100%;
+  height: 0;
+}
+
     .modNodeDiv {
+        flex-wrap: wrap;
         z-index: -1;
         background-color: rgb(41, 41, 41);
         border-radius: 20px;
         padding: 10px 10px;
         width: 50%;
         height:100px;
+        display:flex;
         margin-right: auto;
         margin-left: auto;
         margin-bottom: 20px;
         box-shadow: 2px 2px 10px rgb(0, 0, 0);
+       
     }
     .imgArea{
+        display: inline;
+        margin-left:auto;
         text-align: right;
-        bottom: 125px;
-        right: 0px;
-        float: right;
-        position: relative;
+        justify-content: right;
     }
     .modNodeImg {
         z-index: 1;

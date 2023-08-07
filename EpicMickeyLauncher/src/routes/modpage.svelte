@@ -23,12 +23,19 @@
     let gameinfo;
     let modinfo;
     let youtubevideoembed;
+
+    let ownercontrols;
+
     onMount(async () => {
+
+
+        
         gameinfo = GetData("gameinfo");
         modid = GetData("modpage_id");
         dumploc = GetData("modpage_dumploc");
         let token = await GetToken();
         modinfo = await POST("getmod", { id: modid, token: token  });
+
         let impressions = await POST("getmodimpressions", { token: token, mod: modid });
         downloads = impressions.downloads;
         likes = impressions.likes;
@@ -48,8 +55,6 @@
             youtubelink = "https://www.youtube.com/embed/" + modinfo.youtubevideo;
         }
 
-        console.log(modinfo.published)
-
         modPublished = false;
 
         if(modinfo.published == undefined || modinfo.published === true)
@@ -57,19 +62,6 @@
             modPublished = true;
         }
     
-
-        Subscribe(
-            "SignedIn",
-            (m) => {
-                if (m.error != 1) {
-                    if (modinfo.author == m.id) {
-                        ownercontrols.style.display = "block";
-                    }
-                }
-            },
-            false
-        );
-
         if (loggedin) {
             let id = await GetId();
             if (modinfo.author == id) {
@@ -199,9 +191,9 @@
         window.open("#/profilepage", "_self");
     }
 
-    let ownercontrols;
     let youtubelink;
     let downloadStatus = "Download";
+    
  
     let modPublished = true;
 

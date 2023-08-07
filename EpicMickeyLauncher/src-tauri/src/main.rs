@@ -233,12 +233,13 @@ fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
     {
         Command::new("tar")
         .arg("-xf")
-        .arg(input_path)
+        .arg(&input_path)
         .arg("-C")
         .arg(&output_path)
         .output()
         .expect("Tar failed to extract");
     }
+    fs::remove_file(input_path).expect("Failed to remove tmpzip");
 }
 
 fn main() {
@@ -502,7 +503,10 @@ async fn download_mod(
    
         // download
 
-        if !full_path.exists()
+        let mut mod_json_path_check = full_path.clone();
+        mod_json_path_check.push("mod.json");
+
+        if !mod_json_path_check.exists() && !url.is_empty()
         {
             fs::create_dir_all(&full_path).expect("Couldn't create mod cache folder");
 
@@ -515,6 +519,8 @@ async fn download_mod(
 
     let mut path_json = full_path.clone();
     path_json.push("mod.json");
+
+    println!("path_json: {}", path_json.display());
 
     let json_string =
         fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
