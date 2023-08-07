@@ -520,8 +520,6 @@ async fn download_mod(
     let mut path_json = full_path.clone();
     path_json.push("mod.json");
 
-    println!("path_json: {}", path_json.display());
-
     let json_string =
         fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
 
