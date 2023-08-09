@@ -20,6 +20,9 @@
     let profilepage;
     let err;
 
+    let emblemName = "";
+    let emblemColor = "";
+
     let callback;
 
     onMount(async () => {
@@ -55,6 +58,17 @@
             bio = profileinfo.bio;
             pfplink = staticAssetsLink + "img/" + profileinfo.pfp;
 
+         
+                let emblem = profileinfo.emblems.sort((a, b) => {
+                    return b.weight - a.weight;
+                })[0];
+
+                if(emblemName != null)
+                {
+                    emblemName = emblem.emblemname;
+                emblemColor = emblem.color;
+                }
+
             profileinfo.mods.forEach((m) => {
                 new Userprofilemodnode({
                     target: modNodeGroup,
@@ -76,18 +90,15 @@
     <br />
     <span style="font-size:30px;">{username}</span>
     <p>
-        <span style="border:1px solid red;padding:3px;color:red;display:none;"
-            >ADMIN</span
-        >
-    </p>
-    <p>
         <span>{bio}</span>
     </p>
+    {#if emblemName != ""}
     <div
-        style="border: 2px solid yellow;width:120px;margin:auto;border-radius:30px;display:none;"
+        style="border: 2px solid {emblemColor};width:120px;margin:auto;border-radius:30px;"
     >
-        <p style="color:yellow;">role</p>
+        <p style="color:{emblemColor};">{emblemName}</p>
     </div>
+    {/if}
     <p />
     <hr />
     <span style="font-size:30px;">Mods</span>
