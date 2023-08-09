@@ -86,7 +86,7 @@
         <div class="header" bind:this={header}>
             <img
                 src="/img/emlLogo.png"
-                alt="0.3.1"
+                alt="0.3.2"
                 style="z-index:1;margin-left:10px;"
             />
 

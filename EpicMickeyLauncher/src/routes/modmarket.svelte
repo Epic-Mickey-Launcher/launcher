@@ -24,6 +24,14 @@
    onMount(async () => {
       await SetJsonData();
 
+      let json = await GET("trygetfeaturedmod");
+
+      if(json.id != "")
+      {
+           featuredModImage = json.imglink;
+           featuredModId = json.id;
+      }
+
       if (jsonData[0] != null) {
          currentSelectedGame = jsonData[0];
          await GetAllMods();
@@ -53,6 +61,15 @@
    }
 
    let search;
+
+   let featuredModId = "";
+   let featuredModImage = ""; 
+
+   function GoToFeaturedMod()
+   {
+        SetData("modpage_id", featuredModId);
+        window.open("#/modpage", "_self");
+   }
 
    function Search()
    {
@@ -120,6 +137,15 @@
    }
 </script>
 
+{#if featuredModId != ""}
+<span style="width:100%;display:flex;margin:auto;flex-direction:column;text-align:center;width:500px;">
+   <span class="featuredModText">Available Now!</span>
+   <p>
+   <img on:click={GoToFeaturedMod} class="featuredModBanner" alt="" style="border-radius:10px;filter: drop-shadow(1px 1px 4px black);" src={featuredModImage}>
+</span>
+<p></p>
+{/if}
+
 <div
    style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 10px;"
 >
@@ -185,4 +211,13 @@ TODO: add a limit to amount of mods that can be on one page and filter them thro
       margin-right: 30px;
       background-color: black;
    }
+
+   .featuredModBanner{
+      transition-duration: 0.1s;
+   }
+
+   .featuredModBanner:hover{
+            transform: scale(1.05);
+   }
+   
 </style>
