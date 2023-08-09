@@ -5,6 +5,7 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import ModInstall from "./components/ModInstall.svelte";
     import { removeFile } from "@tauri-apps/api/fs";
+    import { getTauriVersion } from "@tauri-apps/api/app";
     async function SetDolphinPath() {
         const selectedPath = await open({
             title: "Select Dolphin.exe",
@@ -105,8 +106,11 @@
                os = _os;
                
         })
+        version = await getTauriVersion()
         await SetCurrentPaths();
     });
+
+    let version = ""
 
     async function SetCurrentPaths() {
         let c = await ReadJSON("conf.json");
@@ -151,4 +155,4 @@
 <button on:click={DownloadNKit}>Download NKit</button>
 <h2>Factory Reset</h2>
 <button on:click={RemoveAllConfFiles} >Remove all config files</button>
-<style></style>
+<p></p>

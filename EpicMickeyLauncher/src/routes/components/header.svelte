@@ -86,7 +86,7 @@
         <div class="header" bind:this={header}>
             <img
                 src="/img/emlLogo.png"
-                alt=""
+                alt="0.3.1"
                 style="z-index:1;margin-left:10px;"
             />
 
@@ -136,6 +136,8 @@
         margin-right: 10px;
     }
 
+    
+
     .pfp {
         pointer-events: none;
         position: relative;
@@ -144,9 +146,11 @@
         height: 50px;
         border-radius: 100%;
     }
-    .pfp:hover {
+
+    .pfpbutton:hover .pfp {
         transform: scale(1.1);
     }
+
 
     .header {
         box-shadow: 2px 2px 10px rgb(0, 0, 0);

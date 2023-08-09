@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "EpicMickeyLauncher"
-version = "0.0.0"
+version = "0.3.2"
 dependencies = [
  "bytes",
  "copy_dir",

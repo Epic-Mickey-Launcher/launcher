@@ -77,6 +77,9 @@
 
       let data = await POST("getmods", { token: token });
 
+      allspawnednodes = [];
+      search.value = "";
+
       data.modlist.forEach(async (e) => {
          //HACK: dumb way of bypassing a db update
 
