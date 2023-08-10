@@ -4,6 +4,9 @@
   export let modName = "";
   export let modIcon = "";
 
+  export let MBTotal = 0;
+  export let MBDownloaded = 0;
+
   export let action = "Downloading";
   export let description =
     "This might take a while depending on your internet speed.";
@@ -20,6 +23,9 @@
     />
     <plaintext>{action} {modName}</plaintext>
     <plaintext>{description}</plaintext>
+    {#if MBTotal != 0}
+    <plaintext>25MB / 100MB</plaintext>
+    {/if}
     <img class="installingmodlogo" alt="" src={modIcon} />
   </div>
 </div>
