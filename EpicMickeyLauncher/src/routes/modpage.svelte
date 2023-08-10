@@ -11,6 +11,7 @@
     import { ReadFile, ReadJSON, WriteFile } from "./library/configfiles";
     import ModInstall from "./components/ModInstall.svelte";
     import { invoke } from "@tauri-apps/api/tauri";
+    import CommentNode from "./components/CommentNode.svelte";
 
     let downloads = 0;
     let likes = 0;
@@ -31,10 +32,36 @@
         return jsonData;
     }
 
+    async function InstantiateComment(userid, comment)
+    {
+                let commentNode = new CommentNode({
+                    target: commentsDiv,
+                });
+
+                let commentName = "";
+
+                let userinfo = await POST("getaccount", { id: userid });
+                if (userinfo.username == null) {
+                    commentName = "Unknown Account";
+                } else {
+                    commentName = userinfo.username;
+                }
+
+                commentNode.InitCommentNode(
+                    comment,
+                    staticAssetsLink + "img/" + userinfo.pfp,
+                    userinfo.username,
+                    userinfo.id
+                );
+
+                commentNodes.push(commentNode);
+    }
+
     onMount(async () => {
         modid = GetData("modpage_id");
         let token = await GetToken();
         modinfo = await POST("getmod", { id: modid, token: token });
+        RefreshComments()
 
         let impressions = await POST("getmodimpressions", {
             token: token,
@@ -74,6 +101,41 @@
 
         CheckIfDownloaded();
     });
+
+    let commentInput;
+
+    async function PostComment()
+    {
+        if(commentInput.value.trim().length > 0 && commentInput.value.trim().length < 300) {
+            let token = await GetToken();
+            let res = await POST("postcomment", { token: token, pageid: modid, comment: commentInput.value.trim() });
+            if(res.res == 0)
+            {
+                RefreshComments()
+            }
+            commentInput.value = ""
+        }
+    }
+
+    let commentNodes = []
+    let commentsCount = 0
+
+    async function RefreshComments()
+    {
+        commentNodes.forEach(r => {
+            r.$destroy();
+        })
+        
+        commentNodes = [];
+
+        let comments = await POST("getcomments", { pageid: modid });
+        if (comments != null) {
+            commentsCount = comments.comments.length;
+            comments.comments.reverse().forEach(async (r) => {
+             InstantiateComment(r.user, r.comment)
+            });
+        }
+    }
 
     async function DeleteMod() {
         let confirmed = await confirm("Are you sure?");
@@ -122,7 +184,7 @@
         let gameid;
         gameid = "SEME4Q";
 
-        if(modinfo.game == "EM2"){
+        if (modinfo.game == "EM2") {
             gameid = "SERE4Q";
         }
         let modInstallElement = new ModInstall({
@@ -149,13 +211,19 @@
             await invoke("delete_mod_cache", { modid: modinfo.id });
         }
 
+        let platform = modinfo.platform;
+        if(platform == null)
+        {
+            platform = "wii"
+        }
+
         invoke("download_mod", {
             url: staticAssetsLink + modinfo.download,
             name: modinfo.name,
             dumploc: dumploc,
             modid: modinfo.id.toString(),
             gameid: gameid,
-            platform: modinfo.platform,
+            platform: platform,
         }).then(async (json) => {
             let changedFiles = JSON.parse(json);
             changedFiles.update = modinfo.update;
@@ -186,9 +254,8 @@
 
         let platform = modinfo.platform;
 
-        if(modinfo.platform == null)
-        {
-            platform = "wii"
+        if (modinfo.platform == null) {
+            platform = "wii";
         }
 
         Gamesjson.forEach((element) => {
@@ -212,13 +279,11 @@
                     downloadButton.disabled = true;
                     downloadStatus = "Already Installed";
                 }
-            }  
-        } 
-        else {
+            }
+        } else {
             downloadButton.disabled = true;
             downloadStatus = `${modinfo.game} (${platform}) not installed!`;
         }
-    
     }
 
     async function OpenProfileOfAuthor() {
@@ -229,7 +294,7 @@
 
     let youtubelink;
     let downloadStatus = "Download";
-
+    let commentsDiv;
     let modPublished = true;
 </script>
 
@@ -312,3 +377,16 @@
         >
     {/if}
 {/if}
+
+<p style="margin-bottom:50px;" />
+<h1>Comments</h1>
+<span>{commentsCount} Comments</span>
+<hr />
+<div style="margin:auto;align-items:center;text-align:center;">
+    <span style="width:50%;">
+        <input bind:this={commentInput} type="text" style="border:none;font-size:20px;padding:3px;" />
+        <button on:click={PostComment} style="">Send</button>
+    </span>
+    <p />
+    <div style="align-items:center;" bind:this={commentsDiv} />
+</div>

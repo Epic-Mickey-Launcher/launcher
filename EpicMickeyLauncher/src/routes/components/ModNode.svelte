@@ -119,12 +119,19 @@
         let data = JSON.parse(datastring);
         let existingmod = data.find(r => r.modid == modid);
 
+        let platform = gamedata.platform;
+        if(platform == null)
+        {
+            platform = "wii"
+        }
+
+
             modInstallElement.action = "Updating";
             await invoke("delete_mod", {
             json: JSON.stringify(existingmod),
             dumploc: gamedata.path,
             gameid: gameid,
-            platform: gamedata.platform
+            platform: platform
         })
             let delete_index = data.indexOf(existingmod);
             data.splice(delete_index, 1);
