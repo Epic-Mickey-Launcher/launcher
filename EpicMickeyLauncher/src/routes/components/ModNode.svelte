@@ -12,6 +12,8 @@
     export let downloadLink = "";
     export let author = "";
     export let modid = "";
+    export let modplatform = "";
+    export let modgame = ""
     export let update = 0;
     export let visible = true;
     let authoraccountexists = true;
@@ -21,7 +23,11 @@
     export let json = "";
     let canupdate = false;
     let downloadButton;
+    async function SetJsonData() {
+        let jsonData = await ReadJSON("games.json");
 
+        return jsonData;
+    }
     function ViewPage() {
         SetData("modpage_id", modid);
         SetData("modpage_dumploc", gamedata.path);
@@ -44,20 +50,48 @@
             description = newDesc;
         }
 
-        let dataStr = await ReadFile(gamedata.path + "/EMLMods.json");
-        let dataJson = JSON.parse(dataStr);
-        let json = dataJson.find((r) => r.modid == modid);
-        downloadStatus = "Download";
-        if (json != null) {
-           if(json.update != update){
-            canupdate = true;
-            downloadStatus = "Update Available";
-           }
-           else{
-            downloadButton.disabled = true;
-            downloadStatus = "Already Installed";
-           }
+        await CheckIfDownloaded();
+    }
+
+    async function CheckIfDownloaded() {
+        let Gamesjson = await SetJsonData();
+
+        let haveGame = false;
+
+        let platform = modplatform;
+
+        if(modplatform == undefined)
+        {
+            platform = "wii"
         }
+
+        Gamesjson.forEach((element) => {
+            if (element.platform == platform) {
+                gamedata = element;
+                haveGame = true;
+            }
+        });
+
+        if (haveGame) {
+            let dataStr = await ReadFile(gamedata.path + "/EMLMods.json");
+            let dataJson = JSON.parse(dataStr);
+            let json = dataJson.find((r) => r.modid == modid);
+            downloadStatus = "Download";
+            if (json != null) {
+                if (json.update != update) {
+                    canupdate = true;
+                    downloadStatus = "Update Available";
+                } else {
+                    downloadButton.disabled = true;
+                    downloadStatus = "Already Installed";
+                }
+            }  
+        } 
+        else {
+            downloadButton.disabled = true;
+            downloadStatus = `${modgame} (${platform}) not installed!`;
+        }
+    
     }
 
     async function OpenProfileOfAuthor() {

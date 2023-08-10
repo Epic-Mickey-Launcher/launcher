@@ -122,6 +122,9 @@
         let gameid;
         gameid = "SEME4Q";
 
+        if(modinfo.game == "EM2"){
+            gameid = "SERE4Q";
+        }
         let modInstallElement = new ModInstall({
             target: document.body,
         });
@@ -181,8 +184,15 @@
 
         let haveGame = false;
 
+        let platform = modinfo.platform;
+
+        if(modinfo.platform == null)
+        {
+            platform = "wii"
+        }
+
         Gamesjson.forEach((element) => {
-            if (element.platform == modinfo.platform) {
+            if (element.platform == platform) {
                 gameinfo = element;
                 dumploc = element.path;
                 haveGame = true;
@@ -202,10 +212,13 @@
                     downloadButton.disabled = true;
                     downloadStatus = "Already Installed";
                 }
-            }
-        } else {
-            downloadButton.disabled = false;
+            }  
+        } 
+        else {
+            downloadButton.disabled = true;
+            downloadStatus = `${modinfo.game} (${platform}) not installed!`;
         }
+    
     }
 
     async function OpenProfileOfAuthor() {

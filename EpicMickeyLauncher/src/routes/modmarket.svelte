@@ -125,6 +125,8 @@
             modNode.downloadLink = staticAssetsLink + e.download;
             modNode.author = e.author;
             modNode.update = e.update;
+            modNode.modplatform = e.platform;
+            modNode.modgame = e.game;
             modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
                (r) => r.game == currentSelectedGame.game && r.platform == currentSelectedGame.platform
