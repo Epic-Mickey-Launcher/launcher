@@ -664,7 +664,7 @@ async fn download_mod(
             depth: 0,
             overwrite: true,
             skip_exist: false,
-            buffer_size: 64000,
+            buffer_size: 128000,
             content_only: true,
             copy_inside: false,
         };
@@ -700,7 +700,7 @@ async fn download_mod(
             depth: 0,
             overwrite: true,
             skip_exist: false,
-            buffer_size: 64000,
+            buffer_size: 128000,
             content_only: true,
             copy_inside: false,
         };

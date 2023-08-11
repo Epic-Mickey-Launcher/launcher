@@ -16,7 +16,7 @@ background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,
   padding: 0px;
 }
 .hyperlinkbutton:hover{
-  cursor:grab;
+  cursor:pointer;
   background-color: transparent;
 }
 
@@ -53,6 +53,7 @@ textarea{
   transition-duration: 0.1s;
 }
 button:hover{
+  cursor:pointer;
   background-color: rgb(43, 43, 43);
 }
 button:hover:disabled{

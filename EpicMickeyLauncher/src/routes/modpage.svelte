@@ -24,6 +24,8 @@
     let modinfo;
     let youtubevideoembed;
 
+    let localid;
+
     let ownercontrols;
 
     async function SetJsonData() {
@@ -32,7 +34,7 @@
         return jsonData;
     }
 
-    async function InstantiateComment(userid, comment)
+    async function InstantiateComment(userid, comment, id)
     {
                 let commentNode = new CommentNode({
                     target: commentsDiv,
@@ -51,15 +53,25 @@
                     comment,
                     staticAssetsLink + "img/" + userinfo.pfp,
                     userinfo.username,
-                    userinfo.id
+                    userinfo.id,
+                    id,
+                    localid,
+                    modid
                 );
+
+                commentNode.onDelete = () => {
+                    RefreshComments();
+                };
 
                 commentNodes.push(commentNode);
     }
 
     onMount(async () => {
         modid = GetData("modpage_id");
+        let id = await GetId();
+        localid = id;
         let token = await GetToken();
+
         modinfo = await POST("getmod", { id: modid, token: token });
         RefreshComments()
 
@@ -93,7 +105,6 @@
         }
 
         if (loggedin) {
-            let id = await GetId();
             if (modinfo.author == id) {
                 ownercontrols.style.display = "block";
             }
@@ -132,7 +143,7 @@
         if (comments != null) {
             commentsCount = comments.comments.length;
             comments.comments.reverse().forEach(async (r) => {
-             InstantiateComment(r.user, r.comment)
+             InstantiateComment(r.user, r.comment, r.id)
             });
         }
     }
@@ -171,7 +182,7 @@
         });
         console.log(response);
         likes += response.likes;
-        if (likes > 0) {
+        if (response.likes > 0) {
             hearticon.style.fill = "red";
         } else {
             hearticon.style.fill = "white";
@@ -383,9 +394,10 @@
 <span>{commentsCount} Comments</span>
 <hr />
 <div style="margin:auto;align-items:center;text-align:center;">
-    <span style="width:50%;">
-        <input bind:this={commentInput} type="text" style="border:none;font-size:20px;padding:3px;" />
-        <button on:click={PostComment} style="">Send</button>
+    <span style="width:50%;height:25px;">
+        <input placeholder="Comment..." bind:this={commentInput} type="text" style="border:none;font-size:20px;padding:3px;border-radius:5px;" />
+        <p>
+        <button on:click={PostComment} style="border:none;padding-left:50px;padding-right:50px;padding-top:10px;padding-bottom:10px;border-radius:6px;">Send</button>
     </span>
     <p />
     <div style="align-items:center;" bind:this={commentsDiv} />
