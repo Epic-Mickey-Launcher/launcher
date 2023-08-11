@@ -76,6 +76,7 @@ export async function Login(userinfo) {
   if(userinfo.token === "")
   {
     if(isNullOrWhitespace(userinfo.username) || isNullOrWhitespace(userinfo.password)) {
+      await alert("You forgot to enter your username or password, doofus.")
       return
     }
   }

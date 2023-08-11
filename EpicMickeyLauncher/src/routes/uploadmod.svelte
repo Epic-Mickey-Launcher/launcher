@@ -70,7 +70,7 @@
                     replacingMod = null;
                     modInstallElement.$destroy();
                     result =
-                        "Mod Request Sent! It might take a while for the server to download the mod, so give it a moment.";
+                        "Mod Request Successful! Your mod will be available in the mod market once it has been verified.";
                     waitDiv.style.display = "none";
                     largeMod.style.display = "none";
                     resultDiv.style.display = "block";
