@@ -215,8 +215,12 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool) -> PathBuf
 }
 
 fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
-    println!("{}", url);
-    if url.ends_with(".zip") {
+    
+    let mut f = File::open(&input_path).expect("Couldn't open archive");
+    let mut buffer = [0; 262];
+    f.read(&mut buffer).expect("failed to read archive header");
+
+    if &buffer[0..2] == "PK".as_bytes() {
     
         let mut f = File::open(&input_path).expect("Failed to open tmpzip");
 
@@ -225,11 +229,11 @@ fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
         f.read_to_end(&mut buffer).expect("Failed to read tmpzip");
 
         zip_extract::extract(Cursor::new(buffer), &output_path, false).expect("failed to extract");
-    } else if url.ends_with(".7z") {
+    } else if &buffer[0..2] == "7z".as_bytes() {
         sevenz_rust::decompress_file(&input_path, &output_path)
             .expect("complete");
     }
-    else if url.ends_with(".tar")
+    else if &buffer[257..261] == "ustar".as_bytes()
     {
         Command::new("tar")
         .arg("-xf")
@@ -472,8 +476,14 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
                 .to_string();
             validation.modname = json_data.name;
         }
+        else{
+            println!("Icon file does not exist");
+        }
     }
-    fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
+    else{
+        println!("Mod.json does not exist");
+    }
+    //fs::remove_dir_all(&path).expect("Couldn't remove temporary directory");
     println!("Finished Validating mod");
     validation
 }
