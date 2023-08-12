@@ -43,10 +43,11 @@ function isNullOrWhitespace( input ) {
 
 export async function UploadMod(modfile, cb, r, e, checked) {
   let info = await GetUserInfo()
+
   let moduploadresult = await MultipartPOST("modupload", {
     token: info.token,
     modfile: modfile,
-    filetype: e,
+    extension: e,
     replacing: r,
     automaticPublish: checked
   })

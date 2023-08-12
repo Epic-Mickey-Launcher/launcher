@@ -5,6 +5,8 @@
     windows_subsystem = "windows"
 )]
 
+use std::str;
+
 use std::env;
 use fs_extra::dir::CopyOptions;
 use serde::{Deserialize, Serialize};
@@ -177,7 +179,7 @@ async fn download_tool(url: String, foldername: String) -> PathBuf {
     to_pathbuf
 }
 
-async fn download_zip(url: String, foldername: &PathBuf, local: bool) -> PathBuf {
+async fn download_zip(url: String, foldername: &PathBuf, local: bool) -> String {
 
     fs::create_dir_all(&foldername).expect("Failed to create");
 
@@ -205,23 +207,28 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool) -> PathBuf
         fs::copy(&url, &temporary_archive_path).expect("Failed to copy local file");
     }
 
-    let mut output = PathBuf::new();
+    let output = PathBuf::from(&foldername);
 
-    output.push(foldername);
-
-    extract_archive(url, temporary_archive_path, &output);
+    let extension = extract_archive(url, temporary_archive_path, &output);
     
-    output
+    extension
 }
 
-fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
+fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) -> String {
     
     let mut f = File::open(&input_path).expect("Couldn't open archive");
     let mut buffer = [0; 262];
+
+    let mut archive_type = "";
+
     f.read(&mut buffer).expect("failed to read archive header");
 
     if &buffer[0..2] == "PK".as_bytes() {
     
+        println!("Archive is Zip");
+
+        archive_type = "zip";
+
         let mut f = File::open(&input_path).expect("Failed to open tmpzip");
 
         let mut buffer = Vec::new();
@@ -230,11 +237,15 @@ fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
 
         zip_extract::extract(Cursor::new(buffer), &output_path, false).expect("failed to extract");
     } else if &buffer[0..2] == "7z".as_bytes() {
+        println!("Archive is 7Zip");
+        archive_type = "7zip";
         sevenz_rust::decompress_file(&input_path, &output_path)
             .expect("complete");
     }
-    else if &buffer[257..261] == "ustar".as_bytes()
+    else if &buffer[257..262] == "ustar".as_bytes()
     {
+        println!("Archive is TAR");
+        archive_type = "tar";
         Command::new("tar")
         .arg("-xf")
         .arg(&input_path)
@@ -243,7 +254,11 @@ fn extract_archive(url: String, input_path: String,  output_path: &PathBuf) {
         .output()
         .expect("Tar failed to extract");
     }
+    else {
+        println!("Unknown archive type");
+    }
     fs::remove_file(input_path).expect("Failed to remove tmpzip");
+    archive_type.to_string()
 }
 
 fn main() {
@@ -259,7 +274,8 @@ fn main() {
             delete_mod_cache,
             check_iso,
             open_link,
-            download_tool
+            download_tool,
+            validate_archive
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -418,7 +434,49 @@ async fn delete_mod(json: String, dumploc: String, gameid: String, platform: Str
 struct ValidationInfo {
     modname: String,
     modicon: String,
+    extension: String,
     validated: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+struct SmallArchiveValidationInfo{
+    under_limit: bool,
+    extension: String
+}
+
+#[tauri::command]
+fn validate_archive(path: String) -> SmallArchiveValidationInfo
+{
+    let mut validation_info = SmallArchiveValidationInfo{
+      under_limit: false,
+      extension: "".to_string(),
+    };
+    let mut f = File::open(&path).expect("Couldn't open archive");
+    let size = f.metadata().unwrap().len();
+
+    validation_info.under_limit = size < 100000000;
+
+    let mut buffer = [0; 262];
+    f.read(&mut buffer).expect("failed to read archive header");
+
+    if &buffer[0..2] == "PK".as_bytes() {
+    
+        println!("Archive is Zip");
+        validation_info.extension = "zip".to_string();
+
+    } else if &buffer[0..2] == "7z".as_bytes() {
+        println!("Archive is 7Zip");
+        validation_info.extension  = "7zip".to_string();
+    }
+    else if &buffer[257..262] == "ustar".as_bytes()
+    {
+        println!("Archive is TAR");
+        validation_info.extension  = "tar".to_string();
+    }
+    else {
+        println!("Unknown archive type");
+    }
+validation_info
 }
 
 #[tauri::command]
@@ -450,13 +508,14 @@ async fn validate_mod(url: String, local: bool) -> ValidationInfo {
 
     let mut icon_path = path.clone();
 
-    download_zip(url, &path, local).await;
+    let extension = download_zip(url, &path, local).await;
     
     println!("Finished Downloading mod for validation");
 
     let mut validation = ValidationInfo {
         modname: "".to_string(),
         modicon: "".to_string(),
+        extension: extension,
         validated: false,
     };
 
