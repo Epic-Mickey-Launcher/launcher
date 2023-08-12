@@ -102,7 +102,8 @@
 
         if (path != "") {
             uploadFile(path, () => {
-               
+               resultDiv.style.display = "block";
+               waitDiv.style.display = "none";
             })
         }
     }
