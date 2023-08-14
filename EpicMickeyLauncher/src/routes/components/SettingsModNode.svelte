@@ -84,6 +84,8 @@
             dumploc: dumploc,
             modid: jsonToObject.modid,
             gameid: gameid,
+            active: jsonToObject.active,
+            modname: jsonToObject.name,
             platform: gamedata.platform
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");

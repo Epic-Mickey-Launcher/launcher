@@ -56,6 +56,7 @@
         });
         modInstallElement.modName = "Wiimms ISO Tools";
         modInstallElement.modIcon = "img/waren.png";
+        modInstallElement.showDownloadProgression = true;
         invoke("download_tool", {url: WIT_LINK_WINDOWS, foldername: "WIT"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
             let fn = WIT_LINK_WINDOWS.split('/')[WIT_LINK_WINDOWS.split('/').length - 1].replace(".zip", "");
@@ -73,7 +74,7 @@
         modInstallElement.description = "This will take a while...";
         modInstallElement.modName = "NKit";
         modInstallElement.modIcon = "img/waren.png";
-
+        modInstallElement.showDownloadProgression = true;
 
         invoke("download_tool", {url: NKIT_LINK_WINDOWS, foldername: "NKit"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
@@ -91,7 +92,7 @@
         });
         modInstallElement.modName = "Dolphin";
         modInstallElement.modIcon = "img/dolphin.png";
-
+        modInstallElement.showDownloadProgression = true;
         invoke("download_tool", {url: DOLPHIN_LINK_WINDOWS, foldername: "Dolphin"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = path + "/Dolphin-x64/Dolphin.exe";
@@ -142,6 +143,13 @@ nkit_button.disabled = true
         let confirmation = await confirm("Are you sure?");
         if(confirmation)
         {
+
+            let delete_docs_folder = await confirm("Do you want to delete the EML documents folder? This can fix issues with iso extraction but will also delete all of your games and tools.")
+            if(delete_docs_folder)
+            {
+                await invoke("delete_docs_folder")
+            }
+
             let c = await ReadJSON("games.json");
         c.forEach(async (d) => {
             let path = d.path + "/EMLMods.json"

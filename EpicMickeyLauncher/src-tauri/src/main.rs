@@ -1,19 +1,22 @@
 //note 2self or whoever. macos directory system uses / and not \
 
- #![cfg_attr(
+#![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-  
+
 use fs_extra::dir::CopyOptions;
 use futures_util::StreamExt;
+use registry;
 #[cfg(target_os = "windows")]
 use registry::Hive;
 #[cfg(target_os = "windows")]
 use registry::Security;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::default;
 use std::env;
+use std::fmt::format;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -25,7 +28,6 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::str;
 use walkdir::WalkDir;
-use registry;
 extern crate dirs_next;
 extern crate fs_extra;
 extern crate open;
@@ -40,8 +42,6 @@ use tauri::{Manager, Window};
 struct ChangedFiles {
     name: String,
     modid: String,
-    files: Vec<String>,
-    texturefiles: Vec<String>,
     active: bool,
     update: i32,
 }
@@ -68,8 +68,87 @@ fn open_link(url: String) {
     open::that(url).expect("Failed to open URL in default browser");
 }
 
+#[tauri::command]
+fn delete_docs_folder() {
+    let mut path = dirs_next::document_dir().expect("could not get documents dir");
+    path.push("Epic Mickey Launcher");
+    if path.exists() {
+        fs::remove_dir_all(path).unwrap();
+    }
+}
+
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
+struct ModFilesInfo{
+    files: Vec<String>,
+    textures: Vec<String>,
+}
+
+fn parse_mod_info(path: String) -> ModFilesInfo{
+    println!("{}",path);
+    let mut file = File::open(path).expect("Failed to open file");
+    let mut buffer: String = default::Default::default();
+    file.read_to_string(&mut buffer).unwrap();
+
+    let lines = buffer.split("\n");
+
+    let mut files = Vec::new();
+    let mut textures = Vec::new();
+
+    let mut texture_mode = false;
+
+    for line in lines {
+        if line == "[Textures]" {
+            texture_mode = true;
+            continue;
+        } else if line == "[Files]" {
+            texture_mode = false;
+            continue;
+        }
+        else if line == "" {
+            continue;
+        }
+        
+        if texture_mode {
+            textures.push(line.to_string());
+        } else {
+            files.push(line.to_string());
+        }
+    }
+
+    return ModFilesInfo { files:files, textures: textures};
+}
+
+#[tauri::command]
+fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>)
+{
+    println!("{}", path);
+
+    let mut file = File::create(path).expect("Failed to create file");
+
+    if files.len() > 0
+    {
+        file.write(b"[Files]\n").unwrap();
+    }
+
+    for file_path in files
+    {
+        file.write(file_path.as_bytes()).unwrap();
+        file.write(b"\n").unwrap();
+    }
+
+    if textures.len() > 0
+    {
+        file.write(b"[Textures]\n").unwrap();
+    }
+
+    for file_path in textures
+    {
+        file.write(file_path.as_bytes()).unwrap();
+        file.write(b"\n").unwrap();
+    }
+
+}
 
 #[tauri::command]
 async fn extract_iso(
@@ -78,14 +157,13 @@ async fn extract_iso(
     isopath: String,
     gamename: String,
     is_nkit: bool,
-    window: Window
+    window: Window,
 ) -> String {
     let mut extracted_iso_path = PathBuf::new();
     extracted_iso_path.push("c:/extractedwii");
 
     let mut source_path = PathBuf::new();
     source_path.push(&extracted_iso_path);
-
 
     /*  extracted_iso_path.push(&witpath);
      extracted_iso_path.pop();
@@ -101,8 +179,9 @@ async fn extract_iso(
     let mut remove_nkit_processed = false;
     if is_nkit {
         if nkit != "" {
-
-            window.emit("change_iso_extract_msg", "Converting NKit to ISO...").unwrap();
+            window
+                .emit("change_iso_extract_msg", "Converting NKit to ISO...")
+                .unwrap();
 
             let mut proc_path = PathBuf::new();
             proc_path.push(&nkit);
@@ -147,7 +226,9 @@ async fn extract_iso(
         }
     }
 
-    window.emit("change_iso_extract_msg", "Dumping ISO...").unwrap();
+    window
+        .emit("change_iso_extract_msg", "Dumping ISO...")
+        .unwrap();
 
     #[cfg(target_os = "windows")]
     Command::new(&witpath)
@@ -159,7 +240,9 @@ async fn extract_iso(
         .output()
         .expect("failed to execute process");
 
-    window.emit("change_iso_extract_msg", "Cleaning Up...").unwrap();
+    window
+        .emit("change_iso_extract_msg", "Cleaning Up...")
+        .unwrap();
 
     let mut path = dirs_next::document_dir().expect("could not get documents dir");
     path.push("Epic Mickey Launcher");
@@ -185,12 +268,16 @@ async fn extract_iso(
 
     //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me¨
 
-    window.emit("change_iso_extract_msg", "Injecting Game Files...").unwrap();
+    window
+        .emit("change_iso_extract_msg", "Injecting Game Files...")
+        .unwrap();
 
     if source_path.exists() {
         copy(source_path, &path, &options).expect("failed to inject game files");
 
-        window.emit("change_iso_extract_msg", "Cleaning up....").unwrap();
+        window
+            .emit("change_iso_extract_msg", "Cleaning up....")
+            .unwrap();
 
         if remove_nkit_processed && Path::new(&m_isopath).exists() {
             fs::remove_file(m_isopath).expect("failed to remove converted nkit iso");
@@ -259,8 +346,6 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
             let buf = item.as_ref().unwrap();
 
             download_bytes_count += buf.len();
-
-            
 
             window
                 .emit(
@@ -365,7 +450,9 @@ fn main() {
             open_link,
             download_tool,
             validate_archive,
-            set_dolphin_emulator_override
+            set_dolphin_emulator_override,
+            delete_docs_folder,
+            write_mod_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -381,7 +468,6 @@ fn playgame(dolphin: String, exe: String) -> i32 {
     if Path::new(&dolphin).exists() {
         if os == "windows" {
             if dolphin.ends_with(".exe") {
-
                 let path = find_dolphin_dir(&PathBuf::from("Config/GFX.ini"));
 
                 Command::new(&dolphin)
@@ -394,16 +480,17 @@ fn playgame(dolphin: String, exe: String) -> i32 {
 
                     let mut path_buffer: String = Default::default();
 
-                    f.read_to_string(&mut path_buffer).expect("Failed to read file");
+                    f.read_to_string(&mut path_buffer)
+                        .expect("Failed to read file");
 
-                    path_buffer = path_buffer.replace("HiresTextures = False", "HiresTextures = True");
+                    path_buffer =
+                        path_buffer.replace("HiresTextures = False", "HiresTextures = True");
 
                     let mut new = File::create(&path).unwrap();
 
-                    new.write_all(path_buffer.as_bytes()).expect("Failed to write to file");
-
+                    new.write_all(path_buffer.as_bytes())
+                        .expect("Failed to write to file");
                 }
-
             } else if Path::new(&exe).exists() {
                 Command::new(&dolphin)
                     .arg(&exe)
@@ -447,18 +534,18 @@ fn check_iso(path: String) -> CheckISOResult {
 
 #[tauri::command]
 async fn change_mod_status(
-    json: String,
     dumploc: String,
     gameid: String,
     modid: String,
     platform: String,
+    active: bool,
+    modname: String,
     window: Window,
 ) {
-    let mut data: ChangedFiles = serde_json::from_str(&json).unwrap();
 
-    let active = data.active;
+    let active = active;
 
-    let name = &data.name;
+    let name = modname;
 
     if active {
         //todo: fix this shit
@@ -474,24 +561,27 @@ async fn change_mod_status(
         .await;
     } else {
         //HACK!!
-        data.active = !data.active;
-
-        let json = serde_json::to_string(&data).expect("failed to serialize");
-
-        delete_mod(json, dumploc, gameid, platform).await;
+        delete_mod(dumploc, gameid, platform, modid, !active).await;
     }
 
     println!("Proccess ended");
 }
 
 #[tauri::command]
-async fn delete_mod(json: String, dumploc: String, gameid: String, platform: String) {
-    let data: ChangedFiles = serde_json::from_str(&json).unwrap();
+async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: String, active: bool) {
+    
+    let p = PathBuf::from(format!("{}/{}", dumploc, modid));
+
+    if ! p.exists() {return;}
+
+    let data = parse_mod_info(p.to_str().unwrap().to_string());
 
     let files = data.files;
-    let texturefiles = data.texturefiles;
+    let texturefiles = data.textures;
 
-    let active = data.active;
+    let active = active;
+
+    println!("{}", active);
 
     if active {
         let mut datafiles_path = PathBuf::new();
@@ -680,7 +770,7 @@ async fn download_mod(
     modid: String,
     platform: String,
     window: Window,
-) -> String {
+) {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml/cachedMods");
 
@@ -899,19 +989,13 @@ async fn download_mod(
         copy(&path_textures, &dolphin_path, &options).expect("failed to inject texture files");
     }
 
-    let changed_files_json = ChangedFiles {
-        name: name,
-        files: files_to_restore,
-        texturefiles: texturefiles,
-        modid: modid,
-        active: true,
-        update: 0,
-    };
+  
 
-    let json = serde_json::to_string(&changed_files_json).unwrap();
+    
 
-    println!("Process ended successfully"); 
-    json.into()
+    write_mod_info(format!("{}/{}", &dumploc, modid), files_to_restore, texturefiles);
+
+    println!("Process ended successfully");
 }
 
 fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
@@ -930,7 +1014,9 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             dolphin_path.push(where_in);
         } else {
             #[cfg(target_os = "windows")]
-            let regkey = Hive::CurrentUser.open(r"Software\Dolphin Emulator", Security::Read).unwrap();
+            let regkey = Hive::CurrentUser
+                .open(r"Software\Dolphin Emulator", Security::Read)
+                .unwrap();
             #[cfg(target_os = "windows")]
             let path = regkey.value("UserConfigPath").unwrap().to_string();
 

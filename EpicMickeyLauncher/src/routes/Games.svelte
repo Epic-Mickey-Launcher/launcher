@@ -10,6 +10,7 @@
   import { onMount } from "svelte";
   import { ReadJSON, WriteToJSON, FileExists, InitConfFiles } from "./library/configfiles.js";
     import { init } from "svelte/internal";
+    import { ConvertModJsonToNew } from "./library/legacy";
 
   let gameNodeDiv;
 
@@ -34,7 +35,12 @@
 
     let jsonData = JSON.parse(t);
 
-    jsonData.forEach((dat) => {
+    jsonData.forEach(async (dat) => {
+      
+      console.log(dat)
+
+      await ConvertModJsonToNew(dat.path)
+
       CreateNode(dat.game, dat.path, dat.platform, dat);
     });
   });

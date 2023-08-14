@@ -12,6 +12,7 @@
     import ModInstall from "./components/ModInstall.svelte";
     import { invoke } from "@tauri-apps/api/tauri";
     import CommentNode from "./components/CommentNode.svelte";
+    import { exists } from "@tauri-apps/api/fs";
 
     let downloads = 0;
     let likes = 0;
@@ -188,7 +189,7 @@
             hearticon.style.fill = "white";
         }
     }
-
+    
     let hearticon;
 
     async function Download() {
@@ -236,15 +237,26 @@
             modid: modinfo.id.toString(),
             gameid: gameid,
             platform: platform,
-        }).then(async (json) => {
-            let changedFiles = JSON.parse(json);
-            changedFiles.update = modinfo.update;
-            let currentMods = JSON.parse(
-                await ReadFile(dumploc + "/EMLMods.json")
-            );
-            currentMods.push(changedFiles);
+        }).then(async () => {
+            let json_exists = await exists(dumploc + "/EMLMods.json");
+            let current_mods = []
+            if (json_exists)
+            {
+                current_mods = JSON.parse(await ReadFile(dumploc + "/EMLMods.json"));
+            }
+
+
+            current_mods.push({
+                    name: modinfo.name,
+                    modid: modinfo.id,
+                    active: true,
+                    update: modinfo.update,
+                })
+
+
+            
             await WriteFile(
-                JSON.stringify(currentMods),
+                JSON.stringify(current_mods),
                 dumploc + "/EMLMods.json"
             );
             modInstallElement.$destroy();
@@ -271,15 +283,23 @@
         }
 
         Gamesjson.forEach((element) => {
-            if (element.platform == platform) {
+            if (element.platform == platform && element.game == modinfo.game) {
                 gameinfo = element;
                 dumploc = element.path;
                 haveGame = true;
+                return
             }
         });
 
         if (haveGame) {
+            let file_exists = await exists(dumploc + "/EMLMods.json");
+
+            if (!file_exists) {
+                await WriteFile("[]", dumploc + "/EMLMods.json");
+            }
+
             let dataStr = await ReadFile(dumploc + "/EMLMods.json");
+
             let dataJson = JSON.parse(dataStr);
             let json = dataJson.find((r) => r.modid == modid);
             downloadStatus = "Download";
