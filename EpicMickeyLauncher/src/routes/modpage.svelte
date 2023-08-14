@@ -203,6 +203,7 @@
         });
         modInstallElement.modIcon = staticAssetsLink + modinfo.icon;
         modInstallElement.modName = modinfo.name;
+        modInstallElement.showDownloadProgression = true;
 
         let datastring = await ReadFile(dumploc + "/EMLMods.json");
         let data = JSON.parse(datastring);

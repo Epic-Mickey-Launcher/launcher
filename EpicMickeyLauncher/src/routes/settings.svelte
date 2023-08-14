@@ -119,6 +119,18 @@
         currentNkitPath = c.NkitPath;
     }
 
+    async function SetDolphinEmulatorOverride(){
+
+        const selectedPath = await open({
+            title: "Select Dolphin.exe",
+            directory: true,
+            multiple: false,
+        });
+
+
+        invoke("set_dolphin_emulator_override", {path: selectedPath});
+    }
+
     async function RemoveAllConfFiles()
     {
         let confirmation = await confirm("Are you sure?");
@@ -149,6 +161,11 @@
 <button on:click={SetWITPath}>Assign WIT Path</button>
 <span style="display:inline"><em>{currentWITPath}</em></span>
 <p>Nkit Path: {currentNkitPath}</p>
+
+<p>
+<button on:click={SetDolphinEmulatorOverride} >Override Dolphin Emulator Config Folder</button>
+</p>
+
 <h2>Automatically Download & Assign</h2>
 <button on:click={DownloadDolphin}>Download Dolphin</button>
 <button on:click={DownloadWIT}>Download Wiims ISO Tool</button>

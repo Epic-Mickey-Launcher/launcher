@@ -11,6 +11,7 @@
   import { invoke } from "@tauri-apps/api/tauri";
   import ModInstall from "./components/ModInstall.svelte";
     import { onMount } from "svelte";
+    import { emit, listen } from '@tauri-apps/api/event'
   let addgamedumpDiv;
   let dumpFound;
   let error = "";
@@ -41,13 +42,22 @@
       let d = await ReadJSON("conf.json");
       await invoke("check_iso", { path: path }).then(async (res) => {
         if (res.id == "SEME4Q" || res.id == "SERE4Q") {
-          let gamename = res.id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
           let modInstallElement = new ModInstall({
             target: document.body,
           });
+          try {
+            let gamename = res.id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
+
           modInstallElement.action = "Extracting";
           modInstallElement.modIcon = gamename == "Epic Mickey 1" ? "img/emicon.png" : "img/em2icon.png";
           modInstallElement.description = "This might take a really long time."
+
+          await listen("change_iso_extract_msg", (e) => {
+            modInstallElement.description = e.payload;
+          });
+
+         
+
           modInstallElement.modName = gamename;
 
           //nkit: d.NkitPath, 
@@ -66,6 +76,13 @@
               }
           })
           console.log(path + " fart lock")
+          }
+          catch (e) {
+
+            await alert(e)
+            modInstallElement.$destroy();
+          }
+        
         } else {
           error = "Error: This is not an Epic Mickey 1/2 ISO!";
           return;

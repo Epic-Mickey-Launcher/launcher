@@ -104,6 +104,7 @@
         let modInstallElement = new ModInstall({
             target: document.body,
         });
+        modInstallElement.showDownloadProgression = true;
         modInstallElement.modIcon = iconLink;
         modInstallElement.modName = modName;
 

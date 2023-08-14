@@ -1,11 +1,45 @@
 <svelte:options accessors={true} />
 
+
 <script>
+    import { invoke } from "@tauri-apps/api/tauri";
+    import { appWindow, WebviewWindow } from '@tauri-apps/api/window'
+    import { onMount } from "svelte";
+    import { emit, listen } from '@tauri-apps/api/event'
+
   export let modName = "";
   export let modIcon = "";
 
-  export let MBTotal = 0;
-  export let MBDownloaded = 0;
+  let MBTotal = 0;
+  let MBDownloaded = 0;
+
+  export let showDownloadProgression = false
+
+  function formatBytes(bytes, decimals = 2) {
+    if (!+bytes) return '0 Bytes'
+
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+}
+
+
+ onMount(async () => {
+
+    console.log("Listening for download-stat")
+    
+   const lis = await listen("download-stat", (event) => {
+    console.log(event.payload)
+    MBTotal = event.payload.Download_Total
+    MBDownloaded = event.payload.Download_Remaining
+   })
+  
+  })
+
 
   export let action = "Downloading";
   export let description =
@@ -23,8 +57,8 @@
     />
     <plaintext>{action} {modName}</plaintext>
     <plaintext>{description}</plaintext>
-    {#if MBTotal != 0}
-    <plaintext>25MB / 100MB</plaintext>
+    {#if showDownloadProgression}
+    <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext>
     {/if}
     <img class="installingmodlogo" alt="" src={modIcon} />
   </div>
