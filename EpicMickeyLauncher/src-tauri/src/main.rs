@@ -1,6 +1,6 @@
 //note 2self or whoever. macos directory system uses / and not \
 
- #![cfg_attr(
+#![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
@@ -362,10 +362,29 @@ fn playgame(dolphin: String, exe: String) -> i32 {
     if Path::new(&dolphin).exists() {
         if os == "windows" {
             if dolphin.ends_with(".exe") {
+
+                let path = find_dolphin_dir(&PathBuf::from("Config/GFX.ini"));
+
                 Command::new(&dolphin)
                     .arg(&exe)
                     .spawn()
                     .expect("could not open exe");
+
+                if path.exists() {
+                    let mut f = File::open(&path).unwrap();
+
+                    let mut path_buffer: String = Default::default();
+
+                    f.read_to_string(&mut path_buffer).expect("Failed to read file");
+
+                    path_buffer = path_buffer.replace("HiresTextures = False", "HiresTextures = True");
+
+                    let mut new = File::create(&path).unwrap();
+
+                    new.write_all(path_buffer.as_bytes()).expect("Failed to write to file");
+
+                }
+
             } else if Path::new(&exe).exists() {
                 Command::new(&dolphin)
                     .arg(&exe)
