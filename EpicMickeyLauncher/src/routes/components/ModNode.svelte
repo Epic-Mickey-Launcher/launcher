@@ -4,8 +4,9 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
     import { SetData } from "../library/datatransfer";
-    import { GetToken, POST } from "../library/networking";
+    import { GetToken, POST, staticAssetsLink } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
+    import { exists } from "@tauri-apps/api/fs";
     export let modName = "";
     export let description = "";
     export let iconLink = "";
@@ -66,7 +67,7 @@
         }
 
         Gamesjson.forEach((element) => {
-            if (element.platform == platform) {
+            if (element.platform == platform && element.game == gamedata.game) {
                 gamedata = element;
                 haveGame = true;
             }
@@ -101,43 +102,42 @@
     }
 
     async function Download() {
+        let gameid;
+        gameid = "SEME4Q";
+
+        if (gamedata.game == "EM2") {
+            gameid = "SERE4Q";
+        }
         let modInstallElement = new ModInstall({
             target: document.body,
         });
-        modInstallElement.showDownloadProgression = true;
-        modInstallElement.modIcon = iconLink;
+        modInstallElement.modIcon =  iconLink;
         modInstallElement.modName = modName;
+        modInstallElement.showDownloadProgression = true;
 
-        let gameid;
-        if (gamedata.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
-        
-        if(canupdate){
-            let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
+        let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
         let data = JSON.parse(datastring);
-        let existingmod = data.find(r => r.modid == modid);
+        let existingmod = data.find((r) => r.modid == modid);
 
         let platform = gamedata.platform;
-        if(platform == null)
-        {
-            platform = "wii"
-        }
 
-
+        if (update) {
             modInstallElement.action = "Updating";
             await invoke("delete_mod", {
-            json: JSON.stringify(existingmod),
-            dumploc: gamedata.path,
-            gameid: gameid,
-            platform: platform
-        })
+                json: JSON.stringify(existingmod),
+                dumploc: gamedata.path,
+                gameid: gameid,
+                platform: platform,
+            });
             let delete_index = data.indexOf(existingmod);
             data.splice(delete_index, 1);
             await WriteFile(JSON.stringify(data), gamedata.path + "/EMLMods.json");
-            await invoke("delete_mod_cache", {modid: modid});
+            await invoke("delete_mod_cache", { modid: modid });
+        }
+
+        if(platform == null)
+        {
+            platform = "wii"
         }
 
         invoke("download_mod", {
@@ -146,24 +146,37 @@
             dumploc: gamedata.path,
             modid: modid.toString(),
             gameid: gameid,
-            platform: gamedata.platform
-        }).then(async (json) => {
-            let changedFiles = JSON.parse(json);
-            changedFiles.update = update;
-            let currentMods = JSON.parse(
-                await ReadFile(gamedata.path + "/EMLMods.json")
-            );
-            currentMods.push(changedFiles);
+            platform: platform,
+        }).then(async () => {
+            let json_exists = await exists(gamedata.path + "/EMLMods.json");
+            let current_mods = []
+            if (json_exists)
+            {
+                current_mods = JSON.parse(await ReadFile(gamedata.path + "/EMLMods.json"));
+            }
+
+
+            current_mods.push({
+                    name: modName,
+                    modid: modid,
+                    active: true,
+                    update: update,
+                })
+
+
+            
             await WriteFile(
-                JSON.stringify(currentMods),
+                JSON.stringify(current_mods),
                 gamedata.path + "/EMLMods.json"
             );
-
-            let token = await GetToken();
-            await POST("addmodimpression", {token: token, modid: modid, impression:{download:true, like:false}}) 
-
-            Init();
             modInstallElement.$destroy();
+            CheckIfDownloaded();
+            let token = await GetToken();
+            await POST("addmodimpression", {
+                token: token,
+                modid: modid,
+                impression: { download: true, like: false },
+            });
         });
     }
 </script>

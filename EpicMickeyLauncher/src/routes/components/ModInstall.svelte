@@ -23,9 +23,7 @@
     const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
 
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
-    console.log(bytes)
-
+    
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
