@@ -24,7 +24,9 @@
 
     const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-    return `${parseInt((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+    console.log(bytes)
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
 
@@ -33,7 +35,7 @@
     console.log("Listening for download-stat")
     
    const lis = await listen("download-stat", (event) => {
-    console.log(event.payload)
+    
     MBTotal = event.payload.Download_Total
     MBDownloaded = event.payload.Download_Remaining
    })

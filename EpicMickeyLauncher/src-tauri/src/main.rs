@@ -1,10 +1,10 @@
 //note 2self or whoever. macos directory system uses / and not \
 
-#![cfg_attr(
+/* #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
- 
+  */
 use fs_extra::dir::CopyOptions;
 use futures_util::StreamExt;
 use registry::Hive;
@@ -16,6 +16,7 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Cursor;
+use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -65,6 +66,9 @@ fn open_link(url: String) {
     open::that(url).expect("Failed to open URL in default browser");
 }
 
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+
 #[tauri::command]
 async fn extract_iso(
     witpath: String,
@@ -104,6 +108,7 @@ async fn extract_iso(
 
             Command::new(proc_path)
                 .arg(&m_isopath)
+                .creation_flags(CREATE_NO_WINDOW)
                 .output()
                 .expect("NKit failed to start");
 
@@ -146,6 +151,7 @@ async fn extract_iso(
         .arg(&m_isopath)
         .arg("-D")
         .arg("c:/extractedwii")
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .expect("failed to execute process");
 
@@ -180,7 +186,9 @@ async fn extract_iso(
     if source_path.exists() {
         copy(source_path, &path, &options).expect("failed to inject game files");
 
-        if remove_nkit_processed {
+        window.emit("change_iso_extract_msg", "Cleaning up....").unwrap();
+
+        if remove_nkit_processed && Path::new(&m_isopath).exists() {
             fs::remove_file(m_isopath).expect("failed to remove converted nkit iso");
         }
 
@@ -233,7 +241,7 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
             .emit(
                 "download-stat",
                 ModDownloadStats {
-                    Download_Total: total_size as i32,
+                    Download_Total: total_size.to_string(),
                     Download_Remaining: 0,
                 },
             )
@@ -246,13 +254,15 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
         while let Some(item) = buffer.next().await {
             let buf = item.as_ref().unwrap();
 
-            download_bytes_count += buf.len() as i32;
+            download_bytes_count += buf.len();
+
+            
 
             window
                 .emit(
                     "download-stat",
                     ModDownloadStats {
-                        Download_Total: total_size as i32,
+                        Download_Total: total_size.to_string(),
                         Download_Remaining: download_bytes_count as i32,
                     },
                 )
@@ -276,7 +286,7 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 
 struct ModDownloadStats {
     Download_Remaining: i32,
-    Download_Total: i32,
+    Download_Total: String,
 }
 
 fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> String {
@@ -311,6 +321,7 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .arg(&input_path)
             .arg("-C")
             .arg(&output_path)
+            .creation_flags(CREATE_NO_WINDOW)
             .output()
             .expect("Tar failed to extract");
     } else {
