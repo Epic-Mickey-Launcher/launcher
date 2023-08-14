@@ -248,8 +248,6 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 
             download_bytes_count += buf.len() as i32;
 
-            println!("{}", download_bytes_count);
-
             window
                 .emit(
                     "download-stat",
