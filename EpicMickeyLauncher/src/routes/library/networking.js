@@ -55,9 +55,18 @@ export async function UploadMod(modfile, cb, r, e, checked) {
 }
 
 export async function GetToken() {
+
+  if(accountinfo == null){
+    return ""
+  }
+
   return accountinfo.token;
 }
 export async function GetId() {
+  if(accountinfo == null){
+    return ""
+  }
+
   return accountinfo.id;
 }
 

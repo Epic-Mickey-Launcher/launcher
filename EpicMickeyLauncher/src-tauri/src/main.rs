@@ -1,13 +1,15 @@
 //note 2self or whoever. macos directory system uses / and not \
 
-/* #![cfg_attr(
+ #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-  */
+  
 use fs_extra::dir::CopyOptions;
 use futures_util::StreamExt;
+#[cfg(target_os = "windows")]
 use registry::Hive;
+#[cfg(target_os = "windows")]
 use registry::Security;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -16,12 +18,12 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Cursor;
+#[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str;
-use std::sync::OnceLock;
 use walkdir::WalkDir;
 use registry;
 extern crate dirs_next;
@@ -106,6 +108,7 @@ async fn extract_iso(
             proc_path.push(&nkit);
             proc_path.push("ConvertToISO.exe");
 
+            #[cfg(target_os = "windows")]
             Command::new(proc_path)
                 .arg(&m_isopath)
                 .creation_flags(CREATE_NO_WINDOW)
@@ -146,6 +149,7 @@ async fn extract_iso(
 
     window.emit("change_iso_extract_msg", "Dumping ISO...").unwrap();
 
+    #[cfg(target_os = "windows")]
     Command::new(&witpath)
         .arg("extract")
         .arg(&m_isopath)
@@ -242,7 +246,7 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
                 "download-stat",
                 ModDownloadStats {
                     Download_Total: total_size.to_string(),
-                    Download_Remaining: 0,
+                    Download_Remaining: "0".to_string(),
                 },
             )
             .unwrap();
@@ -263,7 +267,7 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
                     "download-stat",
                     ModDownloadStats {
                         Download_Total: total_size.to_string(),
-                        Download_Remaining: download_bytes_count as i32,
+                        Download_Remaining: download_bytes_count.to_string(),
                     },
                 )
                 .unwrap();
@@ -285,7 +289,7 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 #[derive(Clone, serde::Serialize)]
 
 struct ModDownloadStats {
-    Download_Remaining: i32,
+    Download_Remaining: String,
     Download_Total: String,
 }
 
@@ -316,12 +320,22 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
     } else if &buffer[257..262] == "ustar".as_bytes() {
         println!("Archive is TAR");
         archive_type = "tar";
+        #[cfg(target_os = "windows")]
         Command::new("tar")
             .arg("-xf")
             .arg(&input_path)
             .arg("-C")
             .arg(&output_path)
             .creation_flags(CREATE_NO_WINDOW)
+            .output()
+            .expect("Tar failed to extract");
+
+        #[cfg(target_os = "macos")]
+        Command::new("tar")
+            .arg("-xf")
+            .arg(&input_path)
+            .arg("-C")
+            .arg(&output_path)
             .output()
             .expect("Tar failed to extract");
     } else {
@@ -331,14 +345,10 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
     archive_type.to_string()
 }
 
-static WINDOW: OnceLock<Window> = OnceLock::new();
-
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
             let window = app.get_window("main").unwrap();
-
-            _ = WINDOW.set(window);
 
             Ok(())
         })
@@ -919,7 +929,9 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             dolphin_path.push(Path::new(r"Dolphin"));
             dolphin_path.push(where_in);
         } else {
+            #[cfg(target_os = "windows")]
             let regkey = Hive::CurrentUser.open(r"Software\Dolphin Emulator", Security::Read).unwrap();
+            #[cfg(target_os = "windows")]
             let path = regkey.value("UserConfigPath").unwrap().to_string();
 
             dolphin_path.push(path);
