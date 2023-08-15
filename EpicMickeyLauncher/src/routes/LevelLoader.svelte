@@ -100,7 +100,7 @@
     function OpenDirectory() {
         let p = data.path.replace("/", "\\");
 
-        invoke("playgame", { dolphin: "explorer", exe: p });
+        invoke("open_process", { path: "explorer.exe", args: p });
     }
 
     function CreateModNode(element, index) {

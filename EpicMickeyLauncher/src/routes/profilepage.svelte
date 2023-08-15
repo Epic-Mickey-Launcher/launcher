@@ -70,11 +70,19 @@
                 }
 
             profileinfo.mods.forEach((m) => {
+
+                let desc = m.description;
+
+                if (desc.length > 70)
+                {
+                    desc = desc.substring(0, 70) + "...";
+                }
+
                 new Userprofilemodnode({
                     target: modNodeGroup,
                     props: {
                         name: m.name,
-                        description: m.description,
+                        description: desc,
                         id: m.id,
                         modicon: staticAssetsLink + m.icon,
                     },

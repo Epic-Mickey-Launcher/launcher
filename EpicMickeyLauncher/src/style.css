@@ -37,7 +37,7 @@ button{
   transition-duration: 0.1s;
 }
 .spanHyperLink{
-  cursor:grab;
+  cursor:pointer;
   text-decoration: underline;
 }
 input{

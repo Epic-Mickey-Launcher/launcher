@@ -14,6 +14,7 @@
 
     import { ReadFile, WriteFile } from "../library/configfiles";
     import { destroy_component } from "svelte/internal";
+    import { listen } from "@tauri-apps/api/event";
     let checkBox;
 
     onMount(async () => {});
@@ -30,6 +31,11 @@
         modInstallElement.modName = modName;
         modInstallElement.action = "Deleting";
         modInstallElement.description = "This might take a while...";
+
+        let unlisten = await listen("change_description_text_delete", (event) => {
+            modInstallElement.description = event.payload.message;
+        });
+
         console.log(gamedata)
         let gameid;
         if (gamedata.game == "EM1") {
@@ -39,14 +45,15 @@
         }
 
         invoke("delete_mod", {
-            json: json,
             dumploc: dumploc,
             gameid: gameid,
-            platform: gamedata.platform
+            platform: gamedata.platform,
+            modid: JSON.parse(json).modid,
+            active: false
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring);
-
+            unlisten()
             let delete_index = data.indexOf(JSON.parse(json));
 
             data.splice(delete_index, 1);
@@ -71,6 +78,12 @@
             : "Disabling";
         modInstallElement.description = "This might take a while...";
 
+        let unlisten = await listen("change_description_text_delete", (event) => {
+            modInstallElement.description = event.payload;
+        });
+
+        
+
         let gameid;
         if (gamedata.game == "EM1") {
             gameid = "SEME4Q";
@@ -94,6 +107,7 @@
             active = !jsonToObject.active;
             data[index] = jsonToObject;
             await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
+            unlisten()
             modInstallElement.$destroy();
         });
     }

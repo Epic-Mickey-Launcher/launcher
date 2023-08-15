@@ -224,8 +224,13 @@
         margin-left: auto;
         margin-bottom: 20px;
         box-shadow: 2px 2px 10px rgb(0, 0, 0);
-       
+       transition-duration: 0.1s;
     }
+
+    .modNodeDiv:hover{
+        transform: scale(1.01);
+    }
+
     .imgArea{
         display: inline;
         margin-left:auto;

@@ -452,7 +452,8 @@ fn main() {
             validate_archive,
             set_dolphin_emulator_override,
             delete_docs_folder,
-            write_mod_info
+            write_mod_info,
+            open_process
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -460,6 +461,13 @@ fn main() {
 #[tauri::command]
 fn get_os() -> &'static str {
     env::consts::OS
+}
+#[tauri::command]
+fn open_process(path: String, args: String) {
+    Command::new(path)
+        .arg(args)
+        .output()
+        .expect("failed to execute process");
 }
 
 #[tauri::command]
@@ -561,14 +569,14 @@ async fn change_mod_status(
         .await;
     } else {
         //HACK!!
-        delete_mod(dumploc, gameid, platform, modid, !active).await;
+        delete_mod(dumploc, gameid, platform, modid, !active, window).await;
     }
 
     println!("Proccess ended");
 }
 
 #[tauri::command]
-async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: String, active: bool) {
+async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: String, active: bool, window: Window) {
     
     let p = PathBuf::from(format!("{}/{}", dumploc, modid));
 
@@ -594,6 +602,8 @@ async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: St
         backup_path.push(&dumploc);
         backup_path.push("backup");
 
+        let mut files_to_remove = files.len() + texturefiles.len();
+
         for file in files {
             let mut source_path = PathBuf::new();
             source_path.push(&backup_path);
@@ -606,6 +616,10 @@ async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: St
             if std::path::Path::new(&source_path).exists()
                 && std::path::Path::new(&destination_path).exists()
             {
+                files_to_remove -= 1;
+                
+                window.emit("change_description_text_delete", format!("Restoring original files... Remaining files: {}", files_to_remove)).unwrap();
+
                 fs::copy(source_path, destination_path).unwrap();
             }
         }
@@ -625,6 +639,11 @@ async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: St
             path.push(path_final);
 
             if std::path::Path::new(&path).exists() {
+
+                files_to_remove -= 1;
+
+                window.emit("change_description_text_delete", format!("Deleting Textures... Remaining files: {}", files_to_remove)).unwrap();
+
                 fs::remove_file(&path).unwrap();
             }
         }
@@ -1013,13 +1032,32 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             dolphin_path.push(Path::new(r"Dolphin"));
             dolphin_path.push(where_in);
         } else {
+
+            dolphin_path = dirs_next::document_dir().expect("Failed to get config path");
+            dolphin_path.push(Path::new(r"Dolphin Emulator"));
+            dolphin_path.push(where_in);
+
+            if dolphin_path.exists() {
+                return dolphin_path;
+            }
+            
+            dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
+            dolphin_path.push(Path::new(r"Dolphin Emulator"));
+            dolphin_path.push(where_in);
+
+            if dolphin_path.exists() {
+                return dolphin_path;
+            }
+
             #[cfg(target_os = "windows")]
             let regkey = Hive::CurrentUser
                 .open(r"Software\Dolphin Emulator", Security::Read)
                 .unwrap();
+
             #[cfg(target_os = "windows")]
             let path = regkey.value("UserConfigPath").unwrap().to_string();
 
+            
             dolphin_path.push(path);
             dolphin_path.push(where_in);
 

@@ -15,6 +15,7 @@
     import accountsettings from "./routes/accountsettings.svelte";
     import { Login, loggedin } from "./routes/library/networking";
     import { Invoke } from "./routes/library/callback";
+    import { emit, listen } from '@tauri-apps/api/event'
 
     let header;
 
@@ -45,6 +46,16 @@
         "/*": Games,
     };
     InitConfFiles();
+
+
+    async function ListenLoop()
+    {
+         await listen("SignedIn", (data) => {
+         })
+    }
+
+    ListenLoop();
+
 </script>
 
 <main>

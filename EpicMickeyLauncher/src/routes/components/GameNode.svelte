@@ -66,19 +66,17 @@
 </script>
 
 <main>
-    <div class="gamenode">
-        <img class="gamebuttonimage" src={imgBackgroundURL} alt="" />
-        <div style="position:relative;">
+    <div class="gamenode" style="background-image: url('{imgBackgroundURL}')">
+
+        <div style="float:right;margin-left:15px;">
             <img class="gamelogo" src={imgLogoURL} alt="" />
         </div>
 
-        <div style="position:relative;bottom:120px;left:400px;">
+        <div style="margin-left:auto;margin-top:10px;">
             <button on:click={OpenGame} class="gameplaybutton">Play</button>
             <button on:click={OpenLevelLoader} class="gamesettings">...</button>
-            <p>
-                <div style="position:relative;bottom:13px;align-self:right;align-items:right;width:200px;text-align:right;right:115px;">
-                    <img style="width:15px;height:15px;" alt="platform" bind:this={platformlogo} src="img/Wii.svg">
-                </div>
+            <br>
+                    <img style="width:20px;height:20px;float:right;" alt="platform" bind:this={platformlogo} src="img/Wii.svg">
         </div>
 
         <plaintext class="error">{errorMSG}</plaintext>
@@ -89,7 +87,6 @@
 <style>
     .nameofbuild {
         pointer-events: none;
-        position: relative;
         opacity: 0;
         transition-duration: 0.3s;
         bottom: 125px;
@@ -97,12 +94,14 @@
     }
 
     .gamenode {
+        box-shadow: 2px 2px 10px rgb(0, 0, 0);
+        border-radius: 10px;
         margin-right: auto;
         margin-left: auto;
         width: 500px;
         height: 80px;
-
-        position: relative;
+        align-items: center;
+        display:flex;
     }
 
     .error {
@@ -161,7 +160,6 @@
     .gamelogo {
         width: 200px;
         height: 50px;
-        position: relative;
         left: 20px;
         bottom: 70px;
         filter: drop-shadow(1px 3px 5px rgba(0, 0, 0, 0.877));
@@ -172,8 +170,4 @@
         transform: scale(1.1);
     }
 
-    .gamebuttonimage {
-        border-radius: 10px;
-        box-shadow: 2px 2px 10px rgb(0, 0, 0);
-    }
 </style>
