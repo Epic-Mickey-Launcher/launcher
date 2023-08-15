@@ -138,6 +138,12 @@ nkit_button.disabled = true
         invoke("set_dolphin_emulator_override", {path: selectedPath});
     }
 
+
+    async function DeleteModCache()
+    {
+        await invoke("delete_mod_cache_all");
+    }
+
     async function RemoveAllConfFiles()
     {
         let confirmation = await confirm("Are you sure?");
@@ -190,4 +196,6 @@ let wit_button;
 <button bind:this={nkit_button} on:click={DownloadNKit}>Download NKit</button>
 <h2>Factory Reset</h2>
 <button on:click={RemoveAllConfFiles} >Remove all config files</button>
+<br>
+<button on:click={DeleteModCache} >Delete mod cache</button>
 <p></p>

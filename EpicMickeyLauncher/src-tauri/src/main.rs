@@ -75,6 +75,21 @@ fn delete_docs_folder() {
     }
 }
 
+#[tauri::command]
+fn delete_mod_cache_all()
+{
+     let mut path = dirs_next::config_dir().expect("could not get config dir");
+     path.push(r"com.memer.eml");
+     path.push("cachedMods");
+
+     if path.exists()
+     {
+        fs::remove_dir_all(&path).unwrap();
+     }
+
+     fs::create_dir(path).unwrap();
+}
+
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 struct ModFilesInfo {
@@ -235,8 +250,8 @@ async fn extract_iso(
         .emit("change_iso_extract_msg", "Cleaning Up...")
         .unwrap();
 
-    let mut path = dirs_next::document_dir().expect("could not get documents dir");
-    path.push("Epic Mickey Launcher");
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push("com.memer.eml");
     path.push("Games");
     path.push(gamename);
 
@@ -283,8 +298,8 @@ async fn extract_iso(
 #[tauri::command]
 async fn download_tool(url: String, foldername: String, window: Window) -> PathBuf {
     let mut to_pathbuf = PathBuf::new();
-    to_pathbuf.push(dirs_next::document_dir().expect("could not get documents dir"));
-    to_pathbuf.push("Epic Mickey Launcher");
+    to_pathbuf.push(dirs_next::config_dir().expect("could not get config dir"));
+    to_pathbuf.push("com.memer.eml");
     to_pathbuf.push(foldername);
     download_zip(url, &to_pathbuf, false, window).await;
     to_pathbuf
@@ -449,6 +464,7 @@ fn main() {
             delete_docs_folder,
             write_mod_info,
             open_process,
+            delete_mod_cache_all
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
