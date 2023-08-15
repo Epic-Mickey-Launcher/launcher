@@ -83,7 +83,6 @@ struct ModFilesInfo {
 }
 
 fn parse_mod_info(path: String) -> ModFilesInfo {
-    println!("{}", path);
     let mut file = File::open(path).expect("Failed to open file");
     let mut buffer: String = default::Default::default();
     file.read_to_string(&mut buffer).unwrap();
@@ -121,8 +120,6 @@ fn parse_mod_info(path: String) -> ModFilesInfo {
 
 #[tauri::command]
 fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
-    println!("{}", path);
-
     let mut file = File::create(path).expect("Failed to create file");
 
     if files.len() > 0 {
@@ -594,8 +591,6 @@ async fn delete_mod(
 
     let active = active;
 
-    println!("{}", active);
-
     if active {
         let mut datafiles_path = PathBuf::new();
         datafiles_path.push(&dumploc);
@@ -1039,8 +1034,6 @@ fn inject_files(source: &PathBuf, _destination: &PathBuf) {
 
             if p.exists()
             {
-                println!("Copying {} to {}", p.display(), destination.display());
-
                 if destination.exists()
                 {
                     fs::remove_file(&destination).unwrap();
