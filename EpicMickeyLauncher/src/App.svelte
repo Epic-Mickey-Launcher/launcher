@@ -31,6 +31,18 @@
         }
     }
 
+    async function ListenLoop()
+    {
+        await listen("scheme_request_received", (event) => {
+
+            let parsed = event.payload.message;
+
+            parsed = parsed.substring(5, event.payload.length - 1);
+
+          window.open("#/modpage", "_self")
+        });
+    }
+
     let routes = {
         "/": Games,
         "/levelloader": LevelLoader,
@@ -46,6 +58,7 @@
         "/*": Games,
     };
     InitConfFiles();
+    ListenLoop();
 
 </script>
 

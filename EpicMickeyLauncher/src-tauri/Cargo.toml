@@ -29,6 +29,8 @@ json = "0.12.4"
 futures-util = "0.3.14"
 open = "4.1.0"
 registry = "1.2.3"
+shutil = "0.1.2"
+tauri-plugin-deep-link = "0.1.1"
 
 [features]
 default = ["custom-protocol"]

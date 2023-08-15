@@ -1,22 +1,21 @@
 //note 2self or whoever. macos directory system uses / and not \
 
-#![cfg_attr(
+/* #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
-)]
+)] */
 
-use fs_extra::dir::CopyOptions;
 use futures_util::StreamExt;
 use registry;
 #[cfg(target_os = "windows")]
 use registry::Hive;
 #[cfg(target_os = "windows")]
 use registry::Security;
+#[cfg(target_os = "windows")]
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::default;
 use std::env;
-use std::fmt::format;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -36,7 +35,6 @@ extern crate scan_dir;
 extern crate sevenz_rust;
 extern crate walkdir;
 extern crate zip_extract;
-use fs_extra::dir::copy;
 use tauri::{Manager, Window};
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles {
@@ -79,13 +77,13 @@ fn delete_docs_folder() {
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-struct ModFilesInfo{
+struct ModFilesInfo {
     files: Vec<String>,
     textures: Vec<String>,
 }
 
-fn parse_mod_info(path: String) -> ModFilesInfo{
-    println!("{}",path);
+fn parse_mod_info(path: String) -> ModFilesInfo {
+    println!("{}", path);
     let mut file = File::open(path).expect("Failed to open file");
     let mut buffer: String = default::Default::default();
     file.read_to_string(&mut buffer).unwrap();
@@ -104,11 +102,10 @@ fn parse_mod_info(path: String) -> ModFilesInfo{
         } else if line == "[Files]" {
             texture_mode = false;
             continue;
-        }
-        else if line == "" {
+        } else if line == "" {
             continue;
         }
-        
+
         if texture_mode {
             textures.push(line.to_string());
         } else {
@@ -116,38 +113,35 @@ fn parse_mod_info(path: String) -> ModFilesInfo{
         }
     }
 
-    return ModFilesInfo { files:files, textures: textures};
+    return ModFilesInfo {
+        files: files,
+        textures: textures,
+    };
 }
 
 #[tauri::command]
-fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>)
-{
+fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
     println!("{}", path);
 
     let mut file = File::create(path).expect("Failed to create file");
 
-    if files.len() > 0
-    {
+    if files.len() > 0 {
         file.write(b"[Files]\n").unwrap();
     }
 
-    for file_path in files
-    {
+    for file_path in files {
         file.write(file_path.as_bytes()).unwrap();
         file.write(b"\n").unwrap();
     }
 
-    if textures.len() > 0
-    {
+    if textures.len() > 0 {
         file.write(b"[Textures]\n").unwrap();
     }
 
-    for file_path in textures
-    {
+    for file_path in textures {
         file.write(file_path.as_bytes()).unwrap();
         file.write(b"\n").unwrap();
     }
-
 }
 
 #[tauri::command]
@@ -257,14 +251,6 @@ async fn extract_iso(
         fs::create_dir_all(&path).expect("Couldn't create game folder");
     }
 
-    let options = CopyOptions {
-        depth: 0,
-        overwrite: true,
-        skip_exist: false,
-        buffer_size: 64000,
-        content_only: true,
-        copy_inside: false,
-    };
 
     //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me¨
 
@@ -273,7 +259,7 @@ async fn extract_iso(
         .unwrap();
 
     if source_path.exists() {
-        copy(source_path, &path, &options).expect("failed to inject game files");
+        inject_files(&source_path, &path);
 
         window
             .emit("change_iso_extract_msg", "Cleaning up....")
@@ -435,6 +421,18 @@ fn main() {
         .setup(|app| {
             let window = app.get_window("main").unwrap();
 
+            tauri_plugin_deep_link::prepare("com.memer.eml");
+
+
+            tauri_plugin_deep_link::register(
+                "eml",
+                move |request| {
+                  dbg!(&request);
+                  window.emit_all("scheme_request_received", request).unwrap();
+                },
+              )
+              .unwrap(/* If listening to the scheme is optional for your app, you don't want to unwrap here. */);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -453,7 +451,7 @@ fn main() {
             set_dolphin_emulator_override,
             delete_docs_folder,
             write_mod_info,
-            open_process
+            open_process,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -550,7 +548,6 @@ async fn change_mod_status(
     modname: String,
     window: Window,
 ) {
-
     let active = active;
 
     let name = modname;
@@ -576,11 +573,19 @@ async fn change_mod_status(
 }
 
 #[tauri::command]
-async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: String, active: bool, window: Window) {
-    
+async fn delete_mod(
+    dumploc: String,
+    gameid: String,
+    platform: String,
+    modid: String,
+    active: bool,
+    window: Window,
+) {
     let p = PathBuf::from(format!("{}/{}", dumploc, modid));
 
-    if ! p.exists() {return;}
+    if !p.exists() {
+        return;
+    }
 
     let data = parse_mod_info(p.to_str().unwrap().to_string());
 
@@ -617,8 +622,16 @@ async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: St
                 && std::path::Path::new(&destination_path).exists()
             {
                 files_to_remove -= 1;
-                
-                window.emit("change_description_text_delete", format!("Restoring original files... Remaining files: {}", files_to_remove)).unwrap();
+
+                window
+                    .emit(
+                        "change_description_text_delete",
+                        format!(
+                            "Restoring original files... Remaining files: {}",
+                            files_to_remove
+                        ),
+                    )
+                    .unwrap();
 
                 fs::copy(source_path, destination_path).unwrap();
             }
@@ -639,10 +652,14 @@ async fn delete_mod(dumploc: String, gameid: String, platform: String, modid: St
             path.push(path_final);
 
             if std::path::Path::new(&path).exists() {
-
                 files_to_remove -= 1;
 
-                window.emit("change_description_text_delete", format!("Deleting Textures... Remaining files: {}", files_to_remove)).unwrap();
+                window
+                    .emit(
+                        "change_description_text_delete",
+                        format!("Deleting Textures... Remaining files: {}", files_to_remove),
+                    )
+                    .unwrap();
 
                 fs::remove_file(&path).unwrap();
             }
@@ -955,16 +972,9 @@ async fn download_mod(
 
         // copy modded files to the game
 
-        let options = CopyOptions {
-            depth: 0,
-            overwrite: true,
-            skip_exist: false,
-            buffer_size: 128000,
-            content_only: true,
-            copy_inside: false,
-        };
+        inject_files(&path_datafiles, &path_final_location);
 
-        copy(&path_datafiles, path_final_location, &options).expect("failed to inject mod files");
+        //copy(&path_datafiles, path_final_location, &options).expect("failed to inject mod files");
     }
 
     let mut texturefiles: Vec<String> = Vec::new();
@@ -994,27 +1004,59 @@ async fn download_mod(
             }
         }
 
-        let options = CopyOptions {
-            depth: 0,
-            overwrite: true,
-            skip_exist: false,
-            buffer_size: 128000,
-            content_only: true,
-            copy_inside: false,
-        };
-
         fs::create_dir_all(&path).expect("Failed to create folders.");
 
-        copy(&path_textures, &dolphin_path, &options).expect("failed to inject texture files");
+        inject_files(&path_textures, &dolphin_path)
+
+        //copy(&path_textures, &dolphin_path, &options).expect("failed to inject texture files");
     }
 
-  
-
-    
-
-    write_mod_info(format!("{}/{}", &dumploc, modid), files_to_restore, texturefiles);
+    write_mod_info(
+        format!("{}/{}", &dumploc, modid),
+        files_to_restore,
+        texturefiles,
+    );
 
     println!("Process ended successfully");
+}
+
+fn inject_files(source: &PathBuf, _destination: &PathBuf) {
+    for entry in WalkDir::new(&source) {
+        let p = PathBuf::from(entry.unwrap().path());
+
+        if p.is_file() {
+            let non_abs = remove_absolute_path(&p, &source);
+            let mut destination = _destination.clone();
+            destination.push(&non_abs);
+
+            let mut destination_folder = _destination.clone();
+            destination_folder.push(non_abs);
+            destination_folder.pop();
+
+            if !destination_folder.exists() {
+               fs::create_dir_all(&destination_folder).expect("Failed to create folders.");
+            }
+
+            if p.exists()
+            {
+                println!("Copying {} to {}", p.display(), destination.display());
+
+                if destination.exists()
+                {
+                    fs::remove_file(&destination).unwrap();
+                }
+
+                fs::copy(p, destination).expect("Failed to copy file");
+            }
+        }
+    }
+}
+
+fn remove_absolute_path(path: &PathBuf, _abs_path: &PathBuf) -> PathBuf {
+    let path = path.to_str().unwrap().to_string();
+    let abs_path = _abs_path.to_str().unwrap().len() + 1;
+
+    return PathBuf::from(path[abs_path..path.len()].to_string());
 }
 
 fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
@@ -1032,7 +1074,6 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             dolphin_path.push(Path::new(r"Dolphin"));
             dolphin_path.push(where_in);
         } else {
-
             dolphin_path = dirs_next::document_dir().expect("Failed to get config path");
             dolphin_path.push(Path::new(r"Dolphin Emulator"));
             dolphin_path.push(where_in);
@@ -1040,7 +1081,7 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             if dolphin_path.exists() {
                 return dolphin_path;
             }
-            
+
             dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
             dolphin_path.push(Path::new(r"Dolphin Emulator"));
             dolphin_path.push(where_in);
@@ -1057,7 +1098,6 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             #[cfg(target_os = "windows")]
             let path = regkey.value("UserConfigPath").unwrap().to_string();
 
-            
             dolphin_path.push(path);
             dolphin_path.push(where_in);
 
