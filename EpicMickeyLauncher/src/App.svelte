@@ -47,15 +47,6 @@
     };
     InitConfFiles();
 
-
-    async function ListenLoop()
-    {
-         await listen("SignedIn", (data) => {
-         })
-    }
-
-    ListenLoop();
-
 </script>
 
 <main>

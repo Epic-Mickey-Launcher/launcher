@@ -129,6 +129,7 @@
                 file,
                 cb,
                 replacingMod,
+                data.extension,
                 automaticallyPublish.value
             );
             replacingMod = null;
