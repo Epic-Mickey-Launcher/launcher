@@ -6,6 +6,7 @@
 )] */
 
 use futures_util::StreamExt;
+use reqwest::Client;
 use registry;
 #[cfg(target_os = "windows")]
 use registry::Hive;
