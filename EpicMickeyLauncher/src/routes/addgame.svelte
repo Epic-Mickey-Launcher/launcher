@@ -75,7 +75,6 @@
                 alert("You must install NKit in the Settings tab to extract this iso.");
               }
           })
-          console.log(path + " fart lock")
           }
           catch (e) {
 
@@ -90,12 +89,25 @@
       });
     }
 
-    console.log(path);
     let exeExists = await FileExists(path + "/DEM2.exe");
     let wiiFolderExists = await exists(path + "/DATA");
+    
+    dataPath = "";
+
+    if (path.endsWith("/DATA") || path.endsWith("\\DATA"))
+    {
+      wiiFolderExists = true;
+      dataPath = path;
+    }
+    else if (wiiFolderExists){
+      dataPath = path + "/DATA";
+    }
+
+
+
     if (wiiFolderExists) {
       //TODO: find a better identifier for different versions because this Sucks!!!
-      let verdat = await FileExists(path + "/DATA/files/VERSIONDATA.TXT");
+      let verdat = await FileExists(dataPath + "/files/VERSIONDATA.TXT");
       if (verdat) {
         //EM1
         gamename = "Epic Mickey 1 (Wii)";
@@ -105,7 +117,6 @@
         gamename = "Epic Mickey 2 (Wii)";
         gametype = "EM2";
       }
-      path += "/DATA";
       platform = "wii";
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
@@ -122,7 +133,7 @@
 
   let gamename = "";
   let platform = "";
-
+  let dataPath;
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
@@ -137,29 +148,29 @@
       return;
     }
 
-    let newData = { path: path, game: gametype, platform: platform };
+    let newData = { path: dataPath, game: gametype, platform: platform };
 
     jsonData.push(newData);
 
     await WriteToJSON(JSON.stringify(jsonData), "games.json");
 
-    let fileExists = await exists(path + "/EMLMods.json");
+    let fileExists = await exists(dataPath + "/EMLMods.json");
 
     if (!fileExists) {
-      await WriteFile("[]", path + "/EMLMods.json");
+      await WriteFile("[]", dataPath + "/EMLMods.json");
     }
 
     //theres no reason it shouldnt but better to be safe than sorry
-    let conffileexists = await exists(path + "/ConfigFiles.ini");
+    let conffileexists = await exists(dataPath + "/ConfigFiles.ini");
 
     //enables level loader inside of em2
     if (conffileexists) {
-      let conffilecontent = await ReadFile(path + "/ConfigFiles.ini");
+      let conffilecontent = await ReadFile(dataPath + "/ConfigFiles.ini");
       conffilecontent = conffilecontent.replace(
         "ShowDevLevelLoad=false",
         "ShowDevLevelLoad=true"
       );
-      await WriteFile(conffilecontent, path + "/ConfigFiles.ini");
+      await WriteFile(conffilecontent, dataPath + "/ConfigFiles.ini");
     }
 
     window.open("#/", "_self");

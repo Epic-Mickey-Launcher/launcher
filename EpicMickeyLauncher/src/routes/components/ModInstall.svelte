@@ -59,6 +59,7 @@
     <plaintext>{description}</plaintext>
     {#if showDownloadProgression}
     <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext>
+    <progress value="43" max="100"></progress>  
     {/if}
     <img class="installingmodlogo" alt="" src={modIcon} />
   </div>

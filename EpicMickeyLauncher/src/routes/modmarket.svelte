@@ -17,7 +17,7 @@
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
    import { ReadJSON } from "./library/configfiles.js";
-    import { SetData } from "./library/datatransfer.js";
+   import { SetData } from "./library/datatransfer.js";
 
    let warning;
 
@@ -26,10 +26,9 @@
 
       let json = await GET("trygetfeaturedmod");
 
-      if(json.id != "")
-      {
-           featuredModImage = json.imglink;
-           featuredModId = json.id;
+      if (json.id != "") {
+         featuredModImage = json.imglink;
+         featuredModId = json.id;
       }
 
       if (jsonData[0] != null) {
@@ -48,7 +47,6 @@
    let allspawnednodes = [];
 
    async function LoadModList() {
-
       SetData("gameinfo", selectedgamebuild);
 
       allspawnednodes.forEach((element) => {
@@ -63,33 +61,32 @@
    let search;
 
    let featuredModId = "";
-   let featuredModImage = ""; 
+   let featuredModImage = "";
 
-   function GoToFeaturedMod()
-   {
-        SetData("modpage_id", featuredModId);
-        window.open("#/modpage", "_self");
+   function GoToFeaturedMod() {
+      SetData("modpage_id", featuredModId);
+      window.open("#/modpage", "_self");
    }
 
-   function Search()
-   {
-         allspawnednodes.forEach(e => {
-            let element = e;
-            if(search.value != ""){
-               element.visible = element.modName.toLowerCase().includes(search.value.toLowerCase());
-               if(!element.visible)
-               {
-                  element.visible = element.authorname.toLowerCase().includes(search.value.toLowerCase());
-               }
+   function Search() {
+      allspawnednodes.forEach((e) => {
+         let element = e;
+         if (search.value != "") {
+            element.visible = element.modName
+               .toLowerCase()
+               .includes(search.value.toLowerCase());
+            if (!element.visible) {
+               element.visible = element.authorname
+                  .toLowerCase()
+                  .includes(search.value.toLowerCase());
             }
-            else{
-               element.visible = true;
-            }
-         })
+         } else {
+            element.visible = true;
+         }
+      });
    }
 
    async function GetAllMods() {
-
       let token = await GetToken();
 
       let data = await POST("getmods", { token: token });
@@ -101,18 +98,19 @@
          //HACK: dumb way of bypassing a db update
 
          let comparingPlatform = "wii";
-         if(e.platform != null)
-         {
+         if (e.platform != null) {
             comparingPlatform = e.platform;
          }
 
-         let platform = "wii"
-         if(currentSelectedGame.platform != null)
-         {
+         let platform = "wii";
+         if (currentSelectedGame.platform != null) {
             platform = currentSelectedGame.platform;
          }
 
-         if (e.game == currentSelectedGame.game && comparingPlatform == platform) {
+         if (
+            e.game == currentSelectedGame.game &&
+            comparingPlatform == platform
+         ) {
             let modNode = new ModNode({
                target: ModList,
             });
@@ -129,7 +127,9 @@
             modNode.modgame = e.game;
             modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
-               (r) => r.game == currentSelectedGame.game && r.platform == currentSelectedGame.platform
+               (r) =>
+                  r.game == currentSelectedGame.game &&
+                  r.platform == currentSelectedGame.platform
             );
             modNode.Init();
 
@@ -140,12 +140,21 @@
 </script>
 
 {#if featuredModId != ""}
-<span style="width:100%;display:flex;margin:auto;flex-direction:column;text-align:center;width:500px;">
-   <span class="featuredModText">Available Now!</span>
-   <p>
-   <img on:click={GoToFeaturedMod} class="featuredModBanner" alt="" style="border-radius:10px;filter: drop-shadow(1px 1px 4px black);" src={featuredModImage}>
-</span>
-<p></p>
+   <span
+      style="width:100%;display:flex;margin:auto;flex-direction:column;text-align:center;width:500px;"
+   >
+      <span class="featuredModText">Available Now!</span>
+      <p>
+         <img
+            on:click={GoToFeaturedMod}
+            class="featuredModBanner"
+            alt=""
+            style="border-radius:10px;filter: drop-shadow(1px 1px 4px black);"
+            src={featuredModImage}
+         />
+      </p></span
+   >
+   <p />
 {/if}
 
 <div
@@ -168,9 +177,14 @@
       {/await}
    </select>
    <a href="#/uploadmod">Upload Mod</a>
-   <input bind:this={search} on:input={Search} placeholder="Search" style="margin-left:30px;" />
+   <input
+      bind:this={search}
+      on:input={Search}
+      placeholder="Search"
+      style="margin-left:30px;"
+   />
 </div>
-<p>
+<p />
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
 <!--
@@ -214,12 +228,11 @@ TODO: add a limit to amount of mods that can be on one page and filter them thro
       background-color: black;
    }
 
-   .featuredModBanner{
+   .featuredModBanner {
       transition-duration: 0.1s;
    }
 
-   .featuredModBanner:hover{
-            transform: scale(1.05);
+   .featuredModBanner:hover {
+      transform: scale(1.05);
    }
-   
 </style>
