@@ -88,6 +88,42 @@
             case "Lonesome Manor":
                 selectedCategoryImg = "img/em1levelloader/lm.png";
                 break;
+            case "Floatyard":
+                selectedCategoryImg = "img/em2levelloader/floatyard.png";
+                break;
+            case "Fort Wasteland":
+                selectedCategoryImg = "img/em2levelloader/fort.png";
+                break;
+            case "Autotopia":
+                selectedCategoryImg = "img/em2levelloader/autotopia.png";
+                break;
+            case "Boss Fights":
+                selectedCategoryImg = "img/em2levelloader/boss.png";
+                break;
+            case "Rainbow Caverns":
+                selectedCategoryImg = "img/em2levelloader/caverns.png";
+                break;
+            case "Yen Sid's Lab":
+                selectedCategoryImg = "img/em2levelloader/yensid.png";
+                break;
+            case "DEC Levels":
+                selectedCategoryImg = "img/em2levelloader/dec.png";
+                break;
+            case "Mad Doctor's Attic":
+                selectedCategoryImg = "img/em2levelloader/attic.png";
+                break;
+            case "Interiors":
+                selectedCategoryImg = "img/em2levelloader/interior.png";
+                break;
+            case "Disney Gulch":
+                selectedCategoryImg = "img/em2levelloader/gulch.png";
+                break;
+            case "Train Tunnels":
+                selectedCategoryImg = "img/em2levelloader/trains.png";
+                break;
+            case "Floatyard":
+                selectedCategoryImg = "img/em2levelloader/float.png";
+                break;
         }
     }
 
