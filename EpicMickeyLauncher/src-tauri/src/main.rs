@@ -7,13 +7,6 @@
 
 use futures_util::StreamExt;
 use reqwest::Client;
-use registry;
-#[cfg(target_os = "windows")]
-use registry::Hive;
-#[cfg(target_os = "windows")]
-use registry::Security;
-#[cfg(target_os = "windows")]
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::default;
 use std::env;
@@ -68,6 +61,25 @@ fn open_link(url: String) {
 }
 
 #[tauri::command]
+fn create_portable(_path: String) {
+    let mut dolphin_config_path = PathBuf::from(&_path);
+
+    dolphin_config_path.pop();
+
+    dolphin_config_path.push("User");
+
+    let mut path = PathBuf::from(&_path);
+    path.pop();
+    path.push("portable.txt");
+
+    if !path.exists() {
+        File::create(&path).expect("Failed to create file");
+        set_dolphin_emulator_override(dolphin_config_path.to_str().unwrap().to_string());
+        Command::new(_path).spawn().unwrap();
+    }
+}
+
+#[tauri::command]
 fn delete_docs_folder() {
     let mut path = dirs_next::document_dir().expect("could not get documents dir");
     path.push("Epic Mickey Launcher");
@@ -77,18 +89,16 @@ fn delete_docs_folder() {
 }
 
 #[tauri::command]
-fn delete_mod_cache_all()
-{
-     let mut path = dirs_next::config_dir().expect("could not get config dir");
-     path.push(r"com.memer.eml");
-     path.push("cachedMods");
+fn delete_mod_cache_all() {
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml");
+    path.push("cachedMods");
 
-     if path.exists()
-     {
+    if path.exists() {
         fs::remove_dir_all(&path).unwrap();
-     }
+    }
 
-     fs::create_dir(path).unwrap();
+    fs::create_dir(path).unwrap();
 }
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -263,7 +273,6 @@ async fn extract_iso(
     if !Path::new(&path).exists() {
         fs::create_dir_all(&path).expect("Couldn't create game folder");
     }
-
 
     //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me¨
 
@@ -465,7 +474,8 @@ fn main() {
             delete_docs_folder,
             write_mod_info,
             open_process,
-            delete_mod_cache_all
+            delete_mod_cache_all,
+            create_portable
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -490,11 +500,6 @@ fn playgame(dolphin: String, exe: String) -> i32 {
             if dolphin.ends_with(".exe") {
                 let path = find_dolphin_dir(&PathBuf::from("Config/GFX.ini"));
 
-                Command::new(&dolphin)
-                    .arg(&exe)
-                    .spawn()
-                    .expect("could not open exe");
-
                 if path.exists() {
                     let mut f = File::open(&path).unwrap();
 
@@ -511,6 +516,11 @@ fn playgame(dolphin: String, exe: String) -> i32 {
                     new.write_all(path_buffer.as_bytes())
                         .expect("Failed to write to file");
                 }
+
+                Command::new(&dolphin)
+                .arg(&exe)
+                .spawn()
+                .expect("could not open exe");
             } else if Path::new(&exe).exists() {
                 Command::new(&dolphin)
                     .arg(&exe)
@@ -1046,13 +1056,11 @@ fn inject_files(source: &PathBuf, _destination: &PathBuf) {
             destination_folder.pop();
 
             if !destination_folder.exists() {
-               fs::create_dir_all(&destination_folder).expect("Failed to create folders.");
+                fs::create_dir_all(&destination_folder).expect("Failed to create folders.");
             }
 
-            if p.exists()
-            {
-                if destination.exists()
-                {
+            if p.exists() {
+                if destination.exists() {
                     fs::remove_file(&destination).unwrap();
                 }
 
@@ -1099,19 +1107,6 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             if dolphin_path.exists() {
                 return dolphin_path;
             }
-
-            #[cfg(target_os = "windows")]
-            let regkey = Hive::CurrentUser
-                .open(r"Software\Dolphin Emulator", Security::Read)
-                .unwrap();
-
-            #[cfg(target_os = "windows")]
-            let path = regkey.value("UserConfigPath").unwrap().to_string();
-
-            dolphin_path.push(path);
-            dolphin_path.push(where_in);
-
-            print!("{}", dolphin_path.display());
         }
     } else {
         let mut f = File::open(path).unwrap();

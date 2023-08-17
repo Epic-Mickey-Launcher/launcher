@@ -96,6 +96,9 @@
         invoke("download_tool", {url: DOLPHIN_LINK_WINDOWS, foldername: "Dolphin"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = path + "/Dolphin-x64/Dolphin.exe";
+             
+            await invoke("create_portable", {path: dat.dolphinPath});
+            
             await WriteToJSON(JSON.stringify(dat), "conf.json");
             SetCurrentPaths();
             modInstallElement.$destroy();
