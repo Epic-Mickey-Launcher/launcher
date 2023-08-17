@@ -181,7 +181,7 @@
       bind:this={search}
       on:input={Search}
       placeholder="Search"
-      style="margin-left:30px;"
+      style="margin-left:30px;border:none;border-radius:3px;"
    />
 </div>
 <p />

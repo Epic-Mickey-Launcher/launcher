@@ -155,7 +155,6 @@
             <input bind:this={automaticallyPublish} type="checkbox" checked />
             <span>Automatically publish mod on upload.</span>
         </span>
-    </p>
 </div>
 
 <div style="display:none;" bind:this={largeMod}>
