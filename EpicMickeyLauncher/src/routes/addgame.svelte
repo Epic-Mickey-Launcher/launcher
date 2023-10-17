@@ -36,6 +36,9 @@
         ] 
     });
 
+
+    console.log(selectedPath)
+
     path = selectedPath.toString();
 
     if (iso) {
@@ -137,11 +140,13 @@
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
+    console.log(jsonData);
+
     if (
       jsonData.find((r) => r.game == gametype && r.platform == platform) != null
     ) {
       alert(
-        gametype +
+        gametype + " (" + platform + ") " +
           " has already been added to your game list. There is no need for two versions of it."
       );
       window.open("#/", "_self");
@@ -203,6 +208,7 @@
   <p />
   <button on:click={Cancel} class="addgamebutton">Cancel</button>
 </div>
+
 
 <style>
   .addgamebutton {

@@ -77,6 +77,7 @@
             <button on:click={OpenLevelLoader} class="gamesettings">...</button>
             <br>
                     <img style="width:15px;height:15px;float:right;margin-top:3px;" alt="platform" bind:this={platformlogo} src="img/Wii.svg">
+                    <img style="height:10px;margin-left:50px;" src="img/regions/jp.svg">
         </div>
 
         <plaintext class="error">{errorMSG}</plaintext>
