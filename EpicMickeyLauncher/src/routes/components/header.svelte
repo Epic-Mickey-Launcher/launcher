@@ -4,11 +4,12 @@
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
     import { ReadToken } from "../library/configfiles";
-    import { getVersion } from '@tauri-apps/api/app';
+    import { getVersion } from "@tauri-apps/api/app";
     import {
-    GET,
+        GET,
         GETEXT,
         Login,
+        POST,
         SetLoggedIn,
         loggedin,
         staticAssetsLink,
@@ -18,13 +19,22 @@
     let pfp;
     let latestDownloadLink = "";
     let updateHyperLink;
+    let connectionIssues;
     export async function ForceSetPFP(p) {
         pfp = p;
     }
 
     onMount(async () => {
+        let callbackOnEnterNewWindow = async () => {
+            try {
+                connectionIssues = false;
+                await GET("checkhealth");
+            } catch {
+                connectionIssues = true;
+            }
+        };
 
-        let cb = (userinfo) => {
+        let cb = async (userinfo) => {
             if (userinfo.error != 1) {
                 SetLoggedIn(true);
                 pfp =
@@ -41,25 +51,23 @@
 
         // @ts-ignore
         Subscribe("SignedIn", cb, true);
-
-        let info = await GETEXT("https://api.github.com/repos/KjubDusJub/Epic-Mickey-Launcher/releases")
-        let info_stable = info.filter(r => !r.prerelease);
+        Subscribe("OnNewWindow", callbackOnEnterNewWindow, true);
+        let info = await GETEXT(
+            "https://api.github.com/repos/KjubDusJub/Epic-Mickey-Launcher/releases"
+        );
+        let info_stable = info.filter((r) => !r.prerelease);
         let newest_release = info_stable[0];
         let current_version = await getVersion();
-        if(newest_release.tag_name != current_version)
-        {
+        if (newest_release.tag_name != current_version) {
             latestDownloadLink = newest_release.html_url;
             updateHyperLink.style.display = "block";
         }
-
-
     });
 
     export const HeaderVisible = writable(true);
-    
-    function OpenLatestDownloadPage()
-    {
-        invoke("open_link", {url:latestDownloadLink});
+
+    function OpenLatestDownloadPage() {
+        invoke("open_link", { url: latestDownloadLink });
     }
 
     let header;
@@ -83,6 +91,7 @@
 
 <main>
     {#if HeaderVisible}
+        <p />
         <div class="header" bind:this={header}>
             <img
                 src="/img/emlLogo.png"
@@ -105,9 +114,22 @@
                 class="headerButton endheaderbuttons">Settings</button
             >
 
-            <button class="hyperlinkbutton" on:click={OpenLatestDownloadPage} bind:this={updateHyperLink} style="margin:auto 10px;color:lime;display:none;"
+            <button
+                class="hyperlinkbutton"
+                on:click={OpenLatestDownloadPage}
+                bind:this={updateHyperLink}
+                style="margin:auto 10px;color:lime;display:none;"
                 >Update Available!</button
             >
+
+            {#if connectionIssues}
+                <img
+                    alt=""
+                    style="width:32px;margin-left:12px;"
+                    src="img/warning.svg"
+                    title="Cannot connect to online services!"
+                />
+            {/if}
 
             <div class="pfpbutton">
                 <button
@@ -136,8 +158,6 @@
         margin-right: 10px;
     }
 
-    
-
     .pfp {
         pointer-events: none;
         position: relative;
@@ -150,7 +170,6 @@
     .pfpbutton:hover .pfp {
         transform: scale(1.1);
     }
-
 
     .header {
         box-shadow: 2px 2px 10px rgb(0, 0, 0);

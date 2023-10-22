@@ -21,7 +21,7 @@
 
     async function RouteLoaded() {
         //login
-
+        Invoke("OnNewWindow", null);
         let token = await ReadToken();
         if (token != "") {
             Login({ token: token });

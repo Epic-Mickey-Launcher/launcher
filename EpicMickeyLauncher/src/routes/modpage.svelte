@@ -21,6 +21,7 @@
     let modid;
     let authorname = "";
     let dumploc;
+    let time = ""
     let gameinfo;
     let modinfo;
     let youtubevideoembed;
@@ -98,6 +99,11 @@
             youtubelink =
                 "https://www.youtube.com/embed/" + modinfo.youtubevideo;
         }
+
+        let d = new Date(parseInt(modinfo.id));
+
+        time = d.toLocaleString();
+
 
         modPublished = false;
 
@@ -363,6 +369,8 @@
                 <button on:click={OpenProfileOfAuthor} class="hyperlinkbutton"
                     >{authorname}</button
                 >
+
+                <span>| Published on: {time}</span>
             </p>
             <p>
                 <span>{modinfo.description}</span>
