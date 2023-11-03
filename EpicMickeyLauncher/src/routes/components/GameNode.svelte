@@ -77,11 +77,10 @@
             <button on:click={OpenLevelLoader} class="gamesettings">...</button>
             <br>
                     <img style="width:15px;height:15px;float:right;margin-top:3px;" alt="platform" bind:this={platformlogo} src="img/Wii.svg">
-                    <img style="height:15px;margin-left:50px;" src="img/regions/scandi1.svg">
+                    <img style="height:15px;margin-left:50px;display:inline;" src="img/regions/scandi1.svg">
         </div>
 
         <plaintext class="error">{errorMSG}</plaintext>
-        <plaintext class="nameofbuild">sds</plaintext>
     </div>
 </main>
 

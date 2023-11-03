@@ -424,7 +424,7 @@
 <hr />
 <div style="margin:auto;align-items:center;text-align:center;">
     <span style="width:50%;height:25px;">
-        <input placeholder="Comment..." bind:this={commentInput} type="text" style="border:none;font-size:20px;padding:3px;border-radius:5px;" />
+        <textarea placeholder="Comment..."  bind:this={commentInput} style="border:none;font-size:15px;padding:3px;border-radius:5px;height:50px;" />
         <p>
         <button on:click={PostComment} style="border:none;padding-left:50px;padding-right:50px;padding-top:10px;padding-bottom:10px;border-radius:6px;">Send</button>
     </span>
