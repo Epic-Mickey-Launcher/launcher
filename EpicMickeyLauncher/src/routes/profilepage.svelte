@@ -22,6 +22,9 @@
 
     let emblemName = "";
     let emblemColor = "";
+    let profileinfo;
+    let joindate = "";
+    let modLength = 1;
 
     let callback;
 
@@ -31,8 +34,6 @@
 
             //used for visiting other users profiles
             let idofprofile = await GetData("profile_id");
-
-            let profileinfo;
 
             if (idofprofile != null) {
                 profileinfo = await POST("getprofileinfo", {
@@ -52,6 +53,13 @@
                 });
             }
 
+            modLength = profileinfo.mods.length;
+            let timestamp = parseInt(profileinfo.id)
+
+let d = new Date(timestamp);
+
+joindate = d.toLocaleString();
+
             isownerofprofile = userinfo.id == profileinfo.id;
 
             username = profileinfo.username;
@@ -69,6 +77,7 @@
                 emblemColor = emblem.color;
                 }
 
+              
             profileinfo.mods.forEach((m) => {
 
                 let desc = m.description;
@@ -94,9 +103,11 @@
 </script>
 
 <div bind:this={profilepage} style="text-align:center;">
-    <img class="pfp" src={pfplink} alt="" />
+    <img class="pfp" src={pfplink + "?"} alt="" />
     <br />
     <span style="font-size:30px;">{username}</span>
+    <br>
+        <span style="font-size:10px;">EML Member since {joindate}</span>
     <p>
         <span>{bio}</span>
     </p>
@@ -108,6 +119,8 @@
     </div>
     {/if}
     <p />
+ 
+    {#if modLength > 0}
     <hr />
     <span style="font-size:30px;">Mods</span>
     <p>
@@ -116,6 +129,9 @@
             style="display:flex;width:fit-content;margin:0 auto;"
         />
     </p>
+    {/if}
+    
+    
     <p>
         {#if isownerofprofile}
             <button

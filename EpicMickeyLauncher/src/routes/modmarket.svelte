@@ -18,7 +18,6 @@
    import ModNode from "./components/ModNode.svelte";
    import { ReadJSON } from "./library/configfiles.js";
    import { SetData } from "./library/datatransfer.js";
-
    let warning;
 
    onMount(async () => {
@@ -41,19 +40,25 @@
 
    let ModList;
    let GamesDropdown;
+   let filter;
+   let filterDropdown;
    let selectedgamebuild;
    let currentSelectedGame;
 
+
    let allspawnednodes = [];
 
-   async function LoadModList() {
-      SetData("gameinfo", selectedgamebuild);
+   async function LoadModList(changePlatform = false) {
 
       allspawnednodes.forEach((element) => {
          element.$destroy();
       });
 
+      if(changePlatform)
+      {
+         SetData("gameinfo", selectedgamebuild);
       currentSelectedGame = selectedgamebuild;
+      }
 
       await GetAllMods();
    }
@@ -62,6 +67,8 @@
 
    let featuredModId = "";
    let featuredModImage = "";
+
+
 
    function GoToFeaturedMod() {
       SetData("modpage_id", featuredModId);
@@ -94,7 +101,22 @@
       allspawnednodes = [];
       search.value = "";
 
-      data.modlist.forEach(async (e) => {
+      let mods = data.modlist;
+      mods.forEach(async (e) => {
+         let impressions = await POST("getmodimpressions", {
+         token: token,
+         mod: e.id,
+         });
+
+         e.likes = impressions.likes;
+         e.downloads = impressions.downloads;
+      })
+      let finalModList = [];
+
+      console.log(filter);
+
+      let cb = async () => {
+         await finalModList.forEach(async (e) => {
          //HACK: dumb way of bypassing a db update
 
          let comparingPlatform = "wii";
@@ -125,6 +147,20 @@
             modNode.update = e.update;
             modNode.modplatform = e.platform;
             modNode.modgame = e.game;
+
+            let comments = await POST("getcomments", { pageid: e.id });
+            if(comments != null)
+            {
+               modNode.comments = comments.comments.length;
+            }
+            let impressions = await POST("getmodimpressions", {
+            token: token,
+            mod: e.id,
+        });
+
+            modNode.downloads = impressions.downloads;
+            modNode.likes = impressions.likes;
+
             modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
                (r) =>
@@ -136,6 +172,45 @@
             allspawnednodes.push(modNode);
          }
       });
+      }
+
+      console.log(mods)
+
+      switch(filter)
+      {
+
+         case 5:
+         finalModList =  mods.slice(0).sort(function (a,b) {
+               return a.likes - b.likes;
+            });
+            break;
+
+            case 6:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return b.likes - a.likes;
+            });
+            console.log("antifreeze")
+            break;
+
+            case 1:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return b.id - a.id;
+            });
+            break
+            case 2:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return a.id - b.id;
+            })
+            console.log(" i will bury you")
+            break;
+      }
+
+
+      console.log("sorting")
+cb()
+     
+
+      
    }
 </script>
 
@@ -163,7 +238,7 @@
    <select
       class="dropdown"
       bind:value={selectedgamebuild}
-      on:change={() => LoadModList()}
+      on:change={() => LoadModList(true)}
       bind:this={GamesDropdown}
    >
       {#await SetJsonData()}
@@ -176,6 +251,21 @@
          {/each}
       {/await}
    </select>
+
+   <select
+   class="dropdown"
+   bind:value={filter}
+   on:change={() => LoadModList()}
+   bind:this={filterDropdown}
+>
+    <option value={1}>Newest</option>
+    <option value={2}>Oldest</option>
+    <option value={3}>Most Downloads</option>
+    <option value={4}>Least Downloads</option>
+    <option value={5}>Most Likes</option>
+    <option value={6}>Least Likes</option>
+</select>
+
    <a href="#/uploadmod">Upload Mod</a>
    <input
       bind:this={search}

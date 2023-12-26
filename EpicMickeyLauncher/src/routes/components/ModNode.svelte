@@ -16,6 +16,9 @@
     export let modplatform = "";
     export let modgame = ""
     export let update = 0;
+    export let likes = 0;
+    export let comments = 0;
+    export let downloads = 0;
     export let visible = true;
     let authoraccountexists = true;
     export let authorname = "";
@@ -45,8 +48,8 @@
             authorname = authorinfo.username;
         }
 
-        if (description.length > 70) {
-            let newDesc = description.substring(0, 70);
+        if (description.length > 60) {
+            let newDesc = description.substring(0, 60);
             newDesc += "...";
             description = newDesc;
         }
@@ -193,6 +196,9 @@
                 class="hyperlinkbutton">{authorname}</button
             >
         </span>
+
+        
+
         <p>
         <span>{description}</span>
     </div>
@@ -200,6 +206,9 @@
         <div class="imgArea">
             <img class="modNodeImg" alt="" src={iconLink} />
             <br>
+            <span style="font-size:8px;">Likes: {likes}</span>
+            <span style="font-size:8px;">Downloads: {downloads}</span>
+            <span style="font-size:8px;">Comments: {comments}</span>
             <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
             <br>
         </div>

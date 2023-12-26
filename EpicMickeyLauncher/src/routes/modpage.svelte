@@ -423,11 +423,10 @@
 <span>{commentsCount} Comments</span>
 <hr />
 <div style="margin:auto;align-items:center;text-align:center;">
-    <span style="width:50%;height:25px;">
-        <textarea placeholder="Comment..."  bind:this={commentInput} style="border:none;font-size:15px;padding:3px;border-radius:5px;height:50px;" />
-        <p>
-        <button on:click={PostComment} style="border:none;padding-left:50px;padding-right:50px;padding-top:10px;padding-bottom:10px;border-radius:6px;">Send</button>
-    </span>
+    <div>
+        <button on:click={PostComment} style="position:relative;bottom:25px;border:none;padding-left:25px;padding-right:25px;padding-top:10px;padding-bottom:10px;border-radius:6px;">Send</button>
+        <textarea placeholder="Comment..."  bind:this={commentInput} style="border:none;font-size:15px;padding:3px;border-radius:5px;height:50px;width:500px;" />
+    </div>
     <p />
     <div style="align-items:center;" bind:this={commentsDiv} />
 </div>

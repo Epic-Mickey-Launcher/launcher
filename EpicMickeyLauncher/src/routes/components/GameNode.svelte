@@ -31,6 +31,7 @@
         });
         }
         else{
+            console.log("pri")
             invoke("playgame", {
             dolphin: filepath + "/Launch.exe",
             exe: "",
