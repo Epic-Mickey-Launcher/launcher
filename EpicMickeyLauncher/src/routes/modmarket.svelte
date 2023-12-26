@@ -174,8 +174,6 @@
       });
       }
 
-      console.log(mods)
-
       switch(filter)
       {
 
