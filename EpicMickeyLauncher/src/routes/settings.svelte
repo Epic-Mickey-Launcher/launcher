@@ -15,7 +15,7 @@
 
         console.log(selectedPath);
 
-        if (selectedPath.includes("Dolphin.exe") || selectedPath.includes("Dolphin.app")) {
+        if (selectedPath.includes("Dolphin.exe") || selectedPath.includes("Dolphin.app") || selectedPath.includes("dolphin-emu.desktop")) {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = selectedPath;
             await WriteToJSON(JSON.stringify(dat), "conf.json");
@@ -46,7 +46,12 @@
     let os = "";
 
     //HACK: there has to be a better way to do this
+    //HACK: no
     const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/3b/69/dolphin-master-5.0-19870-x64.7z";
+    const DOLPHIN_LINK_MACOS = "";
+    const DOLPHIN_LINK_LINUX_DEB = "";
+    const DOLPHIN_LINK_LINUX_RH = "";
+    const DOLPHIN_LINK_LINUX_ARCH = "";
     const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
     const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1112527174478614538/NKit.zip";
 
@@ -54,6 +59,12 @@
         let modInstallElement = new ModInstall({
             target: document.body,
         });
+
+        if(os == "linux" || os == "macos")
+        {
+            await alert("This tool requires that wine be installed on your computer.");
+        }
+
         modInstallElement.modName = "Wiimms ISO Tools";
         modInstallElement.modIcon = "img/waren.png";
         modInstallElement.showDownloadProgression = true;
@@ -68,6 +79,12 @@
     }
 
     async function DownloadNKit(){
+
+        if(os == "linux" || os == "macos")
+        {
+            await alert("This tool requires that wine be installed on your computer.");
+        }
+
         let modInstallElement = new ModInstall({
             target: document.body,
         });
@@ -127,6 +144,13 @@ nkit_button.disabled = true
         currentDolphinPath = c.dolphinPath;
         currentWITPath = c.WITPath;
         currentNkitPath = c.NkitPath;
+
+        if(os == "linux")
+        {
+            invoke("linux_check_exist", {package: "dolphin-emu"}).then(exists => {
+                dolphin_button.disabled = exists;
+            })
+        }
     }
 
     async function SetDolphinEmulatorOverride(){

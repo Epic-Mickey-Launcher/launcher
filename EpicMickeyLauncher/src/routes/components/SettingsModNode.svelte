@@ -49,7 +49,7 @@
             gameid: gameid,
             platform: gamedata.platform,
             modid: JSON.parse(json).modid,
-            active: false
+            active: active
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring);
