@@ -40,11 +40,11 @@ ___
 - Auto Downloader for WIT, NKit & Dolphin ✅
 - ISO Self Extraction (with WIT & NKit) ✅
 - Add some extra polish⌛
-
-  # Credits
-  - RampantLeaf: Provider of EM1 level loader data.
-  - SlayCap: Heavy contributor & Provider of EM2 level loader data.
-  - Wiimm: Creator of WIT, which EML relies on for extracting .ISO files (https://github.com/Wiimm/wiimms-iso-tools)
-  - Nanook: Creator of the NKit tools, which eml relies on for converting NKIT isos into normal isos (https://github.com/Nanook/NKitv1)
-  - Function Point: Awesome Edition.
-  - All EML users: At age 14, I did not expect my tiny dinky project to take off and do so well. It's been a really fun learning project, and I have way more in store for the future. Thank you all. 
+  
+# Credits
+- RampantLeaf: Provider of EM1 level loader data.
+- SlayCap: Heavy contributor & Provider of EM2 level loader data.
+- Wiimm: Creator of WIT, which EML relies on for extracting .ISO files (https://github.com/Wiimm/wiimms-iso-tools)
+- Nanook: Creator of the NKit tools, which eml relies on for converting NKIT isos into normal isos (https://github.com/Nanook/NKitv1)
+- Function Point: Awesome Edition.
+- All EML users: At age 14, I did not expect my tiny dinky project to take off and do so well. It's been a really fun learning project, and I have way more in store for the future. Thank you all. 
