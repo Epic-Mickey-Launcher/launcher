@@ -44,12 +44,16 @@
 
                 let commentName = "";
 
-                let userinfo = await POST("getaccount", { id: userid });
+                let userinfo = await POST("getprofileinfo", { id: userid });
                 if (userinfo.username == null) {
                     commentName = "Unknown Account";
                 } else {
                     commentName = userinfo.username;
                 }
+
+                let emblem = userinfo.emblems.sort((a, b) => {
+                    return b.weight - a.weight;
+                })[0];
 
                 commentNode.InitCommentNode(
                     comment,
@@ -58,7 +62,8 @@
                     userinfo.id,
                     id,
                     localid,
-                    modid
+                    modid,
+                    emblem.color
                 );
 
                 commentNode.onDelete = () => {

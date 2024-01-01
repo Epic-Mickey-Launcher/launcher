@@ -24,6 +24,9 @@
     export let authorname = "";
     export let gamedata;
     let downloadStatus = "Download"
+
+
+    let color = "white"
     export let json = "";
     let canupdate = false;
     let downloadButton;
@@ -39,7 +42,14 @@
     }
 
     export async function Init() {
-        let authorinfo = await POST("getaccount", { id: author });
+        let authorinfo = await POST("getprofileinfo", { id: author });
+
+        let emblem = authorinfo.emblems.sort((a, b) => {
+                    return b.weight - a.weight;
+                })[0];
+
+        color = emblem.color;
+
 
         if (authorinfo.username == null) {
             authoraccountexists = false;
@@ -191,7 +201,7 @@
         <p>
         <span>
             Author:<button
-                style="margin-left:5px;"
+                style="margin-left:5px;color:{color};"
                 on:click={OpenProfileOfAuthor}
                 class="hyperlinkbutton">{authorname}</button
             >

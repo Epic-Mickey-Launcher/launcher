@@ -213,9 +213,6 @@
             })
             break;
       }
-
-
-      console.log("sorting")
 cb()
      
 
@@ -275,7 +272,7 @@ cb()
     <option value={6}>Least Likes</option>
 </select>
 
-   <a href="#/uploadmod">Upload Mod</a>
+   <button on:click={() => window.open("#/uploadmod", "_self")}>Upload Mod</button>
    <input
       bind:this={search}
       on:input={Search}
