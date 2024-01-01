@@ -1,9 +1,9 @@
 //note 2self or whoever. macos directory system uses / and not \
 
-/* #![cfg_attr(
+ #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
-)] */
+)] 
 
 use futures_util::StreamExt;
 use reqwest::Client;

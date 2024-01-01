@@ -10,8 +10,8 @@
   } from "./library/configfiles.js";
   import { invoke } from "@tauri-apps/api/tauri";
   import ModInstall from "./components/ModInstall.svelte";
-    import { onMount } from "svelte";
-    import { emit, listen } from '@tauri-apps/api/event'
+  import { onMount } from "svelte";
+  import { emit, listen } from "@tauri-apps/api/event";
   let addgamedumpDiv;
   let dumpFound;
   let error = "";
@@ -21,23 +21,20 @@
 
   onMount(async () => {
     let d = await ReadJSON("conf.json");
-    if(d.WITPath == "" || d.WITPath == null){
-         isobutton.disabled = true;
+    if (d.WITPath == "" || d.WITPath == null) {
+      isobutton.disabled = true;
     }
-  })
+  });
 
   async function AddGameDump(iso) {
     const selectedPath = await open({
       title: "Select folder",
       directory: !iso,
       multiple: false,
-      filters: [
-         {name:"ISO Images", extensions:["iso"]}
-        ] 
+      filters: [{ name: "ISO Images", extensions: ["iso"] }],
     });
 
-
-    console.log(selectedPath)
+    console.log(selectedPath);
 
     path = selectedPath.toString();
 
@@ -49,42 +46,47 @@
             target: document.body,
           });
           try {
-            let gamename = res.id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
+            let gamename =
+              res.id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
 
-          modInstallElement.action = "Extracting";
-          modInstallElement.modIcon = gamename == "Epic Mickey 1" ? "img/emicon.png" : "img/em2icon.png";
-          modInstallElement.description = "This might take a really long time."
+            modInstallElement.action = "Extracting";
+            modInstallElement.modIcon =
+              gamename == "Epic Mickey 1"
+                ? "img/emicon.png"
+                : "img/em2icon.png";
+            modInstallElement.description =
+              "This might take a really long time.";
 
-          await listen("change_iso_extract_msg", (e) => {
-            modInstallElement.description = e.payload;
-          });
+            await listen("change_iso_extract_msg", (e) => {
+              modInstallElement.description = e.payload;
+            });
 
-         
+            modInstallElement.modName = gamename;
 
-          modInstallElement.modName = gamename;
-
-          //nkit: d.NkitPath, 
-          await invoke("extract_iso", { isopath: path, witpath:d.WITPath, nkit:d.NkitPath, gamename:gamename, isNkit: res.nkit}).then(async (res) => {
-            console.log(res)
-            modInstallElement.$destroy();
-              if(res != "err_nkit")
-              {
-                 console.log("fartlock " + res)
-                  path = res;
-              }
-              else
-              {
+            //nkit: d.NkitPath,
+            await invoke("extract_iso", {
+              isopath: path,
+              witpath: d.WITPath,
+              nkit: d.NkitPath,
+              gamename: gamename,
+              isNkit: res.nkit,
+            }).then(async (res) => {
+              console.log(res);
+              modInstallElement.$destroy();
+              if (res != "err_nkit") {
+                console.log("fartlock " + res);
+                path = res;
+              } else {
                 //nkit cannot be converted because the toolkit is not installed
-                alert("You must install NKit in the Settings tab to extract this iso.");
+                alert(
+                  "You must install NKit in the Settings tab to extract this iso.",
+                );
               }
-          })
-          }
-          catch (e) {
-
-            await alert(e)
+            });
+          } catch (e) {
+            await alert(e);
             modInstallElement.$destroy();
           }
-        
         } else {
           error = "Error: This is not an Epic Mickey 1/2 ISO!";
           return;
@@ -93,19 +95,15 @@
     }
     let wiiFolderExists = await exists(path + "/DATA");
     let exeExists = await exists(path + "/DEM2.exe");
-    
+
     dataPath = "";
 
-    if (path.endsWith("/DATA") || path.endsWith("\\DATA"))
-    {
+    if (path.endsWith("/DATA") || path.endsWith("\\DATA")) {
       wiiFolderExists = true;
       dataPath = path;
-    }
-    else if (wiiFolderExists){
+    } else if (wiiFolderExists) {
       dataPath = path + "/DATA";
     }
-
-
 
     if (wiiFolderExists) {
       //TODO: find a better identifier for different versions because this Sucks!!!
@@ -145,8 +143,11 @@
       jsonData.find((r) => r.game == gametype && r.platform == platform) != null
     ) {
       alert(
-        gametype + " (" + platform + ") " +
-          " has already been added to your game list. There is no need for two versions of it."
+        gametype +
+          " (" +
+          platform +
+          ") " +
+          " has already been added to your game list. There is no need for two versions of it.",
       );
       window.open("#/", "_self");
       return;
@@ -172,7 +173,7 @@
       let conffilecontent = await ReadFile(dataPath + "/ConfigFiles.ini");
       conffilecontent = conffilecontent.replace(
         "ShowDevLevelLoad=false",
-        "ShowDevLevelLoad=true"
+        "ShowDevLevelLoad=true",
       );
       await WriteFile(conffilecontent, dataPath + "/ConfigFiles.ini");
     }
@@ -194,8 +195,10 @@
     >Add Game Dump</button
   >
   <p>
-    <button bind:this={isobutton} on:click={() => AddGameDump(true)} class="addgamebutton"
-      >Add Game ISO</button
+    <button
+      bind:this={isobutton}
+      on:click={() => AddGameDump(true)}
+      class="addgamebutton">Add Game ISO</button
     >
   </p>
   <p style="text-align:center">{error}</p>
@@ -207,7 +210,6 @@
   <p />
   <button on:click={Cancel} class="addgamebutton">Cancel</button>
 </div>
-
 
 <style>
   .addgamebutton {
