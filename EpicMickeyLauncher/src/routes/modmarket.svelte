@@ -102,15 +102,15 @@
       search.value = "";
 
       let mods = data.modlist;
-      mods.forEach(async (e) => {
+      for (let i = 0; i < mods.length; i++) {
          let impressions = await POST("getmodimpressions", {
          token: token,
-         mod: e.id,
+         mod: mods[i].id,
          });
 
-         e.likes = impressions.likes;
-         e.downloads = impressions.downloads;
-      })
+         mods[i].likes = impressions.likes;
+         mods[i].downloads = impressions.downloads;
+      }
       let finalModList = [];
 
       console.log(filter);
@@ -161,6 +161,7 @@
             modNode.downloads = impressions.downloads;
             modNode.likes = impressions.likes;
 
+      
             modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
                (r) =>
@@ -179,15 +180,26 @@
 
          case 5:
          finalModList =  mods.slice(0).sort(function (a,b) {
-               return a.likes - b.likes;
+               return b.likes - a.likes;
             });
             break;
 
             case 6:
             finalModList =  mods.slice(0).sort(function (a,b) {
-               return b.likes - a.likes;
+               return a.likes - b.likes;
             });
-            console.log("antifreeze")
+            break;
+
+            case 4:
+         finalModList =  mods.slice(0).sort(function (a,b) {
+               return a.downloads - b.downloads;
+            });
+            break;
+
+            case 3:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return b.downloads - a.downloads;
+            });
             break;
 
             case 1:
@@ -199,7 +211,6 @@
             finalModList =  mods.slice(0).sort(function (a,b) {
                return a.id - b.id;
             })
-            console.log(" i will bury you")
             break;
       }
 

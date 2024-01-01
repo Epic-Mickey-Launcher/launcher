@@ -134,9 +134,12 @@
     }
 
     function OpenDirectory() {
-        let p = data.path.replace("/", "\\");
+        invoke("get_os").then((os) => {
+            let p = os == "windows" ? data.path.replace("/", "\\") : data.path;
 
-        invoke("open_process", { path: "explorer.exe", args: p });
+invoke("open_path_in_file_manager", {path:p});
+        });
+    
     }
 
     function CreateModNode(element, index) {

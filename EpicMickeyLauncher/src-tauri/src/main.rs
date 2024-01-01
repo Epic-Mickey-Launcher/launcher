@@ -514,7 +514,8 @@ fn main() {
             open_process,
             delete_mod_cache_all,
             create_portable,
-            linux_check_exist
+            linux_check_exist,
+            open_path_in_file_manager
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -529,6 +530,21 @@ fn open_process(path: String, args: String) {
         .arg(args)
         .output()
         .expect("failed to execute process");
+}
+#[tauri::command]
+fn open_path_in_file_manager(path: String)
+{
+    #[cfg(target_os="windows")]
+    Command::new("explorer.exe")
+    .arg(path)
+    .output()
+    .expect("failed to execute process");
+
+    #[cfg(target_os="linux")]
+    Command::new("dolphin")
+    .arg(path)
+    .output()
+    .expect("failed to execute process");
 }
 
 #[tauri::command]
