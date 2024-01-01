@@ -5,6 +5,9 @@
     windows_subsystem = "windows"
 )] 
 
+use chrono::Datelike;
+use chrono::Local;
+use chrono::Timelike;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -12,6 +15,7 @@ use std::default;
 use std::env;
 use std::fs;
 use std::fs::File;
+use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::Cursor;
 #[cfg(target_os = "windows")]
@@ -29,6 +33,7 @@ extern crate scan_dir;
 extern crate sevenz_rust;
 extern crate walkdir;
 extern crate zip_extract;
+extern crate chrono;
 use tauri::{Manager, Window};
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles {
@@ -203,8 +208,14 @@ async fn extract_iso(
     m_isopath.push(&isopath);
 
     let mut remove_nkit_processed = false;
+    
+    log("Beginning ISO Extraction.");
+
     if is_nkit {
         if nkit != "" {
+
+            log("NKit compressed ISO.");
+
             window
                 .emit("change_iso_extract_msg", "Converting NKit to ISO...")
                 .unwrap();
@@ -212,6 +223,8 @@ async fn extract_iso(
             let mut proc_path = PathBuf::new();
             proc_path.push(&nkit);
             proc_path.push("ConvertToISO.exe");
+
+            log("Starting NKit conversion.");
 
             #[cfg(target_os = "windows")]
             Command::new(proc_path)
@@ -226,6 +239,8 @@ async fn extract_iso(
                 .arg("z:".to_owned() + &m_isopath.to_str().unwrap())
                 .output()
                 .expect("NKit failed to start");
+
+                log("NKit process finished.");
 
             source_path.push("DATA");
 
@@ -252,6 +267,8 @@ async fn extract_iso(
 
                         println!("{}", m_isopath.display());
 
+                        log(&format!("ISO Target changed to {}.", m_isopath.to_str().unwrap()));
+
                         foundfirst = true;
                         remove_nkit_processed = true;
                     }
@@ -259,17 +276,19 @@ async fn extract_iso(
             }
 
             if !foundfirst {
+                log("New ISO target could not be found. Aborting.");
                 return "err_nkit".to_string();
             }
         } else {
+            log("NKit possibly not installed. Aborting.");
             return "err_nkit".to_string();
         }
     }
 
     window
-        .emit("change_iso_extract_msg", "Dumping ISO...")
+        .emit("change_iso_extract_msg", "Extracting ISO...")
         .unwrap();
-
+    log("Beginning ISO Extraction.");
     #[cfg(target_os = "windows")]
     Command::new(&witpath)
         .arg("extract")
@@ -295,6 +314,9 @@ async fn extract_iso(
     window
         .emit("change_iso_extract_msg", "Cleaning Up...")
         .unwrap();
+
+        log("ISO Finished extracting");
+        log("Injecting game files into final directory.");
 
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push("com.memer.eml");
@@ -330,25 +352,29 @@ async fn extract_iso(
             fs::remove_dir_all(extracted_iso_path).expect("Failed to remove temp folder");
         }
     } else {
+        log("WIT did not properly extract game. Aborting.");
         response = "err_extract".to_string();
     }
 
     window.emit("change_iso_extract_msg", "Finished!").unwrap();
-
+    log("ISO Extraction successful.");
     return response.to_string();
 }
 
 #[tauri::command]
 async fn download_tool(url: String, foldername: String, window: Window) -> PathBuf {
+    log(&format!("Beginning download of {}", url));
     let mut to_pathbuf = PathBuf::new();
     to_pathbuf.push(dirs_next::config_dir().expect("could not get config dir"));
     to_pathbuf.push("com.memer.eml");
     to_pathbuf.push(foldername);
     download_zip(url, &to_pathbuf, false, window).await;
+    log(&format!("Download Finished"));
     to_pathbuf
 }
 
 async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Window) -> String {
+    log(&format!("Downloading Archive {}", url));
     fs::create_dir_all(&foldername).expect("Failed to create");
 
     let mut temporary_archive_path_buf = foldername.clone();
@@ -412,6 +438,8 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 
     let extension = extract_archive(url, temporary_archive_path, &output);
 
+    log("Finished archive download");
+
     extension
 }
 
@@ -422,7 +450,23 @@ struct ModDownloadStats {
     Download_Total: String,
 }
 
+#[tauri::command]
+fn open_config_folder()
+{
+
+    let mut path = PathBuf::new();
+
+        path.push(dirs_next::config_dir().unwrap());
+        path.push("com.memer.eml");
+    
+
+ open_path_in_file_manager(path.to_str().unwrap().to_owned())
+}
+
 fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> String {
+
+    log(&format!("Extracting Archive {}", input_path));
+
     let mut f = File::open(&input_path).expect("Couldn't open archive");
     let mut buffer = [0; 262];
 
@@ -475,6 +519,19 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
 }
 
 fn main() {
+
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/Log.txt");
+
+    if !Path::exists(&path)
+    {
+        fs::write(&path,[0]);
+    }
+
+    let now = Local::now();
+    
+    fs::write(&path,format!("EML opened at {}.\n", now.year().to_string() + "/" + &now.month().to_string() + "/" + &now.day().to_string() + ", " + &now.hour().to_string() + ":" + &now.minute().to_string() + ":" + &now.second().to_string())).unwrap();
+
     let _ = fix_path_env::fix();
 
     tauri::Builder::default()
@@ -515,13 +572,15 @@ fn main() {
             delete_mod_cache_all,
             create_portable,
             linux_check_exist,
-            open_path_in_file_manager
+            open_path_in_file_manager,
+            open_config_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 #[tauri::command]
 fn get_os() -> &'static str {
+    log("os is fart");
     env::consts::OS
 }
 #[tauri::command]
@@ -531,21 +590,40 @@ fn open_process(path: String, args: String) {
         .output()
         .expect("failed to execute process");
 }
+
+fn log(output: &str){
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/Log.txt");
+    let now = Local::now();
+    let date = now.year().to_string() + "/" + &now.month().to_string() + "/" + &now.day().to_string() + ", " + &now.hour().to_string() + ":" + &now.minute().to_string() + ":" + &now.second().to_string();
+
+    let final_output = format!("[{}]: {}\n", date ,output);
+
+    let mut file = OpenOptions::new()
+    .write(true)
+    .append(true)
+    .open(path)
+    .unwrap();
+
+    file.write(final_output.as_bytes());
+}
+
 #[tauri::command]
 fn open_path_in_file_manager(path: String)
 {
     #[cfg(target_os="windows")]
     Command::new("explorer.exe")
     .arg(path)
-    .output()
+    .spawn()
     .expect("failed to execute process");
 
     #[cfg(target_os="linux")]
     Command::new("dolphin")
     .arg(path)
-    .output()
+    .spawn()
     .expect("failed to execute process");
 }
+
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
@@ -618,9 +696,11 @@ fn check_iso(path: String) -> CheckISOResult {
         .to_uppercase();
     let is_nkit = if nkit == "NKIT" { true } else { false };
     let res = CheckISOResult {
-        id: id,
+        id: id.clone(),
         nkit: is_nkit,
     };
+ 
+    log(&format!("Disc ID: {} | NKit: {}", id, is_nkit));
     res
 }
 
@@ -639,6 +719,7 @@ async fn change_mod_status(
     let name = modname;
 
     if active {
+        log(&format!("Mod ({}) Enabled", modid));
         //todo: fix this shit
         download_mod(
             "".to_string(),
@@ -651,7 +732,7 @@ async fn change_mod_status(
         )
         .await;
     } else {
-        //HACK!!
+        log(&format!("Mod ({}) Disabled.", modid));
         delete_mod(dumploc, gameid, platform, modid, !active, window).await;
     }
 
@@ -667,6 +748,7 @@ async fn delete_mod(
     active: bool,
     window: Window,
 ) {
+    log(&format!("Attempting to delete mod ({}).", modid));
     let p = PathBuf::from(format!("{}/{}", dumploc, modid));
 
     if !p.exists() {
@@ -719,6 +801,8 @@ async fn delete_mod(
             }
         }
 
+        log("Removed modded files.");
+
         let mut p = PathBuf::from("Load/Textures/");
         p.push(&gameid);
 
@@ -746,8 +830,9 @@ async fn delete_mod(
                 fs::remove_file(&path).unwrap();
             }
         }
+        log("Removed texture files.");
     }
-
+    log("Process ended.");
     println!("Proccess ended");
 }
 

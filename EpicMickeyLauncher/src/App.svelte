@@ -16,6 +16,7 @@
     import { Login, loggedin } from "./routes/library/networking";
     import { Invoke } from "./routes/library/callback";
     import { emit, listen } from '@tauri-apps/api/event'
+    import { invoke } from "@tauri-apps/api/tauri";
 
     let header;
 
@@ -60,9 +61,38 @@
     InitConfFiles();
     ListenLoop();
 
+    let funcKeyDown;
+    function keyDown(e)
+    {
+        if(e.keyCode == 17)
+        {
+            funcKeyDown = true;
+        }
+    }
+
+    function keyUp(e)
+    {
+        if(e.keyCode == 17)
+        {
+            funcKeyDown = false;
+        }
+
+        if(funcKeyDown)
+        {
+            switch(e.keyCode)
+            {
+                case 71:
+                    invoke("open_config_folder");
+                    break;
+            }
+        }
+    }
+
 </script>
 
 <main>
     <Header bind:this={header} />
     <Router {routes} on:routeLoaded={RouteLoaded} />
 </main>
+
+<svelte:window on:keydown={keyDown} on:keyup={keyUp}></svelte:window>

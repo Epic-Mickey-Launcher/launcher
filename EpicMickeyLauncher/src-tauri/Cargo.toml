@@ -32,6 +32,7 @@ registry = "1.2.3"
 shutil = "0.1.2"
 tauri-plugin-deep-link = "0.1.1"
 fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs" }
+chrono = "0.4.31"
 
 [features]
 default = ["custom-protocol"]
