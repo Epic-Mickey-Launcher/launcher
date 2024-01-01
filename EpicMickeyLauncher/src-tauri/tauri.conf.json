@@ -29,7 +29,7 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true,
-        "scope": ["$LOCALDATA/**", "/**"] 
+        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**"] 
         
       },
       

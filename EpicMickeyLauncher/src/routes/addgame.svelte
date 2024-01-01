@@ -91,9 +91,8 @@
         }
       });
     }
-
-    let exeExists = await FileExists(path + "/DEM2.exe");
     let wiiFolderExists = await exists(path + "/DATA");
+    let exeExists = await exists(path + "/DEM2.exe");
     
     dataPath = "";
 
