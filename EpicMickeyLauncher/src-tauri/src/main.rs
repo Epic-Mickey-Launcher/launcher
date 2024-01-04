@@ -521,7 +521,9 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
 fn main() {
 
     let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml/Log.txt");
+    path.push(r"com.memer.eml");
+    fs::create_dir_all(&path);
+    path.push("Log.txt");
 
     if !Path::exists(&path)
     {
@@ -605,7 +607,7 @@ fn log(output: &str){
     .open(path)
     .unwrap();
 
-    file.write(final_output.as_bytes());
+    file.write(final_output.as_bytes()).unwrap();
 }
 
 #[tauri::command]

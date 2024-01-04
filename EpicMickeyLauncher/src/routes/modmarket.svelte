@@ -18,7 +18,9 @@
    import ModNode from "./components/ModNode.svelte";
    import { ReadJSON } from "./library/configfiles.js";
    import { SetData } from "./library/datatransfer.js";
+    import Loading from "./components/loading.svelte";
    let warning;
+   let load = true;
 
    onMount(async () => {
       await SetJsonData();
@@ -94,6 +96,7 @@
    }
 
    async function GetAllMods() {
+      load = true;
       let token = await GetToken();
 
       let data = await POST("getmods", { token: token });
@@ -172,6 +175,7 @@
 
             allspawnednodes.push(modNode);
          }
+         load = false;
       });
       }
 
@@ -281,6 +285,12 @@ cb()
    />
 </div>
 <p />
+{#if load}
+ <span style="margin-left:45%;">
+   <Loading></Loading>
+ </span>
+ {/if}
+<p></p>
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
 <!--

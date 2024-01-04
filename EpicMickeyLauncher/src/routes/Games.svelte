@@ -70,6 +70,7 @@
   }
 </script>
 
+
 <h1 style="text-align:center">Games</h1>
 <hr style="width:500px" />
 <p />
@@ -77,6 +78,7 @@
 <p style="margin-bottom:50px;" />
 <button on:click={AddGame} class="addgamebutton">+</button>
 <style>
+
   .addgamebutton {
     margin: 0 auto;
     display: block;
