@@ -37,19 +37,15 @@
         });
 
         console.log(gamedata)
-        let gameid;
-        if (gamedata.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
+        let gameid = gamedata.id;
+        
 
         invoke("delete_mod", {
             dumploc: dumploc,
             gameid: gameid,
             platform: gamedata.platform,
             modid: JSON.parse(json).modid,
-            active: false
+            active: active
         }).then(async () => {
             let datastring = await ReadFile(dumploc + "/EMLMods.json");
             let data = JSON.parse(datastring);
@@ -84,13 +80,8 @@
 
         
 
-        let gameid;
-        if (gamedata.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
-
+        let gameid = gamedata.id;
+       
         let jsonString = JSON.stringify(jsonToObject);
         invoke("change_mod_status", {
             json: jsonString,

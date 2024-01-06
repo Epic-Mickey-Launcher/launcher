@@ -129,6 +129,7 @@ export async function GetUserInfo() {
 }
 
 export async function MultipartPOST(route, data) {
+  
   const formData = new FormData();
   for (const name in data) {
     formData.append(name, data[name])
@@ -142,6 +143,7 @@ export async function MultipartPOST(route, data) {
 }
 
 export async function POST(route, data) {
+
   const res = await fetch(serverLink + route, {
     method: 'POST',
     headers: {
@@ -152,7 +154,6 @@ export async function POST(route, data) {
     body: JSON.stringify(data)
   });
   const content = await res.json();
-
   return content;
 }
 export async function GET(route) {

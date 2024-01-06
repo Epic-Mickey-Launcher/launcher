@@ -16,10 +16,11 @@
    } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
-   import { ReadJSON } from "./library/configfiles.js";
+   import { GetFullName, ReadJSON } from "./library/configfiles.js";
    import { SetData } from "./library/datatransfer.js";
-
+    import Loading from "./components/loading.svelte";
    let warning;
+   let load = true;
 
    onMount(async () => {
       await SetJsonData();
@@ -41,19 +42,25 @@
 
    let ModList;
    let GamesDropdown;
+   let filter;
+   let filterDropdown;
    let selectedgamebuild;
    let currentSelectedGame;
 
+
    let allspawnednodes = [];
 
-   async function LoadModList() {
-      SetData("gameinfo", selectedgamebuild);
+   async function LoadModList(changePlatform = false) {
 
       allspawnednodes.forEach((element) => {
          element.$destroy();
       });
 
+      if(changePlatform)
+      {
+         SetData("gameinfo", selectedgamebuild);
       currentSelectedGame = selectedgamebuild;
+      }
 
       await GetAllMods();
    }
@@ -62,6 +69,8 @@
 
    let featuredModId = "";
    let featuredModImage = "";
+
+
 
    function GoToFeaturedMod() {
       SetData("modpage_id", featuredModId);
@@ -87,6 +96,7 @@
    }
 
    async function GetAllMods() {
+      load = true;
       let token = await GetToken();
 
       let data = await POST("getmods", { token: token });
@@ -94,7 +104,22 @@
       allspawnednodes = [];
       search.value = "";
 
-      data.modlist.forEach(async (e) => {
+      let mods = data.modlist;
+      for (let i = 0; i < mods.length; i++) {
+         let impressions = await POST("getmodimpressions", {
+         token: token,
+         mod: mods[i].id,
+         });
+
+         mods[i].likes = impressions.likes;
+         mods[i].downloads = impressions.downloads;
+      }
+      let finalModList = [];
+
+      console.log(filter);
+
+      let cb = async () => {
+         await finalModList.forEach(async (e) => {
          //HACK: dumb way of bypassing a db update
 
          let comparingPlatform = "wii";
@@ -125,6 +150,21 @@
             modNode.update = e.update;
             modNode.modplatform = e.platform;
             modNode.modgame = e.game;
+
+            let comments = await POST("getcomments", { pageid: e.id });
+            if(comments != null)
+            {
+               modNode.comments = comments.comments.length;
+            }
+            let impressions = await POST("getmodimpressions", {
+            token: token,
+            mod: e.id,
+        });
+
+            modNode.downloads = impressions.downloads;
+            modNode.likes = impressions.likes;
+
+      
             modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
                (r) =>
@@ -135,7 +175,52 @@
 
             allspawnednodes.push(modNode);
          }
+         load = false;
       });
+      }
+
+      switch(filter)
+      {
+
+         case 5:
+         finalModList =  mods.slice(0).sort(function (a,b) {
+               return b.likes - a.likes;
+            });
+            break;
+
+            case 6:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return a.likes - b.likes;
+            });
+            break;
+
+            case 4:
+         finalModList =  mods.slice(0).sort(function (a,b) {
+               return a.downloads - b.downloads;
+            });
+            break;
+
+            case 3:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return b.downloads - a.downloads;
+            });
+            break;
+
+            case 1:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return b.id - a.id;
+            });
+            break
+            case 2:
+            finalModList =  mods.slice(0).sort(function (a,b) {
+               return a.id - b.id;
+            })
+            break;
+      }
+cb()
+     
+
+      
    }
 </script>
 
@@ -163,7 +248,7 @@
    <select
       class="dropdown"
       bind:value={selectedgamebuild}
-      on:change={() => LoadModList()}
+      on:change={() => LoadModList(true)}
       bind:this={GamesDropdown}
    >
       {#await SetJsonData()}
@@ -171,12 +256,27 @@
       {:then data}
          {#each data as gamebuild}
             <option value={gamebuild}>
-               {gamebuild.game + "(" + gamebuild.platform + ")"}
+               {GetFullName(gamebuild.game) + " (" + gamebuild.platform.toUpperCase() + ", " + gamebuild.region + ")"}
             </option>
          {/each}
       {/await}
    </select>
-   <a href="#/uploadmod">Upload Mod</a>
+
+   <select
+   class="dropdown"
+   bind:value={filter}
+   on:change={() => LoadModList()}
+   bind:this={filterDropdown}
+>
+    <option value={1}>Newest</option>
+    <option value={2}>Oldest</option>
+    <option value={3}>Most Downloads</option>
+    <option value={4}>Least Downloads</option>
+    <option value={5}>Most Likes</option>
+    <option value={6}>Least Likes</option>
+</select>
+
+   <button on:click={() => window.open("#/uploadmod", "_self")}>Upload Mod</button>
    <input
       bind:this={search}
       on:input={Search}
@@ -185,6 +285,12 @@
    />
 </div>
 <p />
+{#if load}
+ <span style="margin-left:45%;">
+   <Loading></Loading>
+ </span>
+ {/if}
+<p></p>
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
 <!--

@@ -10,6 +10,7 @@
   export let modName = "";
   export let modIcon = "";
 
+  let progress = "0";
   let MBTotal = 0;
   let MBDownloaded = 0;
 
@@ -36,6 +37,12 @@
     
     MBTotal = event.payload.Download_Total
     MBDownloaded = event.payload.Download_Remaining
+    console.log(MBTotal + " peace pipe " + MBDownloaded)
+    if (MBTotal > 0 && MBDownloaded > 0)
+    {
+      progress = (MBDownloaded / MBTotal * 100).toString();      
+    }
+
    })
   
   })
@@ -59,7 +66,7 @@
     <plaintext>{description}</plaintext>
     {#if showDownloadProgression}
     <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext>
-    <progress value="43" max="100"></progress>  
+    <progress value={progress} max="100"></progress>  
     {/if}
     <img class="installingmodlogo" alt="" src={modIcon} />
   </div>

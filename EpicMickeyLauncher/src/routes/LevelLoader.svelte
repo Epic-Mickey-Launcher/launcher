@@ -134,9 +134,12 @@
     }
 
     function OpenDirectory() {
-        let p = data.path.replace("/", "\\");
+        invoke("get_os").then((os) => {
+            let p = os == "windows" ? data.path.replace("/", "\\") : data.path;
 
-        invoke("open_process", { path: "explorer.exe", args: p });
+invoke("open_path_in_file_manager", {path:p});
+        });
+    
     }
 
     function CreateModNode(element, index) {
@@ -215,12 +218,7 @@
             .split("/")
             .pop();
 
-        let gameid;
-        if (data.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
+        let gameid = data.id;
 
         let modInstallElement = new ModInstall({
             target: document.body,

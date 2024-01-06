@@ -1,10 +1,13 @@
 //note 2self or whoever. macos directory system uses / and not \
 
-/* #![cfg_attr(
+ #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
-)] */
+)] 
 
+use chrono::Datelike;
+use chrono::Local;
+use chrono::Timelike;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -12,6 +15,7 @@ use std::default;
 use std::env;
 use std::fs;
 use std::fs::File;
+use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::Cursor;
 #[cfg(target_os = "windows")]
@@ -29,6 +33,7 @@ extern crate scan_dir;
 extern crate sevenz_rust;
 extern crate walkdir;
 extern crate zip_extract;
+extern crate chrono;
 use tauri::{Manager, Window};
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles {
@@ -53,6 +58,14 @@ struct ModInfo {
 struct CheckISOResult {
     id: String,
     nkit: bool,
+}
+#[tauri::command]
+fn open_dolphin(path: String)
+{
+    #[cfg(target_os = "windows")]
+    Command::new(path).spawn();
+    #[cfg(target_os = "linux")]
+    Command::new("dolphin-emu").spawn();
 }
 
 #[tauri::command]
@@ -99,6 +112,16 @@ fn delete_mod_cache_all() {
     }
 
     fs::create_dir(path).unwrap();
+}
+
+#[tauri::command]
+fn get_bootbin_id(path: String) -> String 
+{
+    let mut f = File::open(path).unwrap();
+    let mut id_bytes= [0; 6];
+    f.read_exact(&mut id_bytes).unwrap();
+    let id = std::str::from_utf8(&id_bytes[0..6]).unwrap().to_uppercase();
+    return id;
 }
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -177,7 +200,15 @@ async fn extract_iso(
     window: Window,
 ) -> String {
     let mut extracted_iso_path = PathBuf::new();
+    #[cfg(target_os = "windows")]
     extracted_iso_path.push("c:/extractedwii");
+    #[cfg(target_os = "linux")]
+    {
+        extracted_iso_path.push("Z:");
+        extracted_iso_path.push(dirs_next::data_local_dir().unwrap());
+        extracted_iso_path.push("com.memer.eml");
+        extracted_iso_path.push("extractedwii");
+    }
 
     let mut source_path = PathBuf::new();
     source_path.push(&extracted_iso_path);
@@ -191,11 +222,18 @@ async fn extract_iso(
     }
 
     let mut response = "".to_string();
-    let mut m_isopath = isopath.clone();
+    let mut m_isopath = PathBuf::new();
+    m_isopath.push(&isopath);
 
     let mut remove_nkit_processed = false;
+    
+    log("Beginning ISO Extraction.");
+
     if is_nkit {
         if nkit != "" {
+
+            log("NKit compressed ISO.");
+
             window
                 .emit("change_iso_extract_msg", "Converting NKit to ISO...")
                 .unwrap();
@@ -204,6 +242,8 @@ async fn extract_iso(
             proc_path.push(&nkit);
             proc_path.push("ConvertToISO.exe");
 
+            log("Starting NKit conversion.");
+
             #[cfg(target_os = "windows")]
             Command::new(proc_path)
                 .arg(&m_isopath)
@@ -211,10 +251,21 @@ async fn extract_iso(
                 .output()
                 .expect("NKit failed to start");
 
+            #[cfg(target_os = "linux")]
+            Command::new("wine")
+                .arg(proc_path)
+                .arg("z:".to_owned() + &m_isopath.to_str().unwrap())
+                .output()
+                .expect("NKit failed to start");
+
+                log("NKit process finished.");
+
             source_path.push("DATA");
 
             //HACK: probably the worst way to do this
+
             let p = nkit + "/Processed/Wii/";
+
             let paths = fs::read_dir(p).unwrap();
             let mut foundfirst = false;
             for path in paths {
@@ -228,7 +279,14 @@ async fn extract_iso(
                         .to_string();
 
                     if binding.ends_with(".iso") {
-                        m_isopath = binding;
+                        m_isopath = PathBuf::new();
+
+                        m_isopath = binding.into();
+
+                        println!("{}", m_isopath.display());
+
+                        log(&format!("ISO Target changed to {}.", m_isopath.to_str().unwrap()));
+
                         foundfirst = true;
                         remove_nkit_processed = true;
                     }
@@ -236,30 +294,54 @@ async fn extract_iso(
             }
 
             if !foundfirst {
+                log("New ISO target could not be found. Aborting.");
                 return "err_nkit".to_string();
             }
         } else {
+            log("NKit possibly not installed. Aborting.");
             return "err_nkit".to_string();
         }
     }
 
     window
-        .emit("change_iso_extract_msg", "Dumping ISO...")
+        .emit("change_iso_extract_msg", "Extracting ISO...")
         .unwrap();
+    log("Beginning ISO Extraction.");
+
+    println!("{} {} {}", &m_isopath.display(), &witpath, &extracted_iso_path.display());
+    
 
     #[cfg(target_os = "windows")]
     Command::new(&witpath)
         .arg("extract")
         .arg(&m_isopath)
         .arg("-D")
-        .arg("c:/extractedwii")
+        .arg(&extracted_iso_path)
         .creation_flags(CREATE_NO_WINDOW)
         .output()
         .expect("failed to execute process");
 
+    let p = "Z:".to_owned() + &m_isopath.to_str().unwrap();
+    #[cfg(target_os = "linux")]
+    let extracted_p = "Z:".to_owned() + extracted_iso_path.clone().to_str().unwrap();
+
+    #[cfg(target_os = "linux")]
+    Command::new("wine")
+        .arg(&witpath)
+        .arg("extract")
+        .arg(p)
+        .arg("-D")
+        .arg(extracted_p)
+        .output()
+        .expect("failed to execute process");
+        
+
     window
         .emit("change_iso_extract_msg", "Cleaning Up...")
         .unwrap();
+
+        log("ISO Finished extracting");
+        log("Injecting game files into final directory.");
 
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push("com.memer.eml");
@@ -274,11 +356,16 @@ async fn extract_iso(
         fs::create_dir_all(&path).expect("Couldn't create game folder");
     }
 
-    //HACK: change this before commit. if anyone else but me is seeing this please feel free to yell several profanities at me¨
-
     window
         .emit("change_iso_extract_msg", "Injecting Game Files...")
         .unwrap();
+
+
+    let mut s = source_path.clone();
+    s.push("DATA");
+    if s.exists() {
+        source_path.push("DATA");
+    }
 
     if source_path.exists() {
         inject_files(&source_path, &path);
@@ -297,25 +384,29 @@ async fn extract_iso(
             fs::remove_dir_all(extracted_iso_path).expect("Failed to remove temp folder");
         }
     } else {
+        log("WIT did not properly extract game. Aborting.");
         response = "err_extract".to_string();
     }
 
     window.emit("change_iso_extract_msg", "Finished!").unwrap();
-
+    log("ISO Extraction successful.");
     return response.to_string();
 }
 
 #[tauri::command]
 async fn download_tool(url: String, foldername: String, window: Window) -> PathBuf {
+    log(&format!("Beginning download of {}", url));
     let mut to_pathbuf = PathBuf::new();
     to_pathbuf.push(dirs_next::config_dir().expect("could not get config dir"));
     to_pathbuf.push("com.memer.eml");
     to_pathbuf.push(foldername);
     download_zip(url, &to_pathbuf, false, window).await;
+    log(&format!("Download Finished"));
     to_pathbuf
 }
 
 async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Window) -> String {
+    log(&format!("Downloading Archive {}", url));
     fs::create_dir_all(&foldername).expect("Failed to create");
 
     let mut temporary_archive_path_buf = foldername.clone();
@@ -352,6 +443,9 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 
         while let Some(item) = buffer.next().await {
             let buf = item.as_ref().unwrap();
+            if (buf.is_empty()) {
+                continue;
+            }
 
             download_bytes_count += buf.len();
 
@@ -376,6 +470,8 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 
     let extension = extract_archive(url, temporary_archive_path, &output);
 
+    log("Finished archive download");
+
     extension
 }
 
@@ -386,7 +482,23 @@ struct ModDownloadStats {
     Download_Total: String,
 }
 
+#[tauri::command]
+fn open_config_folder()
+{
+
+    let mut path = PathBuf::new();
+
+        path.push(dirs_next::config_dir().unwrap());
+        path.push("com.memer.eml");
+    
+
+ open_path_in_file_manager(path.to_str().unwrap().to_owned())
+}
+
 fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> String {
+
+    log(&format!("Extracting Archive {}", input_path));
+
     let mut f = File::open(&input_path).expect("Couldn't open archive");
     let mut buffer = [0; 262];
 
@@ -423,7 +535,7 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .output()
             .expect("Tar failed to extract");
 
-        #[cfg(target_os = "macos")]
+        #[cfg(target_os = "linux")]
         Command::new("tar")
             .arg("-xf")
             .arg(&input_path)
@@ -439,6 +551,23 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
 }
 
 fn main() {
+
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml");
+    fs::create_dir_all(&path);
+    path.push("Log.txt");
+
+    if !Path::exists(&path)
+    {
+        fs::write(&path,[0]);
+    }
+
+    let now = Local::now();
+    
+    fs::write(&path,format!("EML opened at {}.\n", now.year().to_string() + "/" + &now.month().to_string() + "/" + &now.day().to_string() + ", " + &now.hour().to_string() + ":" + &now.minute().to_string() + ":" + &now.second().to_string())).unwrap();
+
+    let _ = fix_path_env::fix();
+
     tauri::Builder::default()
         .setup(|app| {
             let window = app.get_window("main").unwrap();
@@ -466,7 +595,9 @@ fn main() {
             get_os,
             extract_iso,
             delete_mod_cache,
+            get_bootbin_id,
             check_iso,
+            open_dolphin,
             open_link,
             download_tool,
             validate_archive,
@@ -475,13 +606,17 @@ fn main() {
             write_mod_info,
             open_process,
             delete_mod_cache_all,
-            create_portable
+            create_portable,
+            linux_check_exist,
+            open_path_in_file_manager,
+            open_config_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 #[tauri::command]
 fn get_os() -> &'static str {
+    log("os is fart");
     env::consts::OS
 }
 #[tauri::command]
@@ -491,6 +626,40 @@ fn open_process(path: String, args: String) {
         .output()
         .expect("failed to execute process");
 }
+
+fn log(output: &str){
+    let mut path = dirs_next::config_dir().expect("could not get config dir");
+    path.push(r"com.memer.eml/Log.txt");
+    let now = Local::now();
+    let date = now.year().to_string() + "/" + &now.month().to_string() + "/" + &now.day().to_string() + ", " + &now.hour().to_string() + ":" + &now.minute().to_string() + ":" + &now.second().to_string();
+
+    let final_output = format!("[{}]: {}\n", date ,output);
+
+    let mut file = OpenOptions::new()
+    .write(true)
+    .append(true)
+    .open(path)
+    .unwrap();
+
+    file.write(final_output.as_bytes()).unwrap();
+}
+
+#[tauri::command]
+fn open_path_in_file_manager(path: String)
+{
+    #[cfg(target_os="windows")]
+    Command::new("explorer.exe")
+    .arg(path)
+    .spawn()
+    .expect("failed to execute process");
+
+    #[cfg(target_os="linux")]
+    Command::new("dolphin")
+    .arg(path)
+    .spawn()
+    .expect("failed to execute process");
+}
+
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
@@ -518,9 +687,9 @@ fn playgame(dolphin: String, exe: String) -> i32 {
                 }
 
                 Command::new(&dolphin)
-                .arg(&exe)
-                .spawn()
-                .expect("could not open exe");
+                    .arg(&exe)
+                    .spawn()
+                    .expect("could not open exe");
             } else if Path::new(&exe).exists() {
                 Command::new(&dolphin)
                     .arg(&exe)
@@ -528,10 +697,17 @@ fn playgame(dolphin: String, exe: String) -> i32 {
                     .expect("could not open dolphin");
             }
             return 0;
-        } else {
+        } else if os == "macos" {
             Command::new("open")
                 .arg("-a")
                 .arg(&dolphin)
+                .arg(&exe)
+                .spawn()
+                .expect("could not open dolphin");
+            return 0;
+        } else {
+            Command::new("gtk-launch")
+                .arg("dolphin-emu.desktop")
                 .arg(&exe)
                 .spawn()
                 .expect("could not open dolphin");
@@ -556,9 +732,11 @@ fn check_iso(path: String) -> CheckISOResult {
         .to_uppercase();
     let is_nkit = if nkit == "NKIT" { true } else { false };
     let res = CheckISOResult {
-        id: id,
+        id: id.clone(),
         nkit: is_nkit,
     };
+ 
+    log(&format!("Disc ID: {} | NKit: {}", id, is_nkit));
     res
 }
 
@@ -577,6 +755,7 @@ async fn change_mod_status(
     let name = modname;
 
     if active {
+        log(&format!("Mod ({}) Enabled", modid));
         //todo: fix this shit
         download_mod(
             "".to_string(),
@@ -589,7 +768,7 @@ async fn change_mod_status(
         )
         .await;
     } else {
-        //HACK!!
+        log(&format!("Mod ({}) Disabled.", modid));
         delete_mod(dumploc, gameid, platform, modid, !active, window).await;
     }
 
@@ -605,6 +784,7 @@ async fn delete_mod(
     active: bool,
     window: Window,
 ) {
+    log(&format!("Attempting to delete mod ({}).", modid));
     let p = PathBuf::from(format!("{}/{}", dumploc, modid));
 
     if !p.exists() {
@@ -615,8 +795,6 @@ async fn delete_mod(
 
     let files = data.files;
     let texturefiles = data.textures;
-
-    let active = active;
 
     if active {
         let mut datafiles_path = PathBuf::new();
@@ -659,6 +837,8 @@ async fn delete_mod(
             }
         }
 
+        log("Removed modded files.");
+
         let mut p = PathBuf::from("Load/Textures/");
         p.push(&gameid);
 
@@ -686,8 +866,9 @@ async fn delete_mod(
                 fs::remove_file(&path).unwrap();
             }
         }
+        log("Removed texture files.");
     }
-
+    log("Process ended.");
     println!("Proccess ended");
 }
 
@@ -1028,6 +1209,8 @@ async fn download_mod(
 
         fs::create_dir_all(&path).expect("Failed to create folders.");
 
+        println!("{}", &dolphin_path.display());
+
         inject_files(&path_textures, &dolphin_path)
 
         //copy(&path_textures, &dolphin_path, &options).expect("failed to inject texture files");
@@ -1077,6 +1260,13 @@ fn remove_absolute_path(path: &PathBuf, _abs_path: &PathBuf) -> PathBuf {
     return PathBuf::from(path[abs_path..path.len()].to_string());
 }
 
+#[tauri::command]
+fn linux_check_exist(package: String) -> bool {
+    let output = Command::new("ls").arg("/bin").output().unwrap();
+    let str_output = String::from_utf8(output.stdout);
+    str_output.unwrap().contains(&package)
+}
+
 fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
     let os = env::consts::OS;
 
@@ -1091,7 +1281,7 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
             dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
             dolphin_path.push(Path::new(r"Dolphin"));
             dolphin_path.push(where_in);
-        } else {
+        } else if os == "windows" {
             dolphin_path = dirs_next::document_dir().expect("Failed to get config path");
             dolphin_path.push(Path::new(r"Dolphin Emulator"));
             dolphin_path.push(where_in);
@@ -1102,6 +1292,18 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
 
             dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
             dolphin_path.push(Path::new(r"Dolphin Emulator"));
+            dolphin_path.push(where_in);
+
+            if dolphin_path.exists() {
+                return dolphin_path;
+            }
+        } else {
+            if dolphin_path.exists() {
+                return dolphin_path;
+            }
+
+            dolphin_path = dirs_next::data_dir().expect("Failed to get config path");
+            dolphin_path.push(Path::new(r"dolphin-emu"));
             dolphin_path.push(where_in);
 
             if dolphin_path.exists() {

@@ -13,6 +13,7 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import CommentNode from "./components/CommentNode.svelte";
     import { exists } from "@tauri-apps/api/fs";
+    import Loading from "./components/loading.svelte";
 
     let downloads = 0;
     let likes = 0;
@@ -21,6 +22,7 @@
     let modid;
     let authorname = "";
     let dumploc;
+    let time = ""
     let gameinfo;
     let modinfo;
     let youtubevideoembed;
@@ -43,12 +45,16 @@
 
                 let commentName = "";
 
-                let userinfo = await POST("getaccount", { id: userid });
+                let userinfo = await POST("getprofileinfo", { id: userid });
                 if (userinfo.username == null) {
                     commentName = "Unknown Account";
                 } else {
                     commentName = userinfo.username;
                 }
+
+                let emblem = userinfo.emblems.sort((a, b) => {
+                    return b.weight - a.weight;
+                })[0];
 
                 commentNode.InitCommentNode(
                     comment,
@@ -57,7 +63,8 @@
                     userinfo.id,
                     id,
                     localid,
-                    modid
+                    modid,
+                    emblem.color
                 );
 
                 commentNode.onDelete = () => {
@@ -98,6 +105,11 @@
             youtubelink =
                 "https://www.youtube.com/embed/" + modinfo.youtubevideo;
         }
+
+        let d = new Date(parseInt(modinfo.id));
+
+        time = d.toLocaleString();
+
 
         modPublished = false;
 
@@ -193,12 +205,8 @@
     let hearticon;
 
     async function Download() {
-        let gameid;
-        gameid = "SEME4Q";
-
-        if (modinfo.game == "EM2") {
-            gameid = "SERE4Q";
-        }
+        let gameid = id;
+        
         let modInstallElement = new ModInstall({
             target: document.body,
         });
@@ -271,6 +279,7 @@
     }
     let update = false;
     let downloadButton;
+    let id ="";
     async function CheckIfDownloaded() {
         let Gamesjson = await SetJsonData();
 
@@ -286,6 +295,7 @@
             if (element.platform == platform && element.game == modinfo.game) {
                 gameinfo = element;
                 dumploc = element.path;
+                id = element.id;
                 haveGame = true;
                 return
             }
@@ -330,6 +340,14 @@
     let modPublished = true;
 </script>
 
+{#if !modinfo == null}
+
+<span style="margin-left:45%;">
+    <Loading></Loading>
+  </span>
+
+{/if}
+
 {#if modinfo != null}
     <div style="display:flex;width:100%;height:100%;justify-content:center;">
         <img
@@ -363,6 +381,8 @@
                 <button on:click={OpenProfileOfAuthor} class="hyperlinkbutton"
                     >{authorname}</button
                 >
+
+                <span>| Published on: {time}</span>
             </p>
             <p>
                 <span>{modinfo.description}</span>
@@ -415,11 +435,10 @@
 <span>{commentsCount} Comments</span>
 <hr />
 <div style="margin:auto;align-items:center;text-align:center;">
-    <span style="width:50%;height:25px;">
-        <input placeholder="Comment..." bind:this={commentInput} type="text" style="border:none;font-size:20px;padding:3px;border-radius:5px;" />
-        <p>
-        <button on:click={PostComment} style="border:none;padding-left:50px;padding-right:50px;padding-top:10px;padding-bottom:10px;border-radius:6px;">Send</button>
-    </span>
+    <div>
+        <button on:click={PostComment} style="position:relative;bottom:25px;border:none;padding-left:25px;padding-right:25px;padding-top:10px;padding-bottom:10px;border-radius:6px;">Send</button>
+        <textarea placeholder="Comment..."  bind:this={commentInput} style="border:none;font-size:15px;padding:3px;border-radius:5px;height:50px;width:500px;" />
+    </div>
     <p />
     <div style="align-items:center;" bind:this={commentsDiv} />
 </div>

@@ -8,11 +8,11 @@
   },
   "package": {
     "productName": "Epic Mickey Launcher",
-    "version": "0.3.6"
+    "version": "0.3.7"
   },
   "tauri": {
     "allowlist": {
-      "all": false,
+      "all": true,
       "shell": {
         "all": false,
         "open": true
@@ -29,7 +29,8 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true,
-        "scope": ["**"]
+        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**"] 
+        
       },
       
       "dialog": {

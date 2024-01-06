@@ -8,66 +8,115 @@
     export let game = "";
     export let filepath = "";
     export let platform = "";
+    export let region = "";
     export let imgBackgroundURL = undefined;
     export let imgLogoURL = undefined;
     export let errorMSG = "";
     export let data;
- 
+
+    let reg = "";
+
     let platformlogo;
 
     async function OpenGame() {
         let d = await ReadJSON("conf.json");
-        if(platform == "wii")
-        {
+        if (platform == "wii") {
             invoke("playgame", {
-            dolphin: d.dolphinPath,
-            exe: filepath + "/sys/main.dol",
-        }).then((res) => {
-            if (res == 1) {
-                alert(
-                    "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings."
-                );
-            }
-        });
-        }
-        else{
+                dolphin: d.dolphinPath,
+                exe: filepath + "/sys/main.dol",
+            }).then((res) => {
+                if (res == 1) {
+                    alert(
+                        "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.",
+                    );
+                }
+            });
+        } else {
+            console.log("pri");
             invoke("playgame", {
-            dolphin: filepath + "/Launch.exe",
-            exe: "",
-        }).then((res) => {
-            if (res == 1) {
-                alert(
-                    "Game failed to open."
-                );
-            }
-        });
+                dolphin: filepath + "/Launch.exe",
+                exe: "",
+            }).then((res) => {
+                if (res == 1) {
+                    alert("Game failed to open.");
+                }
+            });
         }
     }
 
-    export function Init(){
-        switch(platform) {
+    export function Init() {
+        switch (platform) {
             case "wii":
-            platformlogo.src = "img/Wii.svg";
-            break;
+                platformlogo.src = "img/Wii.svg";
+                break;
             case "pc":
-            platformlogo.src = "img/windows.svg";
-            break;
+                platformlogo.src = "img/windows.svg";
+                break;
+        }
+
+        //muterrs
+        let result = { game: "", result: "" };
+
+        reg = data.region;
+        switch (data.region) {
+            case "NTSC-U":
+                result.game = "EM1";
+                result.region = "NTSC-U";
+
+                regionPath = "img/regions/usa.svg";
+
+                break;
+
+            case "PAL.DE,ES,IT":
+                regionPath = "img/regions/deites.svg";
+                break;
+
+            case "PAL,EN,SE,DK":
+                regionPath = "img/regions/scandi2.svg";
+                break;
+
+            case "PAL.SE,DK,NO":
+                regionPath = "img/regions/scandi1.svg";
+                break;
+
+            case "PAL.EN,FR,NL":
+                regionPath = "img/regions/frnl.svg";
+                break;
+
+            case "NTSC-J":
+                regionPath = "img/regions/jp.svg";
+                break;
+
+            //EM2
+
+            case "PAL.FR,DE,IT":
+                //todo: change this with actual correct region image
+                regionPath = "img/regions/deites.svg";
+                break;
+
+            case "NTSC-K":
+                regionPath = "img/regions/korea.svg";
+                break;
+
+            case "PAL.EN,FR,ES,NL,PT,TR":
+                //every single country here except for turkey is in the eu so i'll just call this the EU version
+
+                region = "img/regions/eu.svg";
+                break;
         }
     }
 
-    onMount(async () => {
-        
-    });
+    let regionPath = "";
+    onMount(async () => {});
 
     function OpenLevelLoader() {
-        SetData("levelloaderdata", data)
+        SetData("levelloaderdata", data);
         window.open("#/levelloader", "_self");
     }
 </script>
 
 <main>
     <div class="gamenode" style="background-image: url('{imgBackgroundURL}')">
-
         <div style="float:right;margin-left:15px;">
             <img class="gamelogo" src={imgLogoURL} alt="" />
         </div>
@@ -75,12 +124,21 @@
         <div style="margin-left:auto;margin-top:10px;">
             <button on:click={OpenGame} class="gameplaybutton">Play</button>
             <button on:click={OpenLevelLoader} class="gamesettings">...</button>
-            <br>
-                    <img style="width:15px;height:15px;float:right;margin-top:3px;" alt="platform" bind:this={platformlogo} src="img/Wii.svg">
+            <br />
+            <img
+                style="width:15px;height:15px;float:right;padding-top:5px;padding-right:3px;"
+                alt="platform"
+                bind:this={platformlogo}
+                src="img/Wii.svg"
+            />
+            <img
+                title={reg}
+                style="height:15px;margin-left:50px;display:inline;padding-right:5px;padding-top:5px;"
+                src={regionPath}
+            />
         </div>
 
         <plaintext class="error">{errorMSG}</plaintext>
-        <plaintext class="nameofbuild">sds</plaintext>
     </div>
 </main>
 
@@ -101,7 +159,7 @@
         width: 500px;
         height: 80px;
         align-items: center;
-        display:flex;
+        display: flex;
     }
 
     .error {
@@ -169,5 +227,4 @@
     .gamelogo:hover {
         transform: scale(1.1);
     }
-
 </style>

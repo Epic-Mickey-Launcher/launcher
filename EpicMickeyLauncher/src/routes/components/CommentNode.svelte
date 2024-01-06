@@ -17,10 +17,11 @@ export let onDelete;
 
 let commentid;
 let pageid;
-
-export function InitCommentNode(_comment, _pfp, _name, _accountid, _commentid, _localid, _pageid)
+let color;
+export function InitCommentNode(_comment, _pfp, _name, _accountid, _commentid, _localid, _pageid, _color)
 {
 name = _name;
+color = _color;
 pfp = _pfp;
 comment = _comment;
 accountid = _accountid;
@@ -53,7 +54,7 @@ async function Delete(){
     <span style="margin-top:auto;margin-bottom:auto;text-align:center;margin-left:10px;">
         <img src={pfp} alt="" style="width:60px;height:60px;border-radius:100%;filter: drop-shadow(1px 1px 3px black);">
         <br>
-        <button on:click={OpenProfile} class="hyperlinkbutton">{name}</button>
+        <button on:click={OpenProfile} style="color:{color}" class="hyperlinkbutton">{name}</button>
     </span>
 
     <div style="align-items:left;text-align:left;">

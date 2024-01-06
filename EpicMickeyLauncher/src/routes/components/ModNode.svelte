@@ -16,11 +16,17 @@
     export let modplatform = "";
     export let modgame = ""
     export let update = 0;
+    export let likes = 0;
+    export let comments = 0;
+    export let downloads = 0;
     export let visible = true;
     let authoraccountexists = true;
     export let authorname = "";
     export let gamedata;
     let downloadStatus = "Download"
+
+
+    let color = "white"
     export let json = "";
     let canupdate = false;
     let downloadButton;
@@ -36,7 +42,14 @@
     }
 
     export async function Init() {
-        let authorinfo = await POST("getaccount", { id: author });
+        let authorinfo = await POST("getprofileinfo", { id: author });
+
+        let emblem = authorinfo.emblems.sort((a, b) => {
+                    return b.weight - a.weight;
+                })[0];
+
+        color = emblem.color;
+
 
         if (authorinfo.username == null) {
             authoraccountexists = false;
@@ -45,8 +58,8 @@
             authorname = authorinfo.username;
         }
 
-        if (description.length > 70) {
-            let newDesc = description.substring(0, 70);
+        if (description.length > 60) {
+            let newDesc = description.substring(0, 60);
             newDesc += "...";
             description = newDesc;
         }
@@ -102,12 +115,8 @@
     }
 
     async function Download() {
-        let gameid;
-        gameid = "SEME4Q";
-
-        if (gamedata.game == "EM2") {
-            gameid = "SERE4Q";
-        }
+        let gameid = gamedata.id;
+   
         let modInstallElement = new ModInstall({
             target: document.body,
         });
@@ -188,11 +197,14 @@
         <p>
         <span>
             Author:<button
-                style="margin-left:5px;"
+                style="margin-left:5px;color:{color};"
                 on:click={OpenProfileOfAuthor}
                 class="hyperlinkbutton">{authorname}</button
             >
         </span>
+
+        
+
         <p>
         <span>{description}</span>
     </div>
@@ -200,6 +212,9 @@
         <div class="imgArea">
             <img class="modNodeImg" alt="" src={iconLink} />
             <br>
+            <span style="font-size:8px;">Likes: {likes}</span>
+            <span style="font-size:8px;">Downloads: {downloads}</span>
+            <span style="font-size:8px;">Comments: {comments}</span>
             <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
             <br>
         </div>

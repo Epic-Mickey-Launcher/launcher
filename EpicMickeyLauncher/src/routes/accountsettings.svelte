@@ -19,12 +19,7 @@
     let files;
     $: if (files) {
         let file = files[0];
-
-        if (file.name.endsWith(".png")) {
             getpfpdata(file);
-        } else {
-            console.log("pfp needs to be a png file");
-        }
     }
     async function ApplyChanges() {
         let userinfo = await GetUserInfo();
@@ -49,7 +44,7 @@
                     alert("Password is less than 8 characters.");
                     break;
                 case 3:
-                    alert("pfp");
+                    alert("Profile Picture Error!");
                     break;
             }
         }
@@ -63,7 +58,7 @@
 
     async function DeleteAccount() {
         let confirmation = await confirm(
-                "Are you sure you want to delete your account? All the mods you currently have on your account will stay up on the Mod Market."
+                "Are you sure you want to delete your account? Any comments, mods & likes from your account will remain unless they are manually deleted."
             );
         if (
           confirmation  
@@ -88,7 +83,11 @@
         reader.onerror = function (error) {};
     }
 
-    let cb = (userinfo) => {};
+    let cb = (userinfo) => {
+
+    
+
+    };
 
     onMount(() => {
         OnSignedIn(cb);
@@ -109,7 +108,7 @@
     <input placeholder="New Password" bind:this={password} type="password" />
 </p>
 <p>
-    <span>Upload a new profile picture: </span> <input bind:files type="file" />
+    <span>Upload a new profile picture: </span> <input accept="image/*" bind:files type="file" />
     <img src="img/waren.png" alt="" style="width:30px;margin-bottom:-10px;" />
 </p>
 <p>

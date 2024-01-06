@@ -1,6 +1,6 @@
 <script lang="ts">
     import Header from "./routes/components/header.svelte";
-    import { InitConfFiles, ReadToken } from "./routes/library/configfiles.js";
+    import { InitConfFiles, ReadJSON, ReadToken } from "./routes/library/configfiles.js";
     import Router from "svelte-spa-router";
     import Games from "./routes/Games.svelte";
     import AddGame from "./routes/addgame.svelte";
@@ -16,12 +16,13 @@
     import { Login, loggedin } from "./routes/library/networking";
     import { Invoke } from "./routes/library/callback";
     import { emit, listen } from '@tauri-apps/api/event'
+    import { invoke } from "@tauri-apps/api/tauri";
 
     let header;
 
     async function RouteLoaded() {
         //login
-
+        Invoke("OnNewWindow", null);
         let token = await ReadToken();
         if (token != "") {
             Login({ token: token });
@@ -60,9 +61,44 @@
     InitConfFiles();
     ListenLoop();
 
+    let funcKeyDown;
+    function keyDown(e)
+    {
+        if(e.keyCode == 17)
+        {
+            funcKeyDown = true;
+        }
+    }
+
+    function keyUp(e)
+    {
+        if(e.keyCode == 17)
+        {
+            funcKeyDown = false;
+        }
+
+        if(funcKeyDown)
+        {
+            switch(e.keyCode)
+            {
+                case 71:
+                    invoke("open_config_folder");
+                    break;
+                    case 68:
+                    ReadJSON("conf.json").then((d) => {
+                  
+                        invoke("open_dolphin", {path: d.dolphinPath});
+                    });
+                    break;
+            }
+        }
+    }
+
 </script>
 
 <main>
     <Header bind:this={header} />
     <Router {routes} on:routeLoaded={RouteLoaded} />
 </main>
+
+<svelte:window on:keydown={keyDown} on:keyup={keyUp}></svelte:window>
