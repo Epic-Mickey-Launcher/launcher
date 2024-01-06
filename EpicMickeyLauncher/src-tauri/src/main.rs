@@ -307,18 +307,24 @@ async fn extract_iso(
         .emit("change_iso_extract_msg", "Extracting ISO...")
         .unwrap();
     log("Beginning ISO Extraction.");
+
+    println!("{} {} {}", &m_isopath.display(), &witpath, &extracted_iso_path.display());
+    
+
     #[cfg(target_os = "windows")]
     Command::new(&witpath)
         .arg("extract")
         .arg(&m_isopath)
         .arg("-D")
-        .arg(extracted_iso_path)
+        .arg(&extracted_iso_path)
         .creation_flags(CREATE_NO_WINDOW)
-        .spawn()
+        .output()
         .expect("failed to execute process");
 
     let p = "Z:".to_owned() + &m_isopath.to_str().unwrap();
+    #[cfg(target_os = "linux")]
     let extracted_p = "Z:".to_owned() + extracted_iso_path.clone().to_str().unwrap();
+
     #[cfg(target_os = "linux")]
     Command::new("wine")
         .arg(&witpath)
@@ -328,6 +334,7 @@ async fn extract_iso(
         .arg(extracted_p)
         .output()
         .expect("failed to execute process");
+        
 
     window
         .emit("change_iso_extract_msg", "Cleaning Up...")
