@@ -218,12 +218,7 @@ invoke("open_path_in_file_manager", {path:p});
             .split("/")
             .pop();
 
-        let gameid;
-        if (data.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
+        let gameid = data.id;
 
         let modInstallElement = new ModInstall({
             target: document.body,

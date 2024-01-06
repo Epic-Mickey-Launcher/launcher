@@ -57,19 +57,19 @@ export async function FileExists(path) {
   return await exists(path)
 }
 
-//for the wii versions of EM1/2
-export async function ReturnGameID(game) {
-  switch (game) {
-
+export function GetFullName(name)
+{
+  
+  switch(name)
+  {
     case "EM1":
-      return "SEME4Q"
-    case "EM2":
-      return "SERE4Q"
+      return "Epic Mickey 1";
 
-    default:
-      return undefined
+      case "EM2":
+        return "Epic Mickey 2";
   }
 }
+
 
 export async function WriteToken(token) {
   await WriteFile(token, await appLocalDataDir() + "TOKEN")

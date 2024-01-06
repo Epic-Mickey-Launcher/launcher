@@ -115,12 +115,8 @@
     }
 
     async function Download() {
-        let gameid;
-        gameid = "SEME4Q";
-
-        if (gamedata.game == "EM2") {
-            gameid = "SERE4Q";
-        }
+        let gameid = gamedata.id;
+   
         let modInstallElement = new ModInstall({
             target: document.body,
         });

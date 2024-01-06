@@ -16,7 +16,7 @@
    } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
-   import { ReadJSON } from "./library/configfiles.js";
+   import { GetFullName, ReadJSON } from "./library/configfiles.js";
    import { SetData } from "./library/datatransfer.js";
     import Loading from "./components/loading.svelte";
    let warning;
@@ -256,7 +256,7 @@ cb()
       {:then data}
          {#each data as gamebuild}
             <option value={gamebuild}>
-               {gamebuild.game + "(" + gamebuild.platform + ")"}
+               {GetFullName(gamebuild.game) + " (" + gamebuild.platform.toUpperCase() + ", " + gamebuild.region + ")"}
             </option>
          {/each}
       {/await}

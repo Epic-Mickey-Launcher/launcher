@@ -37,12 +37,8 @@
         });
 
         console.log(gamedata)
-        let gameid;
-        if (gamedata.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
+        let gameid = gamedata.id;
+        
 
         invoke("delete_mod", {
             dumploc: dumploc,
@@ -84,13 +80,8 @@
 
         
 
-        let gameid;
-        if (gamedata.game == "EM1") {
-            gameid = "SEME4Q";
-        } else {
-            gameid = "SERE4Q";
-        }
-
+        let gameid = gamedata.id;
+       
         let jsonString = JSON.stringify(jsonToObject);
         invoke("change_mod_status", {
             json: jsonString,

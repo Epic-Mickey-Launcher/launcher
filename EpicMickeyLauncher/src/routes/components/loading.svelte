@@ -10,13 +10,14 @@
     stroke-linecap: round;
     stroke-linejoin: round;
     fill:none;
-    filter:blur(20px);
     animation: load 1s infinite linear;
+    overflow:visible;
   }
   .loadbackground{
     fill:none;
     stroke-width: 5px;
     stroke: rgb(109, 0, 91);
+    overflow:visible;
   }
 
   @keyframes load {

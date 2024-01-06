@@ -204,12 +204,8 @@
     let hearticon;
 
     async function Download() {
-        let gameid;
-        gameid = "SEME4Q";
-
-        if (modinfo.game == "EM2") {
-            gameid = "SERE4Q";
-        }
+        let gameid = id;
+        
         let modInstallElement = new ModInstall({
             target: document.body,
         });
@@ -282,6 +278,7 @@
     }
     let update = false;
     let downloadButton;
+    let id ="";
     async function CheckIfDownloaded() {
         let Gamesjson = await SetJsonData();
 
@@ -297,6 +294,7 @@
             if (element.platform == platform && element.game == modinfo.game) {
                 gameinfo = element;
                 dumploc = element.path;
+                id = element.id;
                 haveGame = true;
                 return
             }

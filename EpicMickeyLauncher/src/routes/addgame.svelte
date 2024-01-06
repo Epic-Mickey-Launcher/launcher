@@ -16,6 +16,8 @@
   let dumpFound;
   let error = "";
   let gametype = "";
+  let region = "";
+  let id ="";
   let path;
   let isobutton;
 
@@ -25,6 +27,87 @@
       isobutton.disabled = true;
     }
   });
+
+  async function IdentifyISO(id)
+  {
+
+    let result = {game:"", region:""};
+
+    switch(id)
+    {
+      //EM1
+
+     case "SEME4Q":
+      result.game = "EM1";
+      result.region = "NTSC-U";
+      break;
+
+      case "SEMX4Q":
+      result.game = "EM1";
+      result.region = "PAL.DE,ES,IT";
+      break;
+
+      case "SEMY4Q":
+      result.game = "EM1";
+      result.region = "PAL.EN,SE,DK";
+      break;
+
+      case "SEMZ4Q":
+      result.game = "EM1";
+      //the BEST version 
+      result.region = "PAL.SE,DK,NO";
+      break;
+
+      case "SEMP4Q":
+      result.game = "EM1";
+      result.region = "PAL.EN,FR,NL";
+      break;
+
+      case "SEMJ01":
+      result.game = "EM1";
+      //the WORST version 
+      result.region = "NTSC-J";
+      break;
+
+      //EM2
+
+      case "SERE4Q":
+      result.game = "EM2";
+      result.region = "NTSC-U";
+      break;
+
+      case "SERF4Q":
+      result.game = "EM2";
+      result.region = "PAL.FR,DE,IT";
+      break;
+
+      case "SERJ91":
+      result.game = "EM2";
+      result.region = "NTSC-J";
+      break;
+
+      case "SERK8M":
+      //didnt even know this version existed
+      result.game = "EM2";
+      result.region = "NTSC-K";
+      break;
+
+     case "SERP4Q":
+      result.game = "EM2";
+      result.region = "PAL.EN,FR,ES,NL,PT,TR";
+      break;
+
+      case "SERV4Q":
+      result.game = "EM2";
+      result.region = "PAL.SE,DK,NO";
+      break;
+    
+    }
+
+    return result;
+  }
+
+
 
   async function AddGameDump(iso) {
     const selectedPath = await open({
@@ -41,17 +124,27 @@
     if (iso) {
       let d = await ReadJSON("conf.json");
       await invoke("check_iso", { path: path }).then(async (res) => {
-        if (res.id == "SEME4Q" || res.id == "SERE4Q") {
+
+        let result = await IdentifyISO(res.id);
+        console.log(result);
+
+        if(result.game == "")
+        {
+          await alert("This is not an Epic Mickey ISO.");
+          return;
+        }
+
+        
+
           let modInstallElement = new ModInstall({
             target: document.body,
           });
           try {
-            let gamename =
-              res.id == "SEME4Q" ? "Epic Mickey 1" : "Epic Mickey 2";
+        
 
             modInstallElement.action = "Extracting";
             modInstallElement.modIcon =
-              gamename == "Epic Mickey 1"
+              result.game == "EM1"
                 ? "img/emicon.png"
                 : "img/em2icon.png";
             modInstallElement.description =
@@ -61,14 +154,14 @@
               modInstallElement.description = e.payload;
             });
 
-            modInstallElement.modName = gamename;
+            modInstallElement.modName = result.game + " (WII, " + result.region + ")"; 
 
             //nkit: d.NkitPath,
             await invoke("extract_iso", {
               isopath: path,
               witpath: d.WITPath,
               nkit: d.NkitPath,
-              gamename: gamename,
+              gamename: res.id,
               isNkit: res.nkit,
             }).then(async (res) => {
               console.log(res);
@@ -87,10 +180,7 @@
             await alert(e);
             modInstallElement.$destroy();
           }
-        } else {
-          error = "Error: This is not an Epic Mickey 1/2 ISO!";
-          return;
-        }
+        
       });
     }
     let wiiFolderExists = await exists(path + "/DATA");
@@ -106,20 +196,18 @@
     }
 
     if (wiiFolderExists) {
-      //TODO: find a better identifier for different versions because this Sucks!!!
-      let verdat = await FileExists(dataPath + "/files/VERSIONDATA.TXT");
-      if (verdat) {
-        //EM1
-        gamename = "Epic Mickey 1 (Wii)";
-        gametype = "EM1";
-      } else {
-        //EM2
-        gamename = "Epic Mickey 2 (Wii)";
-        gametype = "EM2";
-      }
-      platform = "wii";
+
+      let p = dataPath + "/sys/boot.bin";
+      id = await invoke("get_bootbin_id", {path: p});
+      console.log(id)
+      let info = await IdentifyISO(id);
+      gametype = info.game;
+      platform = "wii"
+      region = info.region;
+      gamename = info.game + " (Wii)";
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
+     
     } else if (exeExists) {
       gametype = "EM2";
       gamename = "Epic Mickey 2 (PC)";
@@ -141,7 +229,7 @@
     console.log(jsonData);
 
     if (
-      jsonData.find((r) => r.game == gametype && r.platform == platform) != null
+      jsonData.find((r) => r.game == gametype && r.platform == platform && r.region == region) != null
     ) {
       alert(
         gametype +
@@ -154,7 +242,7 @@
       return;
     }
 
-    let newData = { path: dataPath, game: gametype, platform: platform };
+    let newData = { path: dataPath, game: gametype, platform: platform, id:id, region:region};
 
     jsonData.push(newData);
 

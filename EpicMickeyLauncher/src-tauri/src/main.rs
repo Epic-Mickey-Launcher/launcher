@@ -106,6 +106,16 @@ fn delete_mod_cache_all() {
     fs::create_dir(path).unwrap();
 }
 
+#[tauri::command]
+fn get_bootbin_id(path: String) -> String 
+{
+    let mut f = File::open(path).unwrap();
+    let mut id_bytes= [0; 6];
+    f.read_exact(&mut id_bytes).unwrap();
+    let id = std::str::from_utf8(&id_bytes[0..6]).unwrap().to_uppercase();
+    return id;
+}
+
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 struct ModFilesInfo {
@@ -335,6 +345,13 @@ async fn extract_iso(
         .emit("change_iso_extract_msg", "Injecting Game Files...")
         .unwrap();
 
+
+    let mut s = source_path.clone();
+    s.push("DATA");
+    if s.exists() {
+        source_path.push("DATA");
+    }
+
     if source_path.exists() {
         inject_files(&source_path, &path);
 
@@ -563,6 +580,7 @@ fn main() {
             get_os,
             extract_iso,
             delete_mod_cache,
+            get_bootbin_id,
             check_iso,
             open_link,
             download_tool,
