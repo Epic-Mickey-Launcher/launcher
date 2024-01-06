@@ -1,6 +1,6 @@
 <script lang="ts">
     import Header from "./routes/components/header.svelte";
-    import { InitConfFiles, ReadToken } from "./routes/library/configfiles.js";
+    import { InitConfFiles, ReadJSON, ReadToken } from "./routes/library/configfiles.js";
     import Router from "svelte-spa-router";
     import Games from "./routes/Games.svelte";
     import AddGame from "./routes/addgame.svelte";
@@ -83,6 +83,12 @@
             {
                 case 71:
                     invoke("open_config_folder");
+                    break;
+                    case 68:
+                    ReadJSON("conf.json").then((d) => {
+                  
+                        invoke("open_dolphin", {path: d.dolphinPath});
+                    });
                     break;
             }
         }

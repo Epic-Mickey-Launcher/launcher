@@ -9,6 +9,7 @@
     } from "./library/networking";
     import { GetData, SetData } from "./library/datatransfer";
     import { Subscribe } from "./library/callback";
+    import Loading from "./components/loading.svelte";
 
     let isownerofprofile;
     let modNodeGroup;
@@ -25,15 +26,20 @@
     let profileinfo;
     let joindate = "";
     let modLength = 1;
+    let loaded = false;
 
     let callback;
 
     onMount(async () => {
         let cb = async (m) => {
+            
+            loaded = false;
             let userinfo = m;
 
             //used for visiting other users profiles
             let idofprofile = await GetData("profile_id");
+
+
 
             if (idofprofile != null) {
                 profileinfo = await POST("getprofileinfo", {
@@ -52,6 +58,8 @@
                     username: null,
                 });
             }
+
+            loaded = true;
 
             modLength = profileinfo.mods.length;
             let timestamp = parseInt(profileinfo.id)
@@ -102,6 +110,15 @@ joindate = d.toLocaleString();
     });
 </script>
 
+{#if !loaded}
+
+<span style="margin-left:45%;">
+    <Loading></Loading>
+  </span>
+
+{/if}
+
+
 <div bind:this={profilepage} style="text-align:center;">
     <img class="pfp" src={pfplink + "?"} alt="" />
     <br />
@@ -141,6 +158,8 @@ joindate = d.toLocaleString();
         {/if}
     </p>
 </div>
+
+
 
 <div bind:this={err} style="display:none;">
     <h2>You do not have an account.</h2>

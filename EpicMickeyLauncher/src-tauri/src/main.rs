@@ -59,6 +59,14 @@ struct CheckISOResult {
     id: String,
     nkit: bool,
 }
+#[tauri::command]
+fn open_dolphin(path: String)
+{
+    #[cfg(target_os = "windows")]
+    Command::new(path).spawn();
+    #[cfg(target_os = "linux")]
+    Command::new("dolphin-emu").spawn();
+}
 
 #[tauri::command]
 fn open_link(url: String) {
@@ -582,6 +590,7 @@ fn main() {
             delete_mod_cache,
             get_bootbin_id,
             check_iso,
+            open_dolphin,
             open_link,
             download_tool,
             validate_archive,

@@ -13,6 +13,7 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import CommentNode from "./components/CommentNode.svelte";
     import { exists } from "@tauri-apps/api/fs";
+    import Loading from "./components/loading.svelte";
 
     let downloads = 0;
     let likes = 0;
@@ -338,6 +339,14 @@
     let commentsDiv;
     let modPublished = true;
 </script>
+
+{#if !modinfo == null}
+
+<span style="margin-left:45%;">
+    <Loading></Loading>
+  </span>
+
+{/if}
 
 {#if modinfo != null}
     <div style="display:flex;width:100%;height:100%;justify-content:center;">
