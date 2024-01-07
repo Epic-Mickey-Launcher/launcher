@@ -204,7 +204,27 @@
     
     let hearticon;
 
-    async function Download() {
+    async function OnPressDownload()
+    {
+    if(allRegions.length > 1)
+    {
+selectRegion = true;
+    }
+    else{
+    Download();
+    }
+    }
+
+    async function Download(regionoverride = null) {
+
+        if(regionoverride != null)
+        {
+            selectRegion = false;
+            gameinfo = regionoverride;
+            dumploc = regionoverride.path;
+            id = regionoverride.id;
+        }
+
         let gameid = id;
         
         let modInstallElement = new ModInstall({
@@ -268,7 +288,6 @@
                 dumploc + "/EMLMods.json"
             );
             modInstallElement.$destroy();
-            CheckIfDownloaded();
             let token = await GetToken();
             await POST("addmodimpression", {
                 token: token,
@@ -276,10 +295,36 @@
                 impression: { download: true, like: false },
             });
         });
+        CheckIfDownloaded();
     }
     let update = false;
     let downloadButton;
     let id ="";
+    let allRegions = []
+
+    async function CheckInstall(path)
+    {
+        let file_exists = await exists(path + "/EMLMods.json");
+
+if (!file_exists) {
+    await WriteFile("[]", path + "/EMLMods.json");
+}
+
+let dataStr = await ReadFile(path + "/EMLMods.json");
+
+let dataJson = JSON.parse(dataStr);
+let json = dataJson.find((r) => r.modid == modid);
+downloadStatus = "Download";
+if (json != null) {
+    if (json.update != modinfo.update) {
+        return "update"
+    } else {
+        return "installed"
+    }
+}
+return "none"
+    }
+
     async function CheckIfDownloaded() {
         let Gamesjson = await SetJsonData();
 
@@ -288,41 +333,53 @@
         let platform = modinfo.platform;
 
         if (modinfo.platform == null) {
+         
             platform = "wii";
         }
 
-        Gamesjson.forEach((element) => {
-            if (element.platform == platform && element.game == modinfo.game) {
-                gameinfo = element;
-                dumploc = element.path;
-                id = element.id;
+        console.log("dppf")
+
+           allRegions = Gamesjson.filter(r => r.platform == platform && r.game == modinfo.game);
+           console.log(allRegions)
+
+   
+            if (allRegions.length == 1) {
+                gameinfo = allRegions[0];
+                dumploc = allRegions[0].path;
+                id = allRegions[0].id;
                 haveGame = true;
-                return
             }
-        });
+            else if (allRegions.length > 1)
+             {
+                haveGame = true;
 
-        if (haveGame) {
-            let file_exists = await exists(dumploc + "/EMLMods.json");
+                for (let i = 0; i < allRegions.length; i++)
+                {
+                    let res = await CheckInstall(allRegions[i].path);
+                    allRegions[i].installed = res;
+                }
 
-            if (!file_exists) {
-                await WriteFile("[]", dumploc + "/EMLMods.json");
-            }
-
-            let dataStr = await ReadFile(dumploc + "/EMLMods.json");
-
-            let dataJson = JSON.parse(dataStr);
-            let json = dataJson.find((r) => r.modid == modid);
-            downloadStatus = "Download";
-            if (json != null) {
-                if (json.update != modinfo.update) {
-                    update = true;
-                    downloadStatus = "Update Available";
-                } else {
+                let allInstalled = allRegions.filter(r => r.installed == "installed");
+                if(allInstalled.length == allRegions.length)
+                {
                     downloadButton.disabled = true;
                     downloadStatus = "Already Installed";
                 }
-            }
-        } else {
+             }
+
+
+        if (haveGame && allRegions.length == 1) {
+            let res = await CheckInstall(dumploc);
+                if (res == "update") {
+                    update = true;
+                    downloadStatus = "Update Available";
+                } else if (res == "installed"){
+                    downloadButton.disabled = true;
+                    downloadStatus = "Already Installed";
+                }
+        
+        }
+        else if(allRegions.length < 0) {
             downloadButton.disabled = true;
             downloadStatus = `${modinfo.game} (${platform}) not installed!`;
         }
@@ -334,6 +391,11 @@
         window.open("#/profilepage", "_self");
     }
 
+    function CloseRegion()
+    {
+        selectRegion = false;
+    }
+    let selectRegion = false;
     let youtubelink;
     let downloadStatus = "Download";
     let commentsDiv;
@@ -398,7 +460,7 @@
             />
 
             <p>
-                <button bind:this={downloadButton} on:click={Download}
+                <button bind:this={downloadButton} on:click={OnPressDownload}
                     >{downloadStatus}</button
                 >
                 <button on:click={() => window.open("#/modmarket", "_self")}
@@ -442,3 +504,43 @@
     <p />
     <div style="align-items:center;" bind:this={commentsDiv} />
 </div>
+{#if selectRegion}
+<div class="selectregion">
+    <span style="position:relative;top:250px;">
+        <span>Select region to download to</span>
+        <p>
+        <div style="background-color: rgb(38 38 38); width:20%; height:30%;  border-radius:10px; margin:auto; filter:drop-shadow(0 0 5px black)">
+        {#each allRegions as region}
+        {#if region.installed != "installed"}
+        <button style="width:100%;" on:click={() => Download(region)}>{region.region}</button>
+        {:else}
+        <button style="width:100%;" disabled>{region.region}</button>
+        {/if}
+        <br>
+        {/each}
+        </div>
+        <p>
+        <button on:click={() => CloseRegion()} class="hyperlinkbutton">Back</button>
+    </span>
+</div>
+{/if}
+
+<style>
+    .selectregion{
+        width: 100%;
+height: 100%;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+background-color: rgba(0, 0, 0, 0.3);
+border-radius: 5px;
+-webkit-backdrop-filter: blur(10px);
+position: fixed;
+backdrop-filter: blur(10px);
+z-index: 500;
+align-items: center;
+align-self: center;
+text-align: center;
+    }
+</style>

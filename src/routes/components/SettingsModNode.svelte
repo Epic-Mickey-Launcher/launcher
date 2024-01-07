@@ -33,7 +33,7 @@
         modInstallElement.description = "This might take a while...";
 
         let unlisten = await listen("change_description_text_delete", (event) => {
-            modInstallElement.description = event.payload.message;
+            modInstallElement.description = event.payload;
         });
 
         console.log(gamedata)

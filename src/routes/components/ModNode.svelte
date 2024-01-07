@@ -3,7 +3,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
-    import { SetData } from "../library/datatransfer";
+    import { GetData, SetData } from "../library/datatransfer";
     import { GetToken, POST, staticAssetsLink } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
     import { exists } from "@tauri-apps/api/fs";
@@ -79,12 +79,13 @@
             platform = "wii"
         }
 
-        Gamesjson.forEach((element) => {
-            if (element.platform == platform && element.game == gamedata.game) {
-                gamedata = element;
+        let gameinfo = GetData("gameinfo")
+
+            if (gameinfo.platform == platform && gameinfo.game == gamedata.game) {
+                gamedata = gameinfo;
                 haveGame = true;
             }
-        });
+     
 
         if (haveGame) {
             let dataStr = await ReadFile(gamedata.path + "/EMLMods.json");
