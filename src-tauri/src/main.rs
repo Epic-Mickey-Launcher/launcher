@@ -1,9 +1,9 @@
 //note 2self or whoever. macos directory system uses / and not \
 
- #![cfg_attr(
+#![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
-)] 
+)]
 
 use chrono::Datelike;
 use chrono::Local;
@@ -25,6 +25,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::str;
 use walkdir::WalkDir;
+extern crate chrono;
 extern crate dirs_next;
 extern crate fs_extra;
 extern crate open;
@@ -33,7 +34,6 @@ extern crate scan_dir;
 extern crate sevenz_rust;
 extern crate walkdir;
 extern crate zip_extract;
-extern crate chrono;
 use tauri::{Manager, Window};
 #[derive(Serialize, Deserialize)]
 struct ChangedFiles {
@@ -60,8 +60,7 @@ struct CheckISOResult {
     nkit: bool,
 }
 #[tauri::command]
-fn open_dolphin(path: String)
-{
+fn open_dolphin(path: String) {
     #[cfg(target_os = "windows")]
     Command::new(path).spawn();
     #[cfg(target_os = "linux")]
@@ -115,10 +114,9 @@ fn delete_mod_cache_all() {
 }
 
 #[tauri::command]
-fn get_bootbin_id(path: String) -> String 
-{
+fn get_bootbin_id(path: String) -> String {
     let mut f = File::open(path).unwrap();
-    let mut id_bytes= [0; 6];
+    let mut id_bytes = [0; 6];
     f.read_exact(&mut id_bytes).unwrap();
     let id = std::str::from_utf8(&id_bytes[0..6]).unwrap().to_uppercase();
     return id;
@@ -226,12 +224,11 @@ async fn extract_iso(
     m_isopath.push(&isopath);
 
     let mut remove_nkit_processed = false;
-    
+
     log("Beginning ISO Extraction.");
 
     if is_nkit {
         if nkit != "" {
-
             log("NKit compressed ISO.");
 
             window
@@ -258,7 +255,7 @@ async fn extract_iso(
                 .output()
                 .expect("NKit failed to start");
 
-                log("NKit process finished.");
+            log("NKit process finished.");
 
             source_path.push("DATA");
 
@@ -285,7 +282,10 @@ async fn extract_iso(
 
                         println!("{}", m_isopath.display());
 
-                        log(&format!("ISO Target changed to {}.", m_isopath.to_str().unwrap()));
+                        log(&format!(
+                            "ISO Target changed to {}.",
+                            m_isopath.to_str().unwrap()
+                        ));
 
                         foundfirst = true;
                         remove_nkit_processed = true;
@@ -308,8 +308,12 @@ async fn extract_iso(
         .unwrap();
     log("Beginning ISO Extraction.");
 
-    println!("{} {} {}", &m_isopath.display(), &witpath, &extracted_iso_path.display());
-    
+    println!(
+        "{} {} {}",
+        &m_isopath.display(),
+        &witpath,
+        &extracted_iso_path.display()
+    );
 
     #[cfg(target_os = "windows")]
     Command::new(&witpath)
@@ -334,14 +338,13 @@ async fn extract_iso(
         .arg(extracted_p)
         .output()
         .expect("failed to execute process");
-        
 
     window
         .emit("change_iso_extract_msg", "Cleaning Up...")
         .unwrap();
 
-        log("ISO Finished extracting");
-        log("Injecting game files into final directory.");
+    log("ISO Finished extracting");
+    log("Injecting game files into final directory.");
 
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push("com.memer.eml");
@@ -360,11 +363,18 @@ async fn extract_iso(
         .emit("change_iso_extract_msg", "Injecting Game Files...")
         .unwrap();
 
-
     let mut s = source_path.clone();
     s.push("DATA");
     if s.exists() {
         source_path.push("DATA");
+
+        let mut update_partition = source_path.clone();
+        update_partition.push("UPDATE");
+
+        //remove unneeded update partition
+        if update_partition.exists() {
+            fs::remove_dir_all(update_partition).unwrap();
+        }
     }
 
     if source_path.exists() {
@@ -483,20 +493,16 @@ struct ModDownloadStats {
 }
 
 #[tauri::command]
-fn open_config_folder()
-{
-
+fn open_config_folder() {
     let mut path = PathBuf::new();
 
-        path.push(dirs_next::config_dir().unwrap());
-        path.push("com.memer.eml");
-    
+    path.push(dirs_next::config_dir().unwrap());
+    path.push("com.memer.eml");
 
- open_path_in_file_manager(path.to_str().unwrap().to_owned())
+    open_path_in_file_manager(path.to_str().unwrap().to_owned())
 }
 
 fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> String {
-
     log(&format!("Extracting Archive {}", input_path));
 
     let mut f = File::open(&input_path).expect("Couldn't open archive");
@@ -551,20 +557,35 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
 }
 
 fn main() {
-
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml");
     fs::create_dir_all(&path);
     path.push("Log.txt");
 
-    if !Path::exists(&path)
-    {
-        fs::write(&path,[0]);
+    if !Path::exists(&path) {
+        fs::write(&path, [0]);
     }
 
     let now = Local::now();
-    
-    fs::write(&path,format!("EML opened at {}.\n", now.year().to_string() + "/" + &now.month().to_string() + "/" + &now.day().to_string() + ", " + &now.hour().to_string() + ":" + &now.minute().to_string() + ":" + &now.second().to_string())).unwrap();
+
+    fs::write(
+        &path,
+        format!(
+            "EML opened at {}.\n",
+            now.year().to_string()
+                + "/"
+                + &now.month().to_string()
+                + "/"
+                + &now.day().to_string()
+                + ", "
+                + &now.hour().to_string()
+                + ":"
+                + &now.minute().to_string()
+                + ":"
+                + &now.second().to_string()
+        ),
+    )
+    .unwrap();
 
     let _ = fix_path_env::fix();
 
@@ -627,39 +648,47 @@ fn open_process(path: String, args: String) {
         .expect("failed to execute process");
 }
 
-fn log(output: &str){
+fn log(output: &str) {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml/Log.txt");
     let now = Local::now();
-    let date = now.year().to_string() + "/" + &now.month().to_string() + "/" + &now.day().to_string() + ", " + &now.hour().to_string() + ":" + &now.minute().to_string() + ":" + &now.second().to_string();
+    let date = now.year().to_string()
+        + "/"
+        + &now.month().to_string()
+        + "/"
+        + &now.day().to_string()
+        + ", "
+        + &now.hour().to_string()
+        + ":"
+        + &now.minute().to_string()
+        + ":"
+        + &now.second().to_string();
 
-    let final_output = format!("[{}]: {}\n", date ,output);
+    let final_output = format!("[{}]: {}\n", date, output);
 
     let mut file = OpenOptions::new()
-    .write(true)
-    .append(true)
-    .open(path)
-    .unwrap();
+        .write(true)
+        .append(true)
+        .open(path)
+        .unwrap();
 
     file.write(final_output.as_bytes()).unwrap();
 }
 
 #[tauri::command]
-fn open_path_in_file_manager(path: String)
-{
-    #[cfg(target_os="windows")]
+fn open_path_in_file_manager(path: String) {
+    #[cfg(target_os = "windows")]
     Command::new("explorer.exe")
-    .arg(path)
-    .spawn()
-    .expect("failed to execute process");
+        .arg(path)
+        .spawn()
+        .expect("failed to execute process");
 
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     Command::new("dolphin")
-    .arg(path)
-    .spawn()
-    .expect("failed to execute process");
+        .arg(path)
+        .spawn()
+        .expect("failed to execute process");
 }
-
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String) -> i32 {
@@ -735,7 +764,7 @@ fn check_iso(path: String) -> CheckISOResult {
         id: id.clone(),
         nkit: is_nkit,
     };
- 
+
     log(&format!("Disc ID: {} | NKit: {}", id, is_nkit));
     res
 }
