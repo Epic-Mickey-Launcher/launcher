@@ -691,29 +691,24 @@ fn open_path_in_file_manager(path: String) {
 }
 
 #[tauri::command]
-fn playgame(dolphin: String, exe: String) -> i32 {
+fn playgame(dolphin: String, exe: String, id: String) -> i32 {
     let os = env::consts::OS;
     if Path::new(&dolphin).exists() {
+
+        let mut path = find_dolphin_dir(&PathBuf::from("GameSettings"));
+        fs::create_dir_all(&path).unwrap();
+        path.push(format!("{}.ini", id));
+
+
+            let mut f = File::create(&path).unwrap();
+            
+            f.write_all(b"[Video_Enhancements]\nHiresTextures = True")
+                .expect("Failed to write to file");
+        
+
         if os == "windows" {
             if dolphin.ends_with(".exe") {
-                let path = find_dolphin_dir(&PathBuf::from("Config/GFX.ini"));
-
-                if path.exists() {
-                    let mut f = File::open(&path).unwrap();
-
-                    let mut path_buffer: String = Default::default();
-
-                    f.read_to_string(&mut path_buffer)
-                        .expect("Failed to read file");
-
-                    path_buffer =
-                        path_buffer.replace("HiresTextures = False", "HiresTextures = True");
-
-                    let mut new = File::create(&path).unwrap();
-
-                    new.write_all(path_buffer.as_bytes())
-                        .expect("Failed to write to file");
-                }
+              
 
                 Command::new(&dolphin)
                     .arg(&exe)

@@ -24,6 +24,7 @@
             invoke("playgame", {
                 dolphin: d.dolphinPath,
                 exe: filepath + "/sys/main.dol",
+                id: data.id
             }).then((res) => {
                 if (res == 1) {
                     alert(
@@ -36,6 +37,7 @@
             invoke("playgame", {
                 dolphin: filepath + "/Launch.exe",
                 exe: "",
+                id: ""
             }).then((res) => {
                 if (res == 1) {
                     alert("Game failed to open.");
