@@ -452,8 +452,9 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
         let mut download_bytes_count = 0;
 
         while let Some(item) = buffer.next().await {
-            let buf = item.as_ref().unwrap();
-            if (buf.is_empty()) {
+            let buf = item.as_ref().expect("failed to acquire buffer from stream");
+
+            if buf.is_empty() {
                 continue;
             }
 
@@ -541,7 +542,7 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .output()
             .expect("Tar failed to extract");
 
-        #[cfg(target_os = "linux")]
+        #[cfg(target_os = "linux")] 
         Command::new("tar")
             .arg("-xf")
             .arg(&input_path)
@@ -549,6 +550,16 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .arg(&output_path)
             .output()
             .expect("Tar failed to extract");
+
+        #[cfg(target_os = "macos")] 
+        Command::new("tar")
+            .arg("-xf")
+            .arg(&input_path)
+            .arg("-C")
+            .arg(&output_path)
+            .output()
+            .expect("Tar failed to extract");
+        
     } else {
         println!("Unknown archive type");
     }
