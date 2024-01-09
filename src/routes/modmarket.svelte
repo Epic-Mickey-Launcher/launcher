@@ -34,6 +34,7 @@
 
       if (jsonData[0] != null) {
          currentSelectedGame = jsonData[0];
+         SetData("gameinfo", currentSelectedGame);
          await GetAllMods();
       } else {
          warning.style.display = "block";

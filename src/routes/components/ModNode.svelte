@@ -80,6 +80,7 @@
         }
 
         let gameinfo = GetData("gameinfo")
+        console.log(gameinfo)
 
             if (gameinfo.platform == platform && gameinfo.game == gamedata.game) {
                 gamedata = gameinfo;
@@ -180,13 +181,13 @@
                 gamedata.path + "/EMLMods.json"
             );
             modInstallElement.$destroy();
-            CheckIfDownloaded();
             let token = await GetToken();
             await POST("addmodimpression", {
                 token: token,
                 modid: modid,
                 impression: { download: true, like: false },
             });
+            CheckIfDownloaded();
         });
     }
 </script>

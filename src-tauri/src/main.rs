@@ -719,14 +719,12 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
 
             let mut f = File::create(&path).unwrap();
             
-            f.write_all(b"[Video_Enhancements]\nHiresTextures = True")
+            f.write_all(b"[Settings]\nHiresTextures = True")
                 .expect("Failed to write to file");
         
 
         if os == "windows" {
             if dolphin.ends_with(".exe") {
-              
-
                 Command::new(&dolphin)
                     .arg(&exe)
                     .spawn()
