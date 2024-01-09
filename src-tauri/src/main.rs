@@ -637,7 +637,7 @@ fn main() {
 }
 #[tauri::command]
 fn get_os() -> &'static str {
-    log("os is fart");
+    log(&format!("Operating System: {}", env::consts::OS));
     env::consts::OS
 }
 #[tauri::command]
@@ -682,6 +682,12 @@ fn open_path_in_file_manager(path: String) {
         .arg(path)
         .spawn()
         .expect("failed to execute process");
+
+        #[cfg(target_os = "macos")]
+        Command::new("open")
+            .arg(path)
+            .spawn()
+            .expect("failed to execute process");
 
     #[cfg(target_os = "linux")]
     Command::new("dolphin")
