@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "Epic Mickey Launcher",
-    "version": "0.3.8"
+    "version": "0.3.8-hotfix"
   },
   "tauri": {
     "allowlist": {
@@ -50,10 +50,13 @@
       "copyright": "",
       "deb": {
         "depends": []
+        
       },
       "externalBin": [],
+      
       "icon": [
-        "icons/icon.ico"
+        "icons/icon.ico",
+        "icons/icon.png"
       ],
       "identifier": "com.memer.eml",
       "longDescription": "",
