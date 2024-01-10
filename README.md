@@ -29,6 +29,20 @@ ___
 
 **Made in Svelte & Tauri**
 
+# Installation
+
+## Windows
+Download the latest .MSI or .EXE from the latest [Release](https://github.com/KjubDusJub/Epic-Mickey-Launcher/releases)
+
+## MacOS
+Download the latest .DMG or .app from the latest [Release](https://github.com/KjubDusJub/Epic-Mickey-Launcher/releases)
+
+## Linux (Debian)
+Download the latest .DEB from the latest [Release](https://github.com/KjubDusJub/Epic-Mickey-Launcher/releases)
+
+## Linux (Arch)
+Epic Mickey Launcher is available on the [AUR](https://aur.archlinux.org/packages/epicmickeylauncher) and can be installed via [yay](https://github.com/Jguer/yay) with ```yay -S epicmickeylauncher```
+
 # Roadmap
 
 - Add full support for EM1 & EM2 on Wii ✅
