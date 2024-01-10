@@ -80,7 +80,6 @@
         }
 
         let gameinfo = GetData("gameinfo")
-        console.log(gameinfo)
 
             if (gameinfo.platform == platform && gameinfo.game == gamedata.game) {
                 gamedata = gameinfo;
