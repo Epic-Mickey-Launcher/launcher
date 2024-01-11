@@ -46,7 +46,7 @@
     },
     "bundle": {
       "active": true,
-      "category": "Modding Tool",
+      "category": "Developer Tool",
       "copyright": "",
       "deb": {
         "depends": []

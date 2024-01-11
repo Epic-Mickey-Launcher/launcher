@@ -710,18 +710,10 @@ fn open_path_in_file_manager(path: String) {
 #[tauri::command]
 fn playgame(dolphin: String, exe: String, id: String) -> i32 {
     let os = env::consts::OS;
-    if Path::new(&dolphin).exists() {
-
-        let mut path = find_dolphin_dir(&PathBuf::from("GameSettings"));
-        fs::create_dir_all(&path).unwrap();
-        path.push(format!("{}.ini", id));
-
-
-            let mut f = File::create(&path).unwrap();
-            
-            f.write_all(b"[Settings]\nHiresTextures = True")
-                .expect("Failed to write to file");
-        
+    if Path::new(&dolphin).exists() && os != "linux"
+    {
+return 1;
+    }
 
         if os == "windows" {
             if dolphin.ends_with(".exe") {
@@ -744,15 +736,14 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
                 .spawn()
                 .expect("could not open dolphin");
             return 0;
-        } else {
-            Command::new("gtk-launch")
-                .arg("dolphin-emu.desktop")
+        } else if os == "linux" {
+            Command::new("dolphin-emu")
                 .arg(&exe)
                 .spawn()
                 .expect("could not open dolphin");
             return 0;
         }
-    }
+    
     return 0;
 }
 
