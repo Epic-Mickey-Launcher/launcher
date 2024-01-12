@@ -332,7 +332,9 @@ TODO: add a limit to amount of mods that can be on one page and filter them thro
    }
    .dropdown {
       margin-right: 30px;
-      background-color: black;
+      background-color: white;
+      color: black;
+      background: none;
    }
 
    .featuredModBanner {

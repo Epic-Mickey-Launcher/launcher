@@ -20,6 +20,7 @@ use std::io::prelude::*;
 use std::io::Cursor;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
+use std::path;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -64,7 +65,7 @@ fn open_dolphin(path: String) {
     #[cfg(target_os = "windows")]
     Command::new(path).spawn();
     #[cfg(target_os = "linux")]
-    Command::new("dolphin-emu").spawn();
+    Command::new(if path == "" {"dolphin-emu"} else {&path}  ).spawn().expect("failed to start dolphin");
 }
 
 #[tauri::command]
@@ -73,21 +74,34 @@ fn open_link(url: String) {
 }
 
 #[tauri::command]
-fn create_portable(_path: String) {
-    let mut dolphin_config_path = PathBuf::from(&_path);
+fn create_portable(dolphinpath: String) {
+    let mut dolphin_config_path = PathBuf::from(&dolphinpath);
 
     dolphin_config_path.pop();
 
-    dolphin_config_path.push("User");
+    let config_folder_name = if env::consts::OS == "windows" {
+        "User"
+    } else {
+        "user"
+    };
 
-    let mut path = PathBuf::from(&_path);
+    dolphin_config_path.push(config_folder_name);
+
+    let mut path = PathBuf::from(&dolphinpath);
     path.pop();
+
     path.push("portable.txt");
+
+    println!("{}", &path.display());
 
     if !path.exists() {
         File::create(&path).expect("Failed to create file");
-        set_dolphin_emulator_override(dolphin_config_path.to_str().unwrap().to_string());
-        Command::new(_path).spawn().unwrap();
+        set_dolphin_emulator_override(dolphin_config_path.clone().to_str().unwrap().to_string());
+        dolphin_config_path.push("Config");
+        fs::create_dir_all(&dolphin_config_path).unwrap();
+        dolphin_config_path.push("GFX.ini");
+        let mut f = File::create(dolphin_config_path).expect("Failed to create file");
+        f.write(b"[Settings]\nHiresTextures = True").unwrap();
     }
 }
 
@@ -542,7 +556,7 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .output()
             .expect("Tar failed to extract");
 
-        #[cfg(target_os = "linux")] 
+        #[cfg(target_os = "linux")]
         Command::new("tar")
             .arg("-xf")
             .arg(&input_path)
@@ -551,7 +565,7 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .output()
             .expect("Tar failed to extract");
 
-        #[cfg(target_os = "macos")] 
+        #[cfg(target_os = "macos")]
         Command::new("tar")
             .arg("-xf")
             .arg(&input_path)
@@ -559,7 +573,6 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
             .arg(&output_path)
             .output()
             .expect("Tar failed to extract");
-        
     } else {
         println!("Unknown archive type");
     }
@@ -694,11 +707,11 @@ fn open_path_in_file_manager(path: String) {
         .spawn()
         .expect("failed to execute process");
 
-        #[cfg(target_os = "macos")]
-        Command::new("open")
-            .arg(path)
-            .spawn()
-            .expect("failed to execute process");
+    #[cfg(target_os = "macos")]
+    Command::new("open")
+        .arg(path)
+        .spawn()
+        .expect("failed to execute process");
 
     #[cfg(target_os = "linux")]
     Command::new("dolphin")
@@ -710,40 +723,40 @@ fn open_path_in_file_manager(path: String) {
 #[tauri::command]
 fn playgame(dolphin: String, exe: String, id: String) -> i32 {
     let os = env::consts::OS;
-    if Path::new(&dolphin).exists() && os != "linux"
-    {
-return 1;
+    if !Path::new(&dolphin).exists() {
+        return 1;
     }
 
-        if os == "windows" {
-            if dolphin.ends_with(".exe") {
-                Command::new(&dolphin)
-                    .arg(&exe)
-                    .spawn()
-                    .expect("could not open exe");
-            } else if Path::new(&exe).exists() {
-                Command::new(&dolphin)
-                    .arg(&exe)
-                    .spawn()
-                    .expect("could not open dolphin");
-            }
-            return 0;
-        } else if os == "macos" {
-            Command::new("open")
-                .arg("-a")
-                .arg(&dolphin)
+    if os == "windows" {
+        if dolphin.ends_with(".exe") {
+            Command::new(&dolphin)
+                .arg("-b")
+                .arg("-e")
                 .arg(&exe)
                 .spawn()
-                .expect("could not open dolphin");
-            return 0;
-        } else if os == "linux" {
-            Command::new("dolphin-emu")
-                .arg(&exe)
-                .spawn()
-                .expect("could not open dolphin");
-            return 0;
+                .expect("could not open exe");
         }
-    
+        return 0;
+    } else if os == "macos" {
+        Command::new("open")
+            .arg("-b")
+            .arg("-e")
+            .arg("-a")
+            .arg(&dolphin)
+            .arg(&exe)
+            .spawn()
+            .expect("could not open dolphin");
+        return 0;
+    } else if os == "linux" {
+        Command::new(dolphin)
+            .arg("-b")
+            .arg("-e")
+            .arg(&exe)
+            .spawn()
+            .expect("could not open dolphin");
+        return 0;
+    }
+
     return 0;
 }
 
@@ -1305,6 +1318,8 @@ fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
     let mut path = dirs_next::config_dir().expect("could not get config dir");
     path.push(r"com.memer.eml");
     path.push("dolphinoverride");
+
+    println!("{}", &path.display());
 
     if !path.exists() {
         if os == "macos" {

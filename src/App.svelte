@@ -81,7 +81,7 @@
         {
             switch(e.keyCode)
             {
-                case 71:
+                case 85:
                     invoke("open_config_folder");
                     break;
                     case 68:

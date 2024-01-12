@@ -20,6 +20,13 @@
 
     async function OpenGame() {
         let d = await ReadJSON("conf.json");
+
+        if(d.dolphinPath == "")
+        {
+            await alert("Dolphin is required for this game to work!");
+            return;
+        }
+
         if (platform == "wii") {
             invoke("playgame", {
                 dolphin: d.dolphinPath,

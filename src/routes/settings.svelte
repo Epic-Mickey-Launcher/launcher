@@ -15,7 +15,7 @@
 
         console.log(selectedPath);
 
-        if (selectedPath.includes("Dolphin.exe") || selectedPath.includes("Dolphin.app") || selectedPath.includes("dolphin-emu.desktop")) {
+        if (selectedPath.includes("Dolphin.exe") || selectedPath.includes("Dolphin.app") || selectedPath.includes("dolphin-emu")) {
             let dat = await ReadJSON("conf.json");
             dat.dolphinPath = selectedPath;
             await WriteToJSON(JSON.stringify(dat), "conf.json");
@@ -48,7 +48,7 @@
     //HACK: there has to be a better way to do this
     //HACK: no
     const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/3b/69/dolphin-master-5.0-19870-x64.7z";
- 
+    const DOLPHIN_LINK_LINUX = "https://cdn.discordapp.com/attachments/826740264294416428/1195086830534672565/dolphin.7z";
     const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
     const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1112527174478614538/NKit.zip";
 
@@ -102,11 +102,16 @@
         modInstallElement.modName = "Dolphin";
         modInstallElement.modIcon = "img/dolphin.png";
         modInstallElement.showDownloadProgression = true;
-        invoke("download_tool", {url: DOLPHIN_LINK_WINDOWS, foldername: "Dolphin"}).then(async (path) => {
+        invoke("download_tool", {url: os == "windows" ? DOLPHIN_LINK_WINDOWS : DOLPHIN_LINK_LINUX, foldername: "Dolphin"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
-            dat.dolphinPath = path + "/Dolphin-x64/Dolphin.exe";
+
+      
+
+            dat.dolphinPath = path + (os == "windows" ? "/Dolphin-x64/Dolphin.exe" : "/dolphin-emu");
+
+            console.log(dat.dolphinPath)
              
-            await invoke("create_portable", {path: dat.dolphinPath});
+            await invoke("create_portable", {dolphinpath: dat.dolphinPath});
             
             await WriteToJSON(JSON.stringify(dat), "conf.json");
             SetCurrentPaths();
@@ -139,7 +144,6 @@ nkit_button.disabled = true
 
         if(os == "linux")
         {                
-            dolphin_button.disabled = true;
             invoke("linux_check_exist", {package: "wine"}).then(exists => {
                 wit_button.disabled = !exists;
                 nkit_button.disabled = !exists;

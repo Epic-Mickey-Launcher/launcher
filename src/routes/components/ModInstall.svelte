@@ -37,7 +37,6 @@
     
     MBTotal = event.payload.Download_Total
     MBDownloaded = event.payload.Download_Remaining
-    console.log(MBTotal + " peace pipe " + MBDownloaded)
     if (MBTotal > 0 && MBDownloaded > 0)
     {
       progress = (MBDownloaded / MBTotal * 100).toString();      
