@@ -748,6 +748,9 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
             .expect("could not open dolphin");
         return 0;
     } else if os == "linux" {
+
+        Command::new("chmod").arg("+x").arg(&dolphin).output().expect("failed to give executable the correct permissions");
+
         Command::new(dolphin)
             .arg("-b")
             .arg("-e")
@@ -1218,6 +1221,8 @@ async fn download_mod(
 
         // copy modded files to the game
 
+        log(&format!("Injecting Game files into: {}", &path_final_location.display()));
+
         inject_files(&path_datafiles, &path_final_location);
 
         //copy(&path_datafiles, path_final_location, &options).expect("failed to inject mod files");
@@ -1252,7 +1257,8 @@ async fn download_mod(
 
         fs::create_dir_all(&path).expect("Failed to create folders.");
 
-        println!("{}", &dolphin_path.display());
+
+        log(&format!("Injecting Texture files into: {}", &dolphin_path.display()));
 
         inject_files(&path_textures, &dolphin_path)
 
