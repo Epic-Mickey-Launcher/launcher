@@ -1,5 +1,5 @@
-export const serverLink = 'https://api.memerdev.com/';
-export const staticAssetsLink = 'https://api.memerdev.com/';
+export const serverLink = 'https://api.kalsvik.no/';
+export const staticAssetsLink = 'https://api.kalsvik.no/';
 export let loggedin = false;
 import {
   WriteToken,
