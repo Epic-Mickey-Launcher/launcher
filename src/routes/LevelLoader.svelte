@@ -208,7 +208,7 @@ invoke("open_path_in_file_manager", {path:p});
 
     async function InstallLocalMod() {
         const selectedPath = await open({
-            title: "Select ZIP",
+            title: "Select archive",
             multiple: false,
         });
         let filename = selectedPath
@@ -229,25 +229,42 @@ invoke("open_path_in_file_manager", {path:p});
         modInstallElement.description =
             "This might take a while depending on your storage device's speed.";
 
+        let id = Date.now().toString();
+
         invoke("download_mod", {
             url: selectedPath,
             name: filename,
-            modid: Date.now().toString(),
+            modid: id,
             dumploc: data.path,
             gameid: gameid,
             platform: data.platform,
         }).then(async (json) => {
-            let changedFiles = JSON.parse(json);
-            let currentMods = JSON.parse(
-                await ReadFile(data.path + "/EMLMods.json")
-            );
-            currentMods.push(changedFiles);
+            let json_exists = await exists(data.path + "/EMLMods.json");
+            let current_mods = []
+            if (json_exists)
+            {
+                current_mods = JSON.parse(await ReadFile(data.path + "/EMLMods.json"));
+            }
+
+
+            let mod = {
+                    name: filename,
+                    modid: id,
+                    active: true,
+                    update: 0,
+                }
+
+            current_mods.push(mod)
+
+
+            
             await WriteFile(
-                JSON.stringify(currentMods),
+                JSON.stringify(current_mods),
                 data.path + "/EMLMods.json"
             );
             modInstallElement.$destroy();
-            CreateModNode(changedFiles, currentMods.length);
+
+            CreateModNode(mod, current_mods.length);
         });
     }
 
