@@ -65,7 +65,8 @@ fn open_dolphin(path: String) {
     #[cfg(target_os = "windows")]
     Command::new(path).spawn();
     #[cfg(target_os = "linux")]
-    Command::new(if path == "" {"dolphin-emu"} else {&path}  ).spawn().expect("failed to start dolphin");
+    //QT env variable is for wayland functionality
+    Command::new("QT_QPA_PLATFORM=xcb").arg(if path == "" {"dolphin-emu"} else {&path}).spawn().expect("failed to start dolphin");
 }
 
 #[tauri::command]
