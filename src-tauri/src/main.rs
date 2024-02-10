@@ -66,7 +66,7 @@ fn open_dolphin(path: String) {
     Command::new(path).spawn();
     #[cfg(target_os = "linux")]
     //QT env variable is for wayland functionality
-    Command::new("QT_QPA_PLATFORM=xcb").arg(if path == "" {"dolphin-emu"} else {&path}).spawn().expect("failed to start dolphin");
+    Command::new(if path == "" {"dolphin-emu"} else {&path}).env("QT_QPA_PLATFORM", "xcb").spawn().expect("failed to start dolphin");
 }
 
 #[tauri::command]
@@ -753,6 +753,7 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
         Command::new("chmod").arg("+x").arg(&dolphin).output().expect("failed to give executable the correct permissions");
 
         Command::new(dolphin)
+        .env("QT_QPA_PLATFORM", "xcb")
             .arg("-b")
             .arg("-e")
             .arg(&exe)
