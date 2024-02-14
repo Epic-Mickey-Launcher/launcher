@@ -5,6 +5,8 @@
     windows_subsystem = "windows"
 )]
 
+use bytes::buf;
+use bytes::Bytes;
 use chrono::Datelike;
 use chrono::Local;
 use chrono::Timelike;
@@ -18,6 +20,7 @@ use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::Cursor;
+use std::io::Error;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 use std::path;
@@ -467,9 +470,25 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
         let mut download_bytes_count = 0;
 
         while let Some(item) = buffer.next().await {
-            let buf = item.as_ref().expect("failed to acquire buffer from stream");
 
-            if buf.is_empty() {
+            let mut success = false; 
+
+            let mut buf = &Bytes::new();
+
+            while !success {
+                let res = item.as_ref();
+
+                buf = match res {
+                    Ok(buffer) => 
+                    {
+                        success = true;
+                        buffer
+                    },
+                    Err(error) => buf,
+                };   
+            }
+
+            if Bytes::is_empty(buf) {
                 continue;
             }
 
