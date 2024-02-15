@@ -19,6 +19,7 @@
    import { GetFullName, ReadJSON } from "./library/configfiles.js";
    import { SetData } from "./library/datatransfer.js";
     import Loading from "./components/loading.svelte";
+    import Dialog from "./components/dialog.svelte";
    let warning;
    let load = true;
 
@@ -218,6 +219,7 @@
  </span>
  {:else if allspawnednodes.length == 0}
   <h1 style="text-align:center;">No mods could be found with your filters.</h1>
+  <Dialog content="Tip: Try to simplify your search to only one word."></Dialog>
  {/if}
 <p></p>
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />

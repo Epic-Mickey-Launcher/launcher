@@ -1,4 +1,5 @@
 <script>
+    import Dialog from "./components/dialog.svelte";
    import { Subscribe } from "./library/callback";
    import { Register, SignIn } from "./library/networking";
 
@@ -38,11 +39,7 @@
          <button on:click={() => Login(2)}>Register</button>
          <button on:click={() => Login(1)}>Sign In</button>
       </p>
-      <p style="font-size:10px;">
-         PS. PLEASE do not use any password you use on any other sites. This is my
-         first time releasing something like this to the public, so the chance of a
-         security breach is way higher than usual!!
-      </p>
+      <Dialog content="Make sure to use a unique password from your other accounts for optimal security!"></Dialog>
    </div>
 </main>
 
