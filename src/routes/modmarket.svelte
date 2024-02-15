@@ -101,7 +101,7 @@
       load = true;
       let token = await GetToken();
 
-      let d = { token: token, chunkindex:chunkindex - 1, filter:filter, game:currentSelectedGame.game, platform:currentSelectedGame.platform, inputfilter:search.value };
+      let d = { token: token, chunkindex:chunkindex - 1, filter:filter, game:currentSelectedGame.game, platform:currentSelectedGame.platform, inputfilter:search.value.toLowerCase() };
 
       let data = await POST("getmodchunk", d);
 
