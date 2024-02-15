@@ -32,17 +32,27 @@
    <div style="text-align:center;">
       <h1>Register / Login</h1>
       <hr />
-      <input bind:value={user} placeholder="Username" />
-      <br />
-      <input bind:value={pass} placeholder="Password" type="password" />
+      <input class="inputfield" bind:value={user} placeholder="Username" />
+      <p style="margin-top: 2px;">
+      <input class="inputfield" bind:value={pass} placeholder="Password" type="password" />
       <p>
-         <button on:click={() => Login(2)}>Register</button>
-         <button on:click={() => Login(1)}>Sign In</button>
+         <button class="registerbutton" on:click={() => Login(2)}>Register</button>
+         <button class="registerbutton" on:click={() => Login(1)}>Sign In</button>
       </p>
       <Dialog content="Make sure to use a unique password from your other accounts for optimal security!"></Dialog>
    </div>
 </main>
 
 <style>
-
+.registerbutton{
+   border:none;
+   padding:10px 20px;
+   border-radius:5px;
+}
+.inputfield{
+border:none;
+font-size:20px;
+padding:5px;
+border-radius: 5px;
+}
 </style>
