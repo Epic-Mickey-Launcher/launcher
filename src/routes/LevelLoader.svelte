@@ -288,16 +288,26 @@ invoke("open_path_in_file_manager", {path:p});
         await WriteFile(cmdline, data.path + "/files/cmdline.txt");
 
         let d = await ReadJSON("conf.json");
-        invoke("playgame", {
-            dolphin: d.dolphinPath,
-            exe: data.path + "/sys/main.dol",
-        }).then((res) => {
-            if (res == 1) {
-                alert(
-                    "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings."
-                );
-            }
-        });
+
+        if(d.dolphinPath == "")
+        {
+            await alert("Dolphin is required for this game to work!");
+            return;
+        }
+
+       
+            invoke("playgame", {
+                dolphin: d.dolphinPath,
+                exe: data.path + "/sys/main.dol",
+                id: data.id
+            }).then((res) => {
+                if (res == 1) {
+                    alert(
+                        "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.",
+                    );
+                }
+            });
+
     }
 
     async function DeleteFromGameList() {
