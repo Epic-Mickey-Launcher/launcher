@@ -67,9 +67,11 @@ async function Delete(){
         {/if}
         <span style="font-size:10px;">Sent on: {date}</span>
         <br>
-        <span style="margin-left:20px;text-align:left;">
-            {comment}
-        </span>
+        <div style="margin-left:20px;">
+            <span style="text-align:left;word-wrap: break-word;width:50%;">
+                {comment}
+            </span>
+        </div>
     </div>
     
     <br>
