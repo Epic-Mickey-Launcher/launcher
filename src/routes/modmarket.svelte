@@ -41,6 +41,8 @@
       }
    });
 
+   let chunks = [];
+   let chunkindex = 1;
    let ModList;
    let GamesDropdown;
    let filter;
@@ -51,7 +53,9 @@
 
    let allspawnednodes = [];
 
-   async function LoadModList(changePlatform = false) {
+   async function LoadModList(changePlatform = false, c = 1) {
+
+      chunkindex = c;
 
       allspawnednodes.forEach((element) => {
          element.$destroy();
@@ -78,65 +82,35 @@
       window.open("#/modpage", "_self");
    }
 
-   function Search() {
-      allspawnednodes.forEach((e) => {
-         let element = e;
-         if (search.value != "") {
-            element.visible = element.modName
-               .toLowerCase()
-               .includes(search.value.toLowerCase());
-            if (!element.visible) {
-               element.visible = element.authorname
-                  .toLowerCase()
-                  .includes(search.value.toLowerCase());
-            }
-         } else {
-            element.visible = true;
-         }
-      });
+   async function Search() {
+      console.log("come")
+     await LoadModList(false, 1);
+   }
+
+   function IntToArray(int)
+   {
+      chunks = []
+      for(let i = 1; i < int + 1; i++)
+      {
+         chunks.push(i);
+      }
    }
 
    async function GetAllMods() {
       load = true;
       let token = await GetToken();
 
-      let data = await POST("getmods", { token: token });
+      let d = { token: token, chunkindex:chunkindex - 1, filter:filter, game:currentSelectedGame.game, platform:currentSelectedGame.platform, inputfilter:search.value };
+
+      let data = await POST("getmodchunk", d);
 
       allspawnednodes = [];
-      search.value = "";
 
-      let mods = data.modlist;
-      for (let i = 0; i < mods.length; i++) {
-         let impressions = await POST("getmodimpressions", {
-         token: token,
-         mod: mods[i].id,
-         });
+      let mods = data.chunk;
+      IntToArray(data.chunks)
 
-         mods[i].likes = impressions.likes;
-         mods[i].downloads = impressions.downloads;
-      }
-      let finalModList = [];
-
-      console.log(filter);
-
-      let cb = async () => {
-         await finalModList.forEach(async (e) => {
-         //HACK: dumb way of bypassing a db update
-
-         let comparingPlatform = "wii";
-         if (e.platform != null) {
-            comparingPlatform = e.platform;
-         }
-
-         let platform = "wii";
-         if (currentSelectedGame.platform != null) {
-            platform = currentSelectedGame.platform;
-         }
-
-         if (
-            e.game == currentSelectedGame.game &&
-            comparingPlatform == platform
-         ) {
+  
+         await mods.forEach(async (e) => {
             let modNode = new ModNode({
                target: ModList,
             });
@@ -151,19 +125,9 @@
             modNode.update = e.update;
             modNode.modplatform = e.platform;
             modNode.modgame = e.game;
-
-            let comments = await POST("getcomments", { pageid: e.id });
-            if(comments != null)
-            {
-               modNode.comments = comments.comments.length;
-            }
-            let impressions = await POST("getmodimpressions", {
-            token: token,
-            mod: e.id,
-        });
-
-            modNode.downloads = impressions.downloads;
-            modNode.likes = impressions.likes;
+            modNode.downloads = e.downloads;
+            modNode.likes = e.likes;
+            modNode.comments = e.comments;
 
       
             modNode.json = JSON.stringify(e);
@@ -175,50 +139,12 @@
             modNode.Init();
 
             allspawnednodes.push(modNode);
-         }
-         load = false;
+         
       });
-      }
 
-      switch(filter)
-      {
+      load = false;
+    
 
-         case 5:
-         finalModList =  mods.slice(0).sort(function (a,b) {
-               return b.likes - a.likes;
-            });
-            break;
-
-            case 6:
-            finalModList =  mods.slice(0).sort(function (a,b) {
-               return a.likes - b.likes;
-            });
-            break;
-
-            case 4:
-         finalModList =  mods.slice(0).sort(function (a,b) {
-               return a.downloads - b.downloads;
-            });
-            break;
-
-            case 3:
-            finalModList =  mods.slice(0).sort(function (a,b) {
-               return b.downloads - a.downloads;
-            });
-            break;
-
-            case 1:
-            finalModList =  mods.slice(0).sort(function (a,b) {
-               return b.id - a.id;
-            });
-            break
-            case 2:
-            finalModList =  mods.slice(0).sort(function (a,b) {
-               return a.id - b.id;
-            })
-            break;
-      }
-cb()
      
 
       
@@ -249,7 +175,7 @@ cb()
    <select
       class="dropdown"
       bind:value={selectedgamebuild}
-      on:change={() => LoadModList(true)}
+      on:change={() => LoadModList(true, 1)}
       bind:this={GamesDropdown}
    >
       {#await SetJsonData()}
@@ -280,7 +206,7 @@ cb()
    <button on:click={() => window.open("#/uploadmod", "_self")}>Upload Mod</button>
    <input
       bind:this={search}
-      on:input={Search}
+      on:change={() => Search()}
       placeholder="Search"
       style="margin-left:30px;border:none;border-radius:3px;"
    />
@@ -290,18 +216,26 @@ cb()
  <span style="margin-left:45%;">
    <Loading></Loading>
  </span>
+ {:else if allspawnednodes.length == 0}
+  <h1 style="text-align:center;">No mods could be found with your filters.</h1>
  {/if}
 <p></p>
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
-<!--
-TODO: add a limit to amount of mods that can be on one page and filter them through different chunks
-<div style="display:flex;margin:auto;justify-content:center;width:100%;">
-   <button style="margin-right:10px;" class="hyperlinkbutton">1</button>
-   <button style="margin-right:10px;" class="hyperlinkbutton">2</button>
-   <button style="margin-right:10px;" class="hyperlinkbutton">3</button>
+<div style="display:flex;justify-content:center;">
+   {#each chunks as num}
+   {#if num == chunkindex}
+   <button style="transform:scale(1.1);background-color:rgb(40, 40, 40);" on:click={() => LoadModList(false, num)}>{num}</button>
+   {:else}
+   <button on:click={() => LoadModList(false, num)}>{num}</button>
+   {/if}
+   {/each}
 </div>
--->
+
+<div style="display:flex;margin:auto;justify-content:center;width:100%;">
+
+</div>
+
 
 <div class="warning" bind:this={warning}>
    <p style="position:relative;top:400px;">
