@@ -13,6 +13,9 @@
     import { ConvertModJsonToNew } from "./library/legacy";
 
   let gameNodeDiv;
+  let blackoutDiv;
+  let bannerDiv;
+  let hoveredGame = "EM1";
 
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
@@ -58,6 +61,15 @@
     element.game = game;
     element.platform = platform;
     element.data = dat;
+    element.mouseEnterCB = (g) => {
+        hoveredGame = g;
+        blackoutDiv.style.opacity = 0.5;
+        bannerDiv.style.opacity = 1;
+    }
+    element.mouseExitCB = () => {
+        blackoutDiv.style.opacity = 0;
+        bannerDiv.style.opacity = 0;
+    }
     element.Init();
 
     if (game == "EM1") {
@@ -70,6 +82,10 @@
   }
 </script>
 
+<div bind:this={blackoutDiv} class="blackout"></div>
+<div class="gamebanner" bind:this={bannerDiv}>
+  <img style="width:65vw;margin:auto;" src="img/{hoveredGame}bannerfull.png">
+</div>
 
 <h1 style="text-align:center">Games</h1>
 <hr style="width:500px" />
@@ -104,5 +120,15 @@
     grid-column-start: 1;
     grid-column-end: 1;
     grid-row-gap: 24px;
+  }
+
+  .gamebanner{
+    align-items:center;position:absolute;width:100vw;height:100vh;z-index:-499;top:0;mask:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 19%, rgba(255,255,255,1) 38%, rgba(255,255,255,1) 50%, rgba(255,255,255,1) 62%, rgba(255,255,255,0) 81%, rgba(255,255,255,0) 100%);display:flex;justify-content:center;overflow:hidden;opacity:0;
+    transition: 0.5s;
+  }
+
+  .blackout{
+    transition: 1s;
+    position:absolute;width:100vw;height:100vh;background-color:black;z-index:-500;opacity:0;top:0;
   }
 </style>

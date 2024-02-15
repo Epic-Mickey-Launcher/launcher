@@ -177,12 +177,8 @@
         display: flex;
         columns: 1rem 1rem;
         width: 100%;
-        background: rgb(66, 66, 66);
-        background: linear-gradient(
-            143deg,
-            rgba(66, 66, 66, 1) 0%,
-            rgba(62, 62, 62, 1) 100%
-        );
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(10px);
         padding: 5px 0px;
         justify-content: left;
     }
@@ -190,7 +186,9 @@
         z-index: 1;
         width: 20%;
         border: none;
-        background-color: rgb(36, 36, 36);
+        backdrop-filter: blur(4px);
+        background-color: rgb(0, 0, 0, 0.5);
+        -webkit-backdrop-filter: blur(10px);
         transition-duration: 0.1s;
     }
     .headerButton:hover {

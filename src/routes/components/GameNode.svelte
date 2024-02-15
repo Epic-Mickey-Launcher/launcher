@@ -13,6 +13,8 @@
     export let imgLogoURL = undefined;
     export let errorMSG = "";
     export let data;
+    export let mouseEnterCB;
+    export let mouseExitCB;
 
     let reg = "";
 
@@ -114,6 +116,8 @@
         }
     }
 
+
+
     let regionPath = "";
     onMount(async () => {});
 
@@ -126,7 +130,7 @@
 <main>
     <div class="gamenode" style="background-image: url('{imgBackgroundURL}')">
         <div style="float:right;margin-left:15px;">
-            <img class="gamelogo" src={imgLogoURL} alt="" />
+            <img class="gamelogo" on:mouseleave={() => mouseExitCB()} on:mouseenter={() => mouseEnterCB(game)} src={imgLogoURL} alt="" />
         </div>
 
         <div style="margin-left:auto;margin-top:10px;">
