@@ -245,6 +245,8 @@ selectRegion = true;
                 dumploc: dumploc,
                 gameid: gameid,
                 platform: gameinfo.platform,
+                modid:modid,
+                active:existingmod.active
             });
             let delete_index = data.indexOf(existingmod);
             data.splice(delete_index, 1);

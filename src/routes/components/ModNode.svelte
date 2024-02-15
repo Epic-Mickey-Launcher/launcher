@@ -1,4 +1,5 @@
 <svelte:options accessors={true} />
+<svelte:window bind:innerWidth />
 
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
@@ -25,7 +26,7 @@
     export let gamedata;
     let downloadStatus = "Download"
 
-
+    $: innerWidth = 0
     let color = "white"
     export let json = "";
     let canupdate = false;
@@ -58,8 +59,19 @@
             authorname = authorinfo.username;
         }
 
-        if (description.length > 60) {
-            let newDesc = description.substring(0, 60);
+
+
+        let len = 0
+
+        for (let i = 0; i < innerWidth; i += 30)
+        {
+            len += 1;
+        }
+
+      
+
+        if (description.length > len) {
+            let newDesc = description.substring(0, len);
             newDesc += "...";
             description = newDesc;
         }
@@ -131,13 +143,15 @@
 
         let platform = gamedata.platform;
 
-        if (update) {
+        if (canupdate) {
             modInstallElement.action = "Updating";
             await invoke("delete_mod", {
                 json: JSON.stringify(existingmod),
                 dumploc: gamedata.path,
                 gameid: gameid,
                 platform: platform,
+                modid:modid,
+                active:existingmod.active
             });
             let delete_index = data.indexOf(existingmod);
             data.splice(delete_index, 1);
@@ -194,11 +208,11 @@
 <div class="modNodeDiv">
 
     <div>
-        <span class="spanHyperLink" on:click={ViewPage} style="font-weight:bold;">{modName}</span>
+        <span class="spanHyperLink" on:click={ViewPage} style="font-weight:bold;text-overflow: ellipsis;">{modName}</span>
         <p>
         <span>
             Author:<button
-                style="margin-left:5px;color:{color};"
+                style="margin-left:5px;color:{color};text-overflow: ellipsis;"
                 on:click={OpenProfileOfAuthor}
                 class="hyperlinkbutton">{authorname}</button
             >
@@ -207,7 +221,7 @@
         
 
         <p>
-        <span>{description}</span>
+        <span style="text-overflow: ellipsis;">{description}</span>
     </div>
 
         <div class="imgArea">
@@ -228,8 +242,9 @@
 }
 
     .modNodeDiv {
+        position: relative;
         flex-wrap: wrap;
-        z-index: -1;
+        z-index: 1;
         background-color: rgb(41, 41, 41);
         border-radius: 20px;
         padding: 10px 10px;
@@ -248,13 +263,15 @@
     }
 
     .imgArea{
+        position: absolute;
+        right:5px;
         display: inline;
         margin-left:auto;
         text-align: right;
         justify-content: right;
     }
     .modNodeImg {
-        z-index: 1;
+    
         width: 80px;
         height: 80px;
         border-radius: 10px;

@@ -63,7 +63,7 @@
     element.data = dat;
     element.mouseEnterCB = (g) => {
         hoveredGame = g;
-        blackoutDiv.style.opacity = 0.5;
+        blackoutDiv.style.opacity = 0.9;
         bannerDiv.style.opacity = 1;
     }
     element.mouseExitCB = () => {
@@ -87,7 +87,7 @@
   <img style="width:65vw;margin:auto;" src="img/{hoveredGame}bannerfull.png">
 </div>
 
-<h1 style="text-align:center">Games</h1>
+<h1 style="text-align:center;filter:drop-shadow(0 0 4px black)">Games</h1>
 <hr style="width:500px" />
 <p />
 <div bind:this={gameNodeDiv} class="gamegrid" />
@@ -125,6 +125,7 @@
   .gamebanner{
     align-items:center;position:absolute;width:100vw;height:100vh;z-index:-499;top:0;mask:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 19%, rgba(255,255,255,1) 38%, rgba(255,255,255,1) 50%, rgba(255,255,255,1) 62%, rgba(255,255,255,0) 81%, rgba(255,255,255,0) 100%);display:flex;justify-content:center;overflow:hidden;opacity:0;
     transition: 0.5s;
+    filter: brightness(2)
   }
 
   .blackout{

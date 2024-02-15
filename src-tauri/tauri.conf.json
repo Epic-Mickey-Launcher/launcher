@@ -86,7 +86,7 @@
       {
         "fullscreen": false,
         "height": 800,
-        "resizable": false,
+        "resizable": true,
         "title": "Epic Mickey Launcher",
         "width": 1600
       }

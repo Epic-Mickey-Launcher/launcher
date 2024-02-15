@@ -48,7 +48,7 @@
     //HACK: there has to be a better way to do this
     //HACK: no
     const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/3b/69/dolphin-master-5.0-19870-x64.7z";
-    const DOLPHIN_LINK_LINUX = "https://cdn.discordapp.com/attachments/826740264294416428/1195086830534672565/dolphin.7z";
+    const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin.7z";
     const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
     const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1112527174478614538/NKit.zip";
 

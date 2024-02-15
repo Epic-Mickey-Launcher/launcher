@@ -171,7 +171,7 @@
 {/if}
 
 <div
-   style="display:flex; width:100%; justify-content:center;background-color: rgb(20, 20, 20);width:48%;margin:auto;padding:10px;border-radius: 10px;"
+   style="display:flex; width:70vw; justify-content:center;background-color: rgb(20, 20, 20);margin:auto;padding:10px;border-radius: 10px;"
 >
    <select
       class="dropdown"
