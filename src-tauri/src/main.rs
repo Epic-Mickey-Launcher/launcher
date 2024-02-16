@@ -484,7 +484,15 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
                         success = true;
                         buffer
                     },
-                    Err(error) => buf,
+                    Err(error) => {
+                        buffer = reqwest::get(&url).await.unwrap().bytes_stream();
+                        download_bytes_count = 0;
+                        fs::remove_file(&temporary_archive_path).expect("failed to remove tmpzip");
+                        f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
+                        println!("Download error occured. Restarting Download.");
+                        log("Download error occured. Restarting Download.");
+                        continue;
+                    },
                 };   
             }
 

@@ -11,6 +11,7 @@
   import { ReadJSON, WriteToJSON, FileExists, InitConfFiles } from "./library/configfiles.js";
     import { init } from "svelte/internal";
     import { ConvertModJsonToNew } from "./library/legacy";
+    import ModInstall from "./components/ModInstall.svelte";
 
   let gameNodeDiv;
   let blackoutDiv;

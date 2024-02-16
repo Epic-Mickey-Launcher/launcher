@@ -56,18 +56,20 @@
   <div
     style="position:fixed;align-items: center; align-self: center;text-align: center;left:0; right:0; top:30%; "
   >
+  <div style="position: relative;">
     <img
-      class="loading-spinner"
-      alt=""
-      src="/img/Loading_indicator_circle.svg"
-    />
+    class="loading-spinner"
+    alt=""
+    src="/img/Loading_indicator_circle.svg"
+  />
+  <img class="installingmodlogo" alt="" src={modIcon} />
+  </div>
     <plaintext>{action} {modName}</plaintext>
     <plaintext>{description}</plaintext>
     {#if showDownloadProgression}
     <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext>
     <progress value={progress} max="100"></progress>  
     {/if}
-    <img class="installingmodlogo" alt="" src={modIcon} />
   </div>
 </div>
 
@@ -88,20 +90,25 @@
     align-items: center;
     align-self: center;
     text-align: center;
+    display: flex;
   }
 
   .installingmodlogo {
-    position: fixed;
-    top: 33%;
-    left: 45.3%;
+    position: absolute;
     border-radius: 100%;
-    bottom: 0;
+    top:25px;
+    left: 0; 
+    right: 0; 
+    margin-left: auto; 
+    margin-right: auto; 
     width: 150px;
     height: 150px;
   }
 
   .loading-spinner {
     animation: rotate 1.5s linear infinite;
+margin-left: auto; 
+margin-right: auto; 
     width: 200px;
     height: 200px;
   }

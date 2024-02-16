@@ -296,8 +296,9 @@ selectRegion = true;
                 modid: modinfo.id,
                 impression: { download: true, like: false },
             });
+            CheckIfDownloaded();
         });
-        CheckIfDownloaded();
+   
     }
     let update = false;
     let downloadButton;
