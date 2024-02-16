@@ -20,11 +20,14 @@
    import { SetData } from "./library/datatransfer.js";
     import Loading from "./components/loading.svelte";
     import Dialog from "./components/dialog.svelte";
+    import { GetBackground } from "./library/background.js";
    let warning;
    let load = true;
 
    onMount(async () => {
       await SetJsonData();
+
+      background.style.backgroundImage = `url(${GetBackground()})`;
 
       let json = await GET("trygetfeaturedmod");
 
@@ -144,13 +147,13 @@
       });
 
       load = false;
-    
-
-     
-
-      
    }
+
+   let background;
+
 </script>
+
+<div bind:this={background} style="background-attachment:fixed;position: fixed;width:100vw;height:100vh;top:0px;z-index:-1;background-image:url(img/backgrounds/back1.webp);background-position:center;background-size:cover;"></div>
 
 {#if featuredModId != ""}
    <span

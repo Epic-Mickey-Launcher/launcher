@@ -107,8 +107,6 @@
             platform = "wii";
         }
 
-        console.log("then what makes")
-
         await invoke("download_mod", {
             url: staticAssetsLink + moddata.download,
             name: moddata.name,
@@ -117,11 +115,9 @@
             gameid: gameid,
             platform: platform,
         })
-
-        console.log("what makes")
             let json_exists = await exists(gamedata.path + "/EMLMods.json");
             let current_mods = [];
-            if (json_exists) {console.log("then what makes")
+            if (json_exists) {
                 current_mods = JSON.parse(
                     await ReadFile(gamedata.path + "/EMLMods.json"),
                 );

@@ -65,11 +65,16 @@ struct CheckISOResult {
 }
 #[tauri::command]
 fn open_dolphin(path: String) {
+
+    let mut config_path = dirs_next::config_dir().expect("could not get config dir");
+    config_path.push(r"com.memer.eml");
+    config_path.push("DolphinConfig");
+
     #[cfg(target_os = "windows")]
-    Command::new(path).spawn();
+    Command::new(path).arg("-u").arg(path).spawn();
     #[cfg(target_os = "linux")]
     //QT env variable is for wayland functionality
-    Command::new(if path == "" {"dolphin-emu"} else {&path}).env("QT_QPA_PLATFORM", "xcb").env("WAYLAND_DISPLAY", "+").spawn().expect("failed to start dolphin");
+    Command::new(if path == "" {"dolphin-emu"} else {&path}).arg("-u").arg(config_path).env("QT_QPA_PLATFORM", "xcb").env("WAYLAND_DISPLAY", "+").spawn().expect("failed to start dolphin");
 }
 
 #[tauri::command]
@@ -745,6 +750,11 @@ fn open_path_in_file_manager(path: String) {
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String, id: String) -> i32 {
+
+    let config_path = find_dolphin_dir(&PathBuf::new());
+
+    auto_set_custom_textures();
+
     let os = env::consts::OS;
     if !Path::new(&dolphin).exists() {
         return 1;
@@ -753,6 +763,8 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
     if os == "windows" {
         if dolphin.ends_with(".exe") {
             Command::new(&dolphin)
+                .arg("-u")
+                .arg(config_path)
                 .arg("-b")
                 .arg("-e")
                 .arg(&exe)
@@ -767,6 +779,8 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
             .arg("-a")
             .arg(&dolphin)
             .arg(&exe)
+            .arg("-u")
+            .arg(config_path)
             .spawn()
             .expect("could not open dolphin");
         return 0;
@@ -779,6 +793,8 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
             .arg("-b")
             .arg("-e")
             .arg(&exe)
+            .arg("-u")
+            .arg(config_path)
             .spawn()
             .expect("could not open dolphin");
         return 0;
@@ -1340,59 +1356,38 @@ fn linux_check_exist(package: String) -> bool {
     str_output.unwrap().contains(&package)
 }
 
-fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
-    let os = env::consts::OS;
+fn auto_set_custom_textures()
+{
+    let mut buf = find_dolphin_dir(&PathBuf::from("Config"));
 
-    let mut dolphin_path = PathBuf::new();
-
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml");
-    path.push("dolphinoverride");
-
-    println!("{}", &path.display());
-
-    if !path.exists() {
-        if os == "macos" {
-            dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
-            dolphin_path.push(Path::new(r"Dolphin"));
-            dolphin_path.push(where_in);
-        } else if os == "windows" {
-            dolphin_path = dirs_next::document_dir().expect("Failed to get config path");
-            dolphin_path.push(Path::new(r"Dolphin Emulator"));
-            dolphin_path.push(where_in);
-
-            if dolphin_path.exists() {
-                return dolphin_path;
-            }
-
-            dolphin_path = dirs_next::config_dir().expect("Failed to get config path");
-            dolphin_path.push(Path::new(r"Dolphin Emulator"));
-            dolphin_path.push(where_in);
-
-            if dolphin_path.exists() {
-                return dolphin_path;
-            }
-        } else {
-            if dolphin_path.exists() {
-                return dolphin_path;
-            }
-
-            dolphin_path = dirs_next::data_dir().expect("Failed to get config path");
-            dolphin_path.push(Path::new(r"dolphin-emu"));
-            dolphin_path.push(where_in);
-
-            if dolphin_path.exists() {
-                return dolphin_path;
-            }
-        }
-    } else {
-        let mut f = File::open(path).unwrap();
-        dolphin_path.clear();
-        let mut buff = String::new();
-        f.read_to_string(&mut buff).expect("Failed to read file");
-        dolphin_path.push(buff);
-        dolphin_path.push(where_in);
+    if !buf.exists()
+    {
+        fs::create_dir_all(&buf).unwrap();
     }
 
-    dolphin_path
+    buf.push("GFX.ini");
+
+    if !buf.exists(){
+        let mut f = File::create(&buf).unwrap();
+        f.write(b"[Settings]\nHiresTextures = True").unwrap();
+    }
+    else {
+        let mut f = File::open(&buf).unwrap();
+        let mut b = Vec::new();
+        f.read_to_end(&mut b).unwrap();
+        let mut str = String::from_utf8(b).unwrap();
+        str = str.replace("HiresTextures = False", "HiresTextures = True");
+        fs::remove_file(&buf).unwrap();
+        f = File::create(&buf).unwrap();
+        f.write(str.as_bytes()).unwrap();
+        
+    }
+}
+
+fn find_dolphin_dir(where_in: &PathBuf) -> PathBuf {
+    let mut config_path = dirs_next::config_dir().expect("could not get config dir");
+    config_path.push(r"com.memer.eml");
+    config_path.push("DolphinConfig");
+    config_path.push(where_in);
+    config_path
 }

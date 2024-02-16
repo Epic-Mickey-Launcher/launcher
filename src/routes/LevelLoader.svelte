@@ -363,9 +363,9 @@ invoke("open_path_in_file_manager", {path:p});
     <div bind:this={levelLoader} style="display:none;">
         <h1 style="text-align:center;">Level Loader</h1>
         <p />
-        <div style="display:flex;align-items:center;justify-content:center;">
+        <div style="display:flex;align-items:center;justify-content:center;position:relative;">
             <div
-                style="overflow:hidden; position:absolute;height:112px;width:256px;bottom:480px;right:790px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
+                style="overflow:hidden; margin-right:256px;position:absolute;height:112px;width:256px;top:0px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
             >
                 <img
                     style="filter:blur(3px);height:112px;width:256px;"
@@ -373,7 +373,7 @@ invoke("open_path_in_file_manager", {path:p});
                     src={selectedCategoryImg}
                 />
                 <span
-                    style="z-index:5;font-size:50px;position:relative;bottom:80px;left:0px;width:112px;font-size:25px;text-align:center;"
+                    style="z-index:5;font-size:50px;position:relative;bottom:80px;;left:0px;width:112px;font-size:25px;text-align:center;"
                     >{selectedCategoryName}</span
                 >
             </div>
