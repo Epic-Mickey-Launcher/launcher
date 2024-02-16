@@ -71,7 +71,7 @@ fn open_dolphin(path: String) {
     config_path.push("DolphinConfig");
 
     #[cfg(target_os = "windows")]
-    Command::new(path).arg("-u").arg(path).spawn();
+    Command::new(path).arg("-u").arg(config_path).spawn();
     #[cfg(target_os = "linux")]
     //QT env variable is for wayland functionality
     Command::new(if path == "" {"dolphin-emu"} else {&path}).arg("-u").arg(config_path).env("QT_QPA_PLATFORM", "xcb").env("WAYLAND_DISPLAY", "+").spawn().expect("failed to start dolphin");
