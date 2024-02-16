@@ -475,15 +475,10 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
 
             let mut buf = &Bytes::new();
 
-            while !success {
                 let res = item.as_ref();
 
                 buf = match res {
-                    Ok(buffer) => 
-                    {
-                        success = true;
-                        buffer
-                    },
+                    Ok(b) => b,
                     Err(error) => {
                         buffer = reqwest::get(&url).await.unwrap().bytes_stream();
                         download_bytes_count = 0;
@@ -491,10 +486,10 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
                         f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
                         println!("Download error occured. Restarting Download.");
                         log("Download error occured. Restarting Download.");
-                        continue;
+                        buf
                     },
                 };   
-            }
+            
 
             if Bytes::is_empty(buf) {
                 continue;
