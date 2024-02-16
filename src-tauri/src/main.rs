@@ -763,11 +763,11 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
     if os == "windows" {
         if dolphin.ends_with(".exe") {
             Command::new(&dolphin)
-                .arg("-u")
-                .arg(config_path)
                 .arg("-b")
                 .arg("-e")
                 .arg(&exe)
+                .arg("-u")
+                .arg(config_path)
                 .spawn()
                 .expect("could not open exe");
         }
