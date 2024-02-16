@@ -1,12 +1,14 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
-    import { GetToken, POST, UploadMod } from "./library/networking";
+    import { GetId, GetToken, POST, UploadMod } from "./library/networking";
     import { open } from "@tauri-apps/api/dialog";
     import ModInstall from "./components/ModInstall.svelte";
     import { onMount } from "svelte";
     import { GetData, SetData } from "./library/datatransfer";
     import { ReadFile } from "./library/configfiles";
     import { readBinaryFile } from "@tauri-apps/api/fs";
+    import { Invoke, Subscribe } from "./library/callback";
+    import Loading from "./components/loading.svelte";
 
     let replacingMod;
 
@@ -25,6 +27,32 @@
     onMount(async () => {
         replacingMod = GetData("modupload_id");
         SetData("modupload_id", "");
+        Subscribe("onModUpload", (id) => {
+            setTimeout(() => {
+                SetData("modpage_id", id);
+                window.open("#/modpage", "_self");
+            }, 1000);
+        });
+        let cb = async () => {
+            console.log("doofoo")
+            let id = await GetId();
+
+            let request = await POST("getenterrequest", { id: id });
+
+            if (request.modid != "") {
+                setTimeout(() => {
+                    console.log(request)
+                    SetData("modpage_id", request.modid.toString());
+                    window.open("#/modpage", "_self");
+                }, 1000);
+            } else {
+                setTimeout(cb, 1000);
+            }
+        };
+
+        Subscribe("onModUploadRequest", () => {
+            setTimeout(cb, 1000);
+        });
     });
 
     let files;
@@ -33,10 +61,7 @@
         let file = files[0];
 
         if (file.name.endsWith(".zip") || file.name.endsWith(".tar")) {
-            uploadFile(file, () => {
-                waitDiv.style.display = "none";
-                resultDiv.style.display = "block";
-            });
+            uploadFile(file, (id) => {});
         } else {
         }
     }
@@ -72,8 +97,9 @@
                     });
                     replacingMod = null;
                     modInstallElement.$destroy();
+                    Invoke("onModUploadRequest", {})
                     result =
-                        "Mod Request Successful! Your mod will be available in the mod market once it has been verified.";
+                        "Mod Request Successful! You will be redirected to your mod once the server has validated and published it...";
                     waitDiv.style.display = "none";
                     largeMod.style.display = "none";
                     resultDiv.style.display = "block";
@@ -81,7 +107,7 @@
                     modInstallElement.$destroy();
                     await alert("Mod Request Failed!");
                 }
-            }
+            },
         );
     }
 
@@ -102,17 +128,16 @@
 
         if (path != "") {
             uploadFile(path, () => {
-               resultDiv.style.display = "block";
-               waitDiv.style.display = "none";
-            })
+                window;
+            });
         }
     }
 
     async function uploadFile(path, cb) {
         let data = await invoke("validate_archive", { path: path });
 
-        console.log(data)
-        
+        console.log(data);
+
         if (!data.under_limit) {
             modIsLarge();
         } else {
@@ -123,14 +148,16 @@
 
             let binary = await readBinaryFile(path);
 
-            let file = new File([binary], "mod", { type: "application/octet-stream"})
+            let file = new File([binary], "mod", {
+                type: "application/octet-stream",
+            });
 
             UploadMod(
                 file,
                 cb,
                 replacingMod,
                 data.extension,
-                automaticallyPublish.value
+                automaticallyPublish.value,
             );
             replacingMod = null;
         }
@@ -155,6 +182,7 @@
             <input bind:this={automaticallyPublish} type="checkbox" checked />
             <span>Automatically publish mod on upload.</span>
         </span>
+    </p>
 </div>
 
 <div style="display:none;" bind:this={largeMod}>
@@ -175,7 +203,7 @@
 </div>
 
 <div bind:this={waitDiv} style="display:none;"><h1>Please Wait...</h1></div>
-<div bind:this={resultDiv} style="display:none;"><h1>{result}</h1></div>
+<div bind:this={resultDiv} style="display:none;"><h1>{result}</h1><Loading></Loading></div>
 
 <input
     on:drop={dropFile}

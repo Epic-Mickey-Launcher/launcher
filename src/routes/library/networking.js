@@ -41,19 +41,25 @@ function isNullOrWhitespace( input ) {
   return input == input.trim();
 }
 
-export async function UploadMod(modfile, cb, r, e, checked) {
-  let info = await GetUserInfo()
-
-  console.log(e)
-
-  let moduploadresult = await MultipartPOST("modupload", {
-    token: info.token,
-    modfile: modfile,
-    extension: e,
-    replacing: r,
-    automaticPublish: checked
+export function UploadMod(modfile, cb, r, e, checked) {
+   GetUserInfo().then((info) => {
+    MultipartPOST("modupload", {
+      token: info.token,
+      modfile: modfile,
+      extension: e,
+      replacing: r,
+      automaticPublish: checked
+    }).then((moduploadresult) => {
+      console.log("itty bitty fart")
+  
+      moduploadresult.json().then((res) => {
+        Invoke("onModUpload", res.id)
+      });
+    })
+  
+  
   })
-  cb()
+
 }
 
 export async function GetToken() {
