@@ -130,7 +130,7 @@
             modNode.likes = e.likes;
             modNode.comments = e.comments;
 
-      
+            modNode.moddata = e;
             modNode.json = JSON.stringify(e);
             modNode.gamedata = jsonData.find(
                (r) =>

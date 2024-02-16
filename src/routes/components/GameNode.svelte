@@ -3,8 +3,11 @@
 <script>
     import { SetData, objectbuffer } from "../library/datatransfer.js";
     import { invoke } from "@tauri-apps/api/tauri";
-    import { ReadJSON } from "../library/configfiles.js";
+    import { ReadFile, ReadJSON } from "../library/configfiles.js";
     import { onMount } from "svelte";
+    import { exists } from "@tauri-apps/api/fs";
+    import { POST } from "../library/networking.js";
+    import DownloadMod from "./downloadMod.svelte";
     export let game = "";
     export let filepath = "";
     export let platform = "";
@@ -15,16 +18,43 @@
     export let data;
     export let mouseEnterCB;
     export let mouseExitCB;
+    let updateAvailable = false;
+    let outdatedMods = [];
 
     let reg = "";
 
     let platformlogo;
 
+    async function CheckForUpdate() {
+        let mods = [];
+
+        try {
+            //wrapping this around to stop EML from freaking out when offline
+            let jsonExists = await exists(filepath + "/EMLMods.json");
+            if (jsonExists) {
+                let dataStr = await ReadFile(filepath + "/EMLMods.json");
+                let data = JSON.parse(dataStr);
+
+                data.forEach(async (r) => {
+                    let latestUpdate = await POST("getmod", { id: r.modid });
+                    if (r.update != latestUpdate.update) {
+                        updateAvailable = true;
+                        mods.push(latestUpdate);
+                    }
+                });
+            }
+
+            outdatedMods = mods;
+            console.log(outdatedMods);
+        } catch {
+            console.log("failed to check for updates");
+        }
+    }
+
     async function OpenGame() {
         let d = await ReadJSON("conf.json");
 
-        if(d.dolphinPath == "")
-        {
+        if (d.dolphinPath == "") {
             await alert("Dolphin is required for this game to work!");
             return;
         }
@@ -33,7 +63,7 @@
             invoke("playgame", {
                 dolphin: d.dolphinPath,
                 exe: filepath + "/sys/main.dol",
-                id: data.id
+                id: data.id,
             }).then((res) => {
                 if (res == 1) {
                     alert(
@@ -45,7 +75,7 @@
             invoke("playgame", {
                 dolphin: filepath + "/Launch.exe",
                 exe: "",
-                id: ""
+                id: "",
             }).then((res) => {
                 if (res == 1) {
                     alert("Game failed to open.");
@@ -54,7 +84,20 @@
         }
     }
 
-    export function Init() {
+    async function UpdateAllMods() {
+        let downloadMod = new DownloadMod({ target: mainDiv });
+
+        downloadMod.updatecb = () => {
+            updateAvailable = false;
+        };
+
+        for await (let r of outdatedMods) {
+            await downloadMod.Initialize(data, false, r);
+            await downloadMod.Download();
+        }
+    }
+
+    export async function Init() {
         switch (platform) {
             case "wii":
                 platformlogo.src = "img/Wii.svg";
@@ -114,9 +157,9 @@
                 region = "img/regions/eu.svg";
                 break;
         }
+
+        await CheckForUpdate();
     }
-
-
 
     let regionPath = "";
     onMount(async () => {});
@@ -125,12 +168,20 @@
         SetData("levelloaderdata", data);
         window.open("#/levelloader", "_self");
     }
+
+    let mainDiv;
 </script>
 
-<main>
+<main bind:this={mainDiv}>
     <div class="gamenode" style="background-image: url('{imgBackgroundURL}')">
         <div style="float:right;margin-left:15px;">
-            <img class="gamelogo" on:mouseleave={() => mouseExitCB()} on:mouseenter={() => mouseEnterCB(game)} src={imgLogoURL} alt="" />
+            <img
+                class="gamelogo"
+                on:mouseleave={() => mouseExitCB()}
+                on:mouseenter={() => mouseEnterCB(game)}
+                src={imgLogoURL}
+                alt=""
+            />
         </div>
 
         <div style="margin-left:auto;margin-top:10px;">
@@ -145,9 +196,22 @@
             />
             <img
                 title={reg}
-                style="height:15px;margin-left:50px;display:inline;padding-right:5px;padding-top:5px;"
+                style="height:15px;display:inline;;padding-top:5px;float:right;padding-right:2px;"
                 src={regionPath}
+                alt=""
             />
+            {#if updateAvailable}
+                <svg
+                    on:click={UpdateAllMods}
+                    viewBox="0 0 30 30"
+                    style="width:15px;height:15px;fill:lime;float:right;padding-top:8px;"
+                    ><path
+                        d="M12.033,19.011a3.489,3.489,0,0,0,2.475-1.024l3.919-3.919-2.121-2.121-2.782,2.782L13.5,0l-3,0,.024,14.709L7.76,11.947,5.639,14.068l3.919,3.919A3.487,3.487,0,0,0,12.033,19.011Z"
+                    /><title>Update all mods.</title><path
+                        d="M21,16v5H3V16H0v5a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V16Z"
+                    /></svg
+                >
+            {/if}
         </div>
 
         <plaintext class="error">{errorMSG}</plaintext>

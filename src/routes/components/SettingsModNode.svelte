@@ -112,5 +112,6 @@
         id="check"
         type="checkbox"
     />
+
     <button on:click={DeleteMod} style="background-color:red;">Delete</button>
 </div>

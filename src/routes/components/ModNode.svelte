@@ -1,5 +1,4 @@
 <svelte:options accessors={true} />
-<svelte:window bind:innerWidth />
 
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
@@ -8,6 +7,7 @@
     import { GetToken, POST, staticAssetsLink } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
     import { exists } from "@tauri-apps/api/fs";
+    import DownloadMod from "./downloadMod.svelte";
     export let modName = "";
     export let description = "";
     export let iconLink = "";
@@ -15,7 +15,7 @@
     export let author = "";
     export let modid = "";
     export let modplatform = "";
-    export let modgame = ""
+    export let modgame = "";
     export let update = 0;
     export let likes = 0;
     export let comments = 0;
@@ -24,10 +24,12 @@
     let authoraccountexists = true;
     export let authorname = "";
     export let gamedata;
-    let downloadStatus = "Download"
-
-    $: innerWidth = 0
-    let color = "white"
+    export let moddata;
+    let downloadStatus = "Download";
+    let modNodeDiv;
+    let downloadMod;
+    $: innerWidth = 0;
+    let color = "white";
     export let json = "";
     let canupdate = false;
     let downloadButton;
@@ -46,11 +48,10 @@
         let authorinfo = await POST("getprofileinfo", { id: author });
 
         let emblem = authorinfo.emblems.sort((a, b) => {
-                    return b.weight - a.weight;
-                })[0];
+            return b.weight - a.weight;
+        })[0];
 
         color = emblem.color;
-
 
         if (authorinfo.username == null) {
             authoraccountexists = false;
@@ -59,16 +60,11 @@
             authorname = authorinfo.username;
         }
 
+        let len = 0;
 
-
-        let len = 0
-
-        for (let i = 0; i < innerWidth; i += 30)
-        {
+        for (let i = 0; i < innerWidth; i += 30) {
             len += 1;
         }
-
-      
 
         if (description.length > len) {
             let newDesc = description.substring(0, len);
@@ -76,49 +72,18 @@
             description = newDesc;
         }
 
-        await CheckIfDownloaded();
-    }
+        downloadMod = new DownloadMod({
+            target: modNodeDiv,
+        });
 
-    async function CheckIfDownloaded() {
-        let Gamesjson = await SetJsonData();
+        let gameinfo = GetData("gameinfo");
+        console.log(gameinfo)
 
-        let haveGame = false;
-
-        let platform = modplatform;
-
-        if(modplatform == undefined)
-        {
-            platform = "wii"
-        }
-
-        let gameinfo = GetData("gameinfo")
-
-            if (gameinfo.platform == platform && gameinfo.game == gamedata.game) {
-                gamedata = gameinfo;
-                haveGame = true;
-            }
-     
-
-        if (haveGame) {
-            let dataStr = await ReadFile(gamedata.path + "/EMLMods.json");
-            let dataJson = JSON.parse(dataStr);
-            let json = dataJson.find((r) => r.modid == modid);
-            downloadStatus = "Download";
-            if (json != null) {
-                if (json.update != update) {
-                    canupdate = true;
-                    downloadStatus = "Update Available";
-                } else {
-                    downloadButton.disabled = true;
-                    downloadStatus = "Already Installed";
-                }
-            }  
-        } 
-        else {
-            downloadButton.disabled = true;
-            downloadStatus = `${modgame} (${platform}) not installed!`;
-        }
-    
+        downloadMod.Initialize(gameinfo, false, moddata);
+        downloadMod.updatecb = () => {
+            downloadButton.disabled = downloadMod.downloadButtonDisabled;
+            downloadStatus = downloadMod.downloadButtonStatus;
+        };
     }
 
     async function OpenProfileOfAuthor() {
@@ -128,118 +93,53 @@
     }
 
     async function Download() {
-        let gameid = gamedata.id;
-   
-        let modInstallElement = new ModInstall({
-            target: document.body,
-        });
-        modInstallElement.modIcon =  iconLink;
-        modInstallElement.modName = modName;
-        modInstallElement.showDownloadProgression = true;
-
-        let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
-        let data = JSON.parse(datastring);
-        let existingmod = data.find((r) => r.modid == modid);
-
-        let platform = gamedata.platform;
-
-        if (canupdate) {
-            modInstallElement.action = "Updating";
-            await invoke("delete_mod", {
-                json: JSON.stringify(existingmod),
-                dumploc: gamedata.path,
-                gameid: gameid,
-                platform: platform,
-                modid:modid,
-                active:existingmod.active
-            });
-            let delete_index = data.indexOf(existingmod);
-            data.splice(delete_index, 1);
-            await WriteFile(JSON.stringify(data), gamedata.path + "/EMLMods.json");
-            await invoke("delete_mod_cache", { modid: modid });
-        }
-
-        if(platform == null)
-        {
-            platform = "wii"
-        }
-
-        invoke("download_mod", {
-            url: downloadLink,
-            name: modName,
-            dumploc: gamedata.path,
-            modid: modid.toString(),
-            gameid: gameid,
-            platform: platform,
-        }).then(async () => {
-            let json_exists = await exists(gamedata.path + "/EMLMods.json");
-            let current_mods = []
-            if (json_exists)
-            {
-                current_mods = JSON.parse(await ReadFile(gamedata.path + "/EMLMods.json"));
-            }
-
-
-            current_mods.push({
-                    name: modName,
-                    modid: modid,
-                    active: true,
-                    update: update,
-                })
-
-
-            
-            await WriteFile(
-                JSON.stringify(current_mods),
-                gamedata.path + "/EMLMods.json"
-            );
-            modInstallElement.$destroy();
-            let token = await GetToken();
-            await POST("addmodimpression", {
-                token: token,
-                modid: modid,
-                impression: { download: true, like: false },
-            });
-            CheckIfDownloaded();
-        });
+        await downloadMod.Download();
     }
 </script>
+
+<svelte:window bind:innerWidth />
 {#if visible}
-<div class="modNodeDiv">
-
-    <div>
-        <span class="spanHyperLink" on:click={ViewPage} style="font-weight:bold;text-overflow: ellipsis;">{modName}</span>
-        <p>
-        <span>
-            Author:<button
-                style="margin-left:5px;color:{color};text-overflow: ellipsis;"
-                on:click={OpenProfileOfAuthor}
-                class="hyperlinkbutton">{authorname}</button
+    <div bind:this={modNodeDiv} class="modNodeDiv">
+        <div>
+            <span
+                class="spanHyperLink"
+                on:click={ViewPage}
+                style="font-weight:bold;text-overflow: ellipsis;"
+                >{modName}</span
             >
-        </span>
-
-        
-
-        <p>
-        <span style="text-overflow: ellipsis;">{description}</span>
-    </div>
+            <p>
+                <span>
+                    Author:<button
+                        style="margin-left:5px;color:{color};text-overflow: ellipsis;"
+                        on:click={OpenProfileOfAuthor}
+                        class="hyperlinkbutton">{authorname}</button
+                    >
+                </span>
+            </p>
+            <p>
+                <span style="text-overflow: ellipsis;">{description}</span>
+            </p>
+        </div>
 
         <div class="imgArea">
             <img class="modNodeImg" alt="" src={iconLink} />
-            <br>
+            <br />
             <span style="font-size:8px;">Likes: {likes}</span>
             <span style="font-size:8px;">Downloads: {downloads}</span>
             <span style="font-size:8px;">Comments: {comments}</span>
-            <button bind:this={downloadButton} on:click={Download}>{downloadStatus}</button>
-            <br>
+            <button bind:this={downloadButton} on:click={Download}
+                >{downloadStatus}</button
+            >
+            <br />
         </div>
-</div>
+    </div>
 {/if}
+
 <style>
-  .break {
-  flex-basis: 100%;
-  height: 0;
-}
+    .break {
+        flex-basis: 100%;
+        height: 0;
+    }
 
     .modNodeDiv {
         position: relative;
@@ -249,29 +149,28 @@
         border-radius: 20px;
         padding: 10px 10px;
         width: 50%;
-        height:100px;
-        display:flex;
+        height: 100px;
+        display: flex;
         margin-right: auto;
         margin-left: auto;
         margin-bottom: 20px;
         box-shadow: 2px 2px 10px rgb(0, 0, 0);
-       transition-duration: 0.1s;
+        transition-duration: 0.1s;
     }
 
-    .modNodeDiv:hover{
+    .modNodeDiv:hover {
         transform: scale(1.01);
     }
 
-    .imgArea{
+    .imgArea {
         position: absolute;
-        right:5px;
+        right: 5px;
         display: inline;
-        margin-left:auto;
+        margin-left: auto;
         text-align: right;
         justify-content: right;
     }
     .modNodeImg {
-    
         width: 80px;
         height: 80px;
         border-radius: 10px;
