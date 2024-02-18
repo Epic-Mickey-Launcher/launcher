@@ -145,7 +145,9 @@
         position: relative;
         flex-wrap: wrap;
         z-index: 1;
-        background-color: rgb(41, 41, 41);
+        background-color: rgb(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         border-radius: 20px;
         padding: 10px 10px;
         width: 50%;

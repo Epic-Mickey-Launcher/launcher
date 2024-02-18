@@ -3,14 +3,14 @@
     import Dialog from "./components/dialog.svelte";
    import { Subscribe } from "./library/callback";
    import { Register, SignIn } from "./library/networking";
-    import { GetBackground } from "./library/background";
+    import { GetBackgroundLogin } from "./library/background";
 
    let user;
    let pass;
    let background;
 
    onMount(() => {
-      background.style.backgroundImage = `url(${GetBackground()})`;
+      background.style.backgroundImage = `url(${GetBackgroundLogin()})`;
    })
 
    async function Login(type) {

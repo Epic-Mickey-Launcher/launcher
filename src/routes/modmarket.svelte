@@ -20,7 +20,7 @@
    import { SetData } from "./library/datatransfer.js";
     import Loading from "./components/loading.svelte";
     import Dialog from "./components/dialog.svelte";
-    import { GetBackground } from "./library/background.js";
+    import { GetBackgroundModMarket } from "./library/background.js";
    let warning;
    let load = true;
 
@@ -28,7 +28,7 @@
       await SetJsonData();
 
 
-      let bg = GetBackground();
+      let bg = GetBackgroundModMarket();
 
       background.style.backgroundImage = `url(${bg.path})`;
       background_credits = bg.credits;
