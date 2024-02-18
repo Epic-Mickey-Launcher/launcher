@@ -179,10 +179,9 @@
 {/if}
 
 <div
-   style="display:flex; width:70vw; justify-content:center;background-color: rgb(20, 20, 20);margin:auto;padding:10px;border-radius: 10px;"
->
+   style="background-color: rgb(0, 0, 0, 0.6);backdrop-filter: blur(5px);-webkit-backdrop-filter: blur(5px);display:flex; width:70vw; justify-content:center;margin:auto;padding:10px;border-radius: 10px;">
+   <div class="dropdown">
    <select
-      class="dropdown"
       bind:value={selectedgamebuild}
       on:change={() => LoadModList(true, 1)}
       bind:this={GamesDropdown}
@@ -197,28 +196,29 @@
          {/each}
       {/await}
    </select>
+   </div>
+   <div class="dropdown">
+      <select
+      bind:value={filter}
+      on:change={() => LoadModList()}
+      bind:this={filterDropdown}
+   >
+       <option value={1}>Newest</option>
+       <option value={2}>Oldest</option>
+       <option value={3}>Most Downloads</option>
+       <option value={4}>Least Downloads</option>
+       <option value={5}>Most Likes</option>
+       <option value={6}>Least Likes</option>
+   </select>
+   </div>
 
-   <select
-   class="dropdown"
-   bind:value={filter}
-   on:change={() => LoadModList()}
-   bind:this={filterDropdown}
->
-    <option value={1}>Newest</option>
-    <option value={2}>Oldest</option>
-    <option value={3}>Most Downloads</option>
-    <option value={4}>Least Downloads</option>
-    <option value={5}>Most Likes</option>
-    <option value={6}>Least Likes</option>
-</select>
-
-   <button on:click={() => window.open("#/uploadmod", "_self")}>Upload Mod</button>
    <input
       bind:this={search}
       on:change={() => Search()}
       placeholder="Search"
-      style="margin-left:30px;border:none;border-radius:3px;"
+      style="border:none;border-radius:3px;background-color:black;border:1px white solid;padding:3px;"
    />
+   <button style="width:40px;height:40px;border:none;background:none;margin-left:10px;" on:click={() => window.open("#/uploadmod", "_self")}><img src="img/upload.svg" style="width:20px;"></button>
 </div>
 <p />
 {#if load}
@@ -274,11 +274,18 @@
       margin-left: auto;
       text-align: center;
    }
+
+   .dropdown select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: black;
+      padding:10px;
+   }
+
    .dropdown {
+      position: relative;
       margin-right: 30px;
-      background-color: white;
       color: black;
-      background: none;
    }
 
    .featuredModBanner {
