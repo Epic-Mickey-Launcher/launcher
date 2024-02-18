@@ -27,7 +27,11 @@
    onMount(async () => {
       await SetJsonData();
 
-      background.style.backgroundImage = `url(${GetBackground()})`;
+
+      let bg = GetBackground();
+
+      background.style.backgroundImage = `url(${bg.path})`;
+      background_credits = bg.credits;
 
       let json = await GET("trygetfeaturedmod");
 
@@ -150,10 +154,11 @@
    }
 
    let background;
+   let background_credits;
 
 </script>
 
-<div bind:this={background} style="background-attachment:fixed;position: fixed;width:100vw;height:100vh;top:0px;z-index:-1;background-image:url(img/backgrounds/back1.webp);background-position:center;background-size:cover;"></div>
+<div bind:this={background} style="background-attachment:fixed;position: fixed;width:100vw;height:100vh;top:0px;z-index:-1;background-image:url(img/backgrounds/back1.webp);background-position:center;background-size:cover;left:0px;"><span style="bottom:3px;position:fixed;font-size:10px;left:3px;">{background_credits}</span></div>
 
 {#if featuredModId != ""}
    <span
