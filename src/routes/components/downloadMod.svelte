@@ -32,7 +32,6 @@
     }
 
     async function CheckIfDownloaded() {
-        console.log(gamedata)
         let haveGame = false;
 
         let platform = moddata.platform;
@@ -41,7 +40,9 @@
             platform = "wii";
         }
 
-        if (moddata.platform == platform && gamedata.game == moddata.game) {
+        console.log(platform)
+
+        if (gamedata.platform == platform && gamedata.game == moddata.game) {
             haveGame = true;
         }
 

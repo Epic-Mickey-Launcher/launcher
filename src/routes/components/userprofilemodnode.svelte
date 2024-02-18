@@ -31,8 +31,6 @@
         width: 200px;
         height: 320px;
         margin: auto;
-        display: inline-block;
-        margin-right: 10px;
         padding: 3px;
         filter: drop-shadow(1px 1px 5px black);
         transition-duration: 0.1s;

@@ -73,7 +73,7 @@
             });
         } else {
             invoke("playgame", {
-                dolphin: filepath + "/Launch.exe",
+                dolphin: filepath + "/DEM2.exe",
                 exe: "",
                 id: "",
             }).then((res) => {

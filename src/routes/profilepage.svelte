@@ -141,11 +141,10 @@ joindate = d.toLocaleString();
     <hr />
     <span style="font-size:30px;">Mods</span>
     <p>
-        <span
-            bind:this={modNodeGroup}
-            style="display:flex;width:fit-content;margin:0 auto;"
-        />
-    </p>
+        <div style="width:100%;display:flex;justify-content:center;mask:linear-gradient(90deg, rgba(255,255,255,0) 7%, rgba(255,255,255,1) 25%, rgba(255,255,255,1) 50%, rgba(255,255,255,1) 75%, rgba(255,255,255,1) 75%, rgba(255,255,255,0) 93%);">
+            <div bind:this={modNodeGroup} style="display:flex;width:95vw;overflow-x:auto;padding:0 500px"></div>
+        </div>
+       
     {/if}
     
     
