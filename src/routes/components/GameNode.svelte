@@ -8,6 +8,7 @@
     import { exists } from "@tauri-apps/api/fs";
     import { POST } from "../library/networking.js";
     import DownloadMod from "./downloadMod.svelte";
+    import { os } from "@tauri-apps/api";
     export let game = "";
     export let filepath = "";
     export let platform = "";
@@ -72,13 +73,19 @@
                 }
             });
         } else {
-            invoke("playgame", {
-                dolphin: filepath + "/DEM2.exe",
-                exe: "",
-                id: "",
-            }).then((res) => {
-                if (res == 1) {
-                    alert("Game failed to open.");
+            invoke("get_os").then((_os) => {
+                if (_os == "linux") {
+                    invoke("start_em2_steam", {});
+                } else if (_os == "windows") {
+                    invoke("playgame", {
+                        dolphin: filepath + "/DEM2.exe",
+                        exe: "",
+                        id: "",
+                    }).then((res) => {
+                        if (res == 1) {
+                            alert("Game failed to open.");
+                        }
+                    });
                 }
             });
         }

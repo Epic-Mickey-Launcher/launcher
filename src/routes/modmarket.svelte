@@ -91,7 +91,6 @@
    }
 
    async function Search() {
-      console.log("come")
      await LoadModList(false, 1);
    }
 

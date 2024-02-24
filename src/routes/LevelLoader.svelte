@@ -24,11 +24,11 @@
     let currentLevelsToShow = [];
 
     let currentLevelJSON;
-    
+
     function SelectCategory(name) {
         LoadImage(name);
         currentLevelsToShow = currentLevelJSON.find(
-            (r) => r.categoryname == name
+            (r) => r.categoryname == name,
         ).levels;
     }
 
@@ -137,9 +137,8 @@
         invoke("get_os").then((os) => {
             let p = os == "windows" ? data.path.replace("/", "\\") : data.path;
 
-invoke("open_path_in_file_manager", {path:p});
+            invoke("open_path_in_file_manager", { path: p });
         });
-    
     }
 
     function CreateModNode(element, index) {
@@ -166,18 +165,15 @@ invoke("open_path_in_file_manager", {path:p});
 
     data = GetData("levelloaderdata");
 
-    if(data.game == "EM2" && data.platform == "wii" ){
-              currentLevelJSON = levelsDataEM2;
-        }
-        else if (data.game == "EM1"){
-            currentLevelJSON = levelsData;
-        }
-        else {
-            currentLevelJSON=[];
-        }
+    if (data.game == "EM2" && data.platform == "wii") {
+        currentLevelJSON = levelsDataEM2;
+    } else if (data.game == "EM1") {
+        currentLevelJSON = levelsData;
+    } else {
+        currentLevelJSON = [];
+    }
 
     onMount(async () => {
-
         let ModsData = await ReadFile(data.path + "/EMLMods.json");
 
         let ModsDataObject = JSON.parse(ModsData);
@@ -240,27 +236,25 @@ invoke("open_path_in_file_manager", {path:p});
             platform: data.platform,
         }).then(async (json) => {
             let json_exists = await exists(data.path + "/EMLMods.json");
-            let current_mods = []
-            if (json_exists)
-            {
-                current_mods = JSON.parse(await ReadFile(data.path + "/EMLMods.json"));
+            let current_mods = [];
+            if (json_exists) {
+                current_mods = JSON.parse(
+                    await ReadFile(data.path + "/EMLMods.json"),
+                );
             }
 
-
             let mod = {
-                    name: filename,
-                    modid: id,
-                    active: true,
-                    update: 0,
-                }
+                name: filename,
+                modid: id,
+                active: true,
+                update: 0,
+            };
 
-            current_mods.push(mod)
+            current_mods.push(mod);
 
-
-            
             await WriteFile(
                 JSON.stringify(current_mods),
-                data.path + "/EMLMods.json"
+                data.path + "/EMLMods.json",
             );
             modInstallElement.$destroy();
 
@@ -289,31 +283,28 @@ invoke("open_path_in_file_manager", {path:p});
 
         let d = await ReadJSON("conf.json");
 
-        if(d.dolphinPath == "")
-        {
+        if (d.dolphinPath == "") {
             await alert("Dolphin is required for this game to work!");
             return;
         }
 
-       
-            invoke("playgame", {
-                dolphin: d.dolphinPath,
-                exe: data.path + "/sys/main.dol",
-                id: data.id
-            }).then((res) => {
-                if (res == 1) {
-                    alert(
-                        "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.",
-                    );
-                }
-            });
-
+        invoke("playgame", {
+            dolphin: d.dolphinPath,
+            exe: data.path + "/sys/main.dol",
+            id: data.id,
+        }).then((res) => {
+            if (res == 1) {
+                alert(
+                    "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.",
+                );
+            }
+        });
     }
 
     async function DeleteFromGameList() {
         let dat = await ReadJSON("games.json");
 
-        let toDelete = await dat.find(r => r.path === data.path);
+        let toDelete = await dat.find((r) => r.path === data.path);
 
         dat.splice(dat.indexOf(toDelete), 1);
 
@@ -359,11 +350,13 @@ invoke("open_path_in_file_manager", {path:p});
 
         <button on:click={InstallLocalMod}>Install Local Mod</button>
     </div>
-    
+
     <div bind:this={levelLoader} style="display:none;">
         <h1 style="text-align:center;">Level Loader</h1>
         <p />
-        <div style="display:flex;align-items:center;justify-content:center;position:relative;">
+        <div
+            style="display:flex;align-items:center;justify-content:center;position:relative;"
+        >
             <div
                 style="overflow:hidden; margin-right:256px;position:absolute;height:112px;width:256px;top:0px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
             >
@@ -420,7 +413,9 @@ invoke("open_path_in_file_manager", {path:p});
                 on:click={() => ExitLevelLoader(1)}
                 >Save Level and Return</button
             >
-            <plaintext><s>stolen</s> borrowed from RampantLeaf & SlayCap</plaintext>
+            <plaintext
+                ><s>stolen</s> borrowed from RampantLeaf & SlayCap</plaintext
+            >
         </p>
     </div>
 

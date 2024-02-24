@@ -63,6 +63,13 @@ struct CheckISOResult {
     id: String,
     nkit: bool,
 }
+
+#[tauri::command]
+fn start_em2_steam()
+{
+    Command::new("steam").arg("steam://rungameid/245300").spawn();
+}
+
 #[tauri::command]
 fn open_dolphin(path: String) {
 
@@ -662,6 +669,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             playgame,
             download_mod,
+            start_em2_steam,
             change_mod_status,
             delete_mod,
             validate_mod,
