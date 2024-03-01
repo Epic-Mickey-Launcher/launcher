@@ -73,6 +73,7 @@ fn start_em2_steam()
 #[tauri::command]
 fn open_dolphin(path: String) {
 
+    println!("deek");
     let mut config_path = dirs_next::config_dir().expect("could not get config dir");
     config_path.push(r"com.memer.eml");
     config_path.push("DolphinConfig");
@@ -82,6 +83,8 @@ fn open_dolphin(path: String) {
     #[cfg(target_os = "linux")]
     //QT env variable is for wayland functionality
     Command::new(if path == "" {"dolphin-emu"} else {&path}).arg("-u").arg(config_path).env("QT_QPA_PLATFORM", "xcb").env("WAYLAND_DISPLAY", "+").spawn().expect("failed to start dolphin");
+    #[cfg(target_os = "macos")]
+    Command::new("open").arg(path).arg("--args").arg("-u").arg(config_path).spawn();
 }
 
 #[tauri::command]
@@ -782,10 +785,10 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
         return 0;
     } else if os == "macos" {
         Command::new("open")
+            .arg(&dolphin)
+            .arg("--args")
             .arg("-b")
             .arg("-e")
-            .arg("-a")
-            .arg(&dolphin)
             .arg(&exe)
             .arg("-u")
             .arg(config_path)
