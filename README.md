@@ -1,4 +1,4 @@
-<img src="https://eml.memerdev.com/emlLogo.png" width="400">
+<img src="https://eml.kalsvik.no/emlLogo.png" width="400">
 
 ### Easiest way to Play, Mod and enjoy Epic Mickey
 ___
@@ -13,19 +13,19 @@ ___
 
 *EML contains a bunch of mods uploaded by the community.*
 
-<img src="https://eml.memerdev.com/modmarket.png" width="400">
+<img src="https://eml.kalsvik.no/modmarket.png" width="400">
 
 ## Networking Features
 
 *Upload your own mods, Send comments, Vote on mods & customize your profile with an EML Account.*
 
-<img src="https://eml.memerdev.com/profilepage.png" width="400">
+<img src="https://eml.kalsvik.no/profilepage.png" width="400">
 
 ## Robust Mod Management
 
 *Easily Disable/Enable mods with one click.*
 
-<img src="https://eml.memerdev.com/modmanagement.png" width="400">
+<img src="https://eml.kalsvik.no/modmanagement.png" width="400">
 
 **Made in Svelte & Tauri**
 
