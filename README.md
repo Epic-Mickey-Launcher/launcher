@@ -1,4 +1,4 @@
-<img src="https://eml.kalsvik.no/emlLogo.png" width="400">
+<img src="https://eml.kalsvik.no/res/eml.svg" width="400">
 
 ### Easiest way to Play, Mod and enjoy Epic Mickey
 ___
