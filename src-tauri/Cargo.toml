@@ -1,6 +1,6 @@
 [package]
-name = "EpicMickeyLauncher"
-version = "0.3.2"
+name = "epic-mickey-launcher"
+version = "0.4.3"
 description = "launcher"
 authors = ["Jonas Kalsvik"]
 license = "MIT"

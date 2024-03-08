@@ -650,7 +650,6 @@ fn main() {
     .unwrap();
 
     let _ = fix_path_env::fix();
-
     tauri::Builder::default()
         .setup(|app| {
             let window = app.get_window("main").unwrap();
@@ -736,6 +735,104 @@ fn log(output: &str) {
         .unwrap();
 
     file.write(final_output.as_bytes()).unwrap();
+}
+
+
+#[tauri::command]
+async fn delete_mod(
+    dumploc: String,
+    gameid: String,
+    platform: String,
+    modid: String,
+    active: bool,
+    window: Window,
+) {
+    log(&format!("Attempting to delete mod ({}).", modid));
+    let p = PathBuf::from(format!("{}/{}", dumploc, modid));
+
+    if !p.exists() {
+        return;
+    }
+
+    let data = parse_mod_info(p.to_str().unwrap().to_string());
+
+    let files = data.files;
+    let texturefiles = data.textures;
+
+    if active {
+        let mut datafiles_path = PathBuf::new();
+        datafiles_path.push(&dumploc);
+        if platform == "wii" {
+            datafiles_path.push("files");
+        }
+
+        let mut backup_path = PathBuf::new();
+        backup_path.push(&dumploc);
+        backup_path.push("backup");
+
+        let mut files_to_remove = files.len() + texturefiles.len();
+
+        for file in files {
+            let mut source_path = PathBuf::new();
+            source_path.push(&backup_path);
+            source_path.push(&file);
+
+            let mut destination_path = PathBuf::new();
+            destination_path.push(&datafiles_path);
+            destination_path.push(&file);
+
+            if std::path::Path::new(&source_path).exists()
+                && std::path::Path::new(&destination_path).exists()
+            {
+                files_to_remove -= 1;
+
+                window
+                    .emit(
+                        "change_description_text_delete",
+                        format!(
+                            "Restoring original files... Remaining files: {}",
+                            files_to_remove
+                        ),
+                    )
+                    .unwrap();
+
+                fs::copy(source_path, destination_path).unwrap();
+            }
+        }
+
+        log("Removed modded files.");
+
+        let mut p = PathBuf::from("Load/Textures/");
+        p.push(&gameid);
+
+        let dolphin_path = find_dolphin_dir(&p);
+
+        for file in texturefiles {
+            let mut path = PathBuf::new();
+
+            path.push(&dolphin_path);
+
+            let path_final = remove_first(&file).expect("couldn't remove slash from string");
+
+            path.push(path_final);
+
+            if std::path::Path::new(&path).exists() {
+                files_to_remove -= 1;
+
+                window
+                    .emit(
+                        "change_description_text_delete",
+                        format!("Deleting Textures... Remaining files: {}", files_to_remove),
+                    )
+                    .unwrap();
+
+                fs::remove_file(&path).unwrap();
+            }
+        }
+        log("Removed texture files.");
+    }
+    log("Process ended.");
+    println!("Proccess ended");
 }
 
 #[tauri::command]
@@ -869,103 +966,6 @@ async fn change_mod_status(
         delete_mod(dumploc, gameid, platform, modid, !active, window).await;
     }
 
-    println!("Proccess ended");
-}
-
-#[tauri::command]
-async fn delete_mod(
-    dumploc: String,
-    gameid: String,
-    platform: String,
-    modid: String,
-    active: bool,
-    window: Window,
-) {
-    log(&format!("Attempting to delete mod ({}).", modid));
-    let p = PathBuf::from(format!("{}/{}", dumploc, modid));
-
-    if !p.exists() {
-        return;
-    }
-
-    let data = parse_mod_info(p.to_str().unwrap().to_string());
-
-    let files = data.files;
-    let texturefiles = data.textures;
-
-    if active {
-        let mut datafiles_path = PathBuf::new();
-        datafiles_path.push(&dumploc);
-        if platform == "wii" {
-            datafiles_path.push("files");
-        }
-
-        let mut backup_path = PathBuf::new();
-        backup_path.push(&dumploc);
-        backup_path.push("backup");
-
-        let mut files_to_remove = files.len() + texturefiles.len();
-
-        for file in files {
-            let mut source_path = PathBuf::new();
-            source_path.push(&backup_path);
-            source_path.push(&file);
-
-            let mut destination_path = PathBuf::new();
-            destination_path.push(&datafiles_path);
-            destination_path.push(&file);
-
-            if std::path::Path::new(&source_path).exists()
-                && std::path::Path::new(&destination_path).exists()
-            {
-                files_to_remove -= 1;
-
-                window
-                    .emit(
-                        "change_description_text_delete",
-                        format!(
-                            "Restoring original files... Remaining files: {}",
-                            files_to_remove
-                        ),
-                    )
-                    .unwrap();
-
-                fs::copy(source_path, destination_path).unwrap();
-            }
-        }
-
-        log("Removed modded files.");
-
-        let mut p = PathBuf::from("Load/Textures/");
-        p.push(&gameid);
-
-        let dolphin_path = find_dolphin_dir(&p);
-
-        for file in texturefiles {
-            let mut path = PathBuf::new();
-
-            path.push(&dolphin_path);
-
-            let path_final = remove_first(&file).expect("couldn't remove slash from string");
-
-            path.push(path_final);
-
-            if std::path::Path::new(&path).exists() {
-                files_to_remove -= 1;
-
-                window
-                    .emit(
-                        "change_description_text_delete",
-                        format!("Deleting Textures... Remaining files: {}", files_to_remove),
-                    )
-                    .unwrap();
-
-                fs::remove_file(&path).unwrap();
-            }
-        }
-        log("Removed texture files.");
-    }
-    log("Process ended.");
     println!("Proccess ended");
 }
 
