@@ -20,11 +20,13 @@
     let latestDownloadLink = "";
     let updateHyperLink;
     let connectionIssues;
+    let version = ""
     export async function ForceSetPFP(p) {
         pfp = p;
     }
 
     onMount(async () => {
+        version = await getVersion();
         let callbackOnEnterNewWindow = async () => {
             try {
                 connectionIssues = false;
@@ -94,9 +96,10 @@
         <p />
         <div class="header" bind:this={header}>
             <img
-                src="/img/emlLogo.png"
-                alt="0.3.2"
-                style="z-index:1;margin-left:10px;"
+                src="/img/eml.svg"
+                alt=""
+                title={version}
+                style="z-index:1;width:300px;padding:5px 0px;position:relative;right:30px;"
             />
 
             <p style="margin-right:20px" />
