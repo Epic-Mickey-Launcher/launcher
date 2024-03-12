@@ -90,12 +90,22 @@ fn open_dolphin(path: String) {
         .spawn()
         .expect("failed to start dolphin");
     #[cfg(target_os = "macos")]
-    Command::new("open")
-        .arg(path)
-        .arg("--args")
-        .arg("-u")
-        .arg(config_path)
-        .spawn();
+    {
+        Command::new("xattr")
+            .arg("-d")
+            .arg("com.apple.quarantine")
+            .arg(&path)
+            .spawn()
+            .unwrap();
+
+        Command::new("open")
+            .arg(path)
+            .arg("--args")
+            .arg("-u")
+            .arg(config_path)
+            .spawn()
+            .unwrap();
+    }
 }
 
 #[tauri::command]
@@ -245,9 +255,9 @@ async fn extract_iso(isopath: String, gamename: String, window: Window, dolphin:
 
     #[cfg(target_os = "windows")]
     dolphin_tool.push("DolphinTool.exe");
-    #[cfg(target_os = "linux")] 
+    #[cfg(target_os = "linux")]
     dolphin_tool.push("dolphin-tool");
-    #[cfg(target_os = "macos")] 
+    #[cfg(target_os = "macos")]
     dolphin_tool.push("dolphin-tool");
 
     fs::create_dir_all(&destination).unwrap();
@@ -400,13 +410,33 @@ fn extract_archive(url: String, input_path: String, output_path: &PathBuf) -> St
 
         archive_type = "zip";
 
-        let mut f = File::open(&input_path).expect("Failed to open tmpzip");
-
-        let mut buffer = Vec::new();
-
-        f.read_to_end(&mut buffer).expect("Failed to read tmpzip");
-
-        zip_extract::extract(Cursor::new(buffer), &output_path, false).expect("failed to extract");
+        #[cfg(target_os = "macos")]
+        {
+            Command::new("ditto")
+                .arg("-x")
+                .arg("-k")
+                .arg(&input_path)
+                .arg(&output_path)
+                .output()
+                .unwrap();
+        }
+        //prolly a way to combine these
+        #[cfg(target_os = "windows")]
+        {
+            let mut f = File::open(&input_path).expect("Failed to open tmpzip");
+            let mut buffer = Vec::new();
+            f.read_to_end(&mut buffer).expect("Failed to read tmpzip");
+            zip_extract::extract(Cursor::new(buffer), &output_path, false)
+                .expect("failed to extract");
+        }
+        #[cfg(target_os = "linux")]
+        {
+            let mut f = File::open(&input_path).expect("Failed to open tmpzip");
+            let mut buffer = Vec::new();
+            f.read_to_end(&mut buffer).expect("Failed to read tmpzip");
+            zip_extract::extract(Cursor::new(buffer), &output_path, false)
+                .expect("failed to extract");
+        }
     } else if &buffer[0..2] == "7z".as_bytes() {
         println!("Archive is 7Zip");
         archive_type = "7zip";

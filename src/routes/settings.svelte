@@ -47,9 +47,9 @@
 
     //HACK: there has to be a better way to do this
     //HACK: no
-    const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/3b/69/dolphin-master-5.0-19870-x64.7z";
-    const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin.7z";
-    const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin.7z";
+    const DOLPHIN_LINK_WINDOWS = "https://kalsvik.no/res/dolphin_windows.zip";
+    const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin_linux.7z";
+    const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin_mac.zip";
 
 
     async function DownloadDolphin(){
@@ -60,12 +60,26 @@
         modInstallElement.modName = "Dolphin";
         modInstallElement.modIcon = "img/dolphin.png";
         modInstallElement.showDownloadProgression = true;
-        invoke("download_tool", {url: os == "windows" ? DOLPHIN_LINK_WINDOWS : DOLPHIN_LINK_LINUX, foldername: "Dolphin"}).then(async (path) => {
+        let url = ""
+        if(os == "windows")
+            url = DOLPHIN_LINK_WINDOWS
+        else if (os == "macos")
+            url = DOLPHIN_LINK_MACOS
+        else if (os == "linux")
+            url = DOLPHIN_LINK_LINUX
+        console.log(os)
+
+        invoke("download_tool", {url: url, foldername: "Dolphin"}).then(async (path) => {
             let dat = await ReadJSON("conf.json");
 
       
-
-            dat.dolphinPath = path + (os == "windows" ? "/Dolphin-x64/Dolphin.exe" : "/dolphin-emu");
+            if(os == "windows")
+                dat.dolphinPath = path + "/Dolphin.exe";
+            else if (os == "macos")
+                dat.dolphinPath = path + "/Dolphin.app";
+            else if (os == "linux")
+                dat.dolphinPath = path + "/dolphin-emu";
+            
 
             console.log(dat.dolphinPath)
              
@@ -80,7 +94,7 @@
     onMount(async () => {
 
 
-
+        os = await invoke("get_os")
         version = await getTauriVersion()
         await SetCurrentPaths();
     });
