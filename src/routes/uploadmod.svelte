@@ -11,9 +11,7 @@
     import Loading from "./components/loading.svelte";
 
     let replacingMod;
-
     let automaticallyPublish;
-
     let uploadModDiv;
     let waitDiv;
     let resultDiv;
@@ -34,14 +32,11 @@
             }, 1000);
         });
         let cb = async () => {
-            console.log("doofoo")
             let id = await GetId();
-
             let request = await POST("getenterrequest", { id: id });
-
             if (request.modid != "") {
                 setTimeout(() => {
-                    console.log(request)
+                    console.log(request);
                     SetData("modpage_id", request.modid.toString());
                     window.open("#/modpage", "_self");
                 }, 1000);
@@ -97,7 +92,7 @@
                     });
                     replacingMod = null;
                     modInstallElement.$destroy();
-                    Invoke("onModUploadRequest", {})
+                    Invoke("onModUploadRequest", {});
                     result =
                         "Mod Request Successful! You will be redirected to your mod once the server has validated and published it...";
                     waitDiv.style.display = "none";
@@ -203,7 +198,10 @@
 </div>
 
 <div bind:this={waitDiv} style="display:none;"><h1>Please Wait...</h1></div>
-<div bind:this={resultDiv} style="display:none;"><h1>{result}</h1><Loading></Loading></div>
+<div bind:this={resultDiv} style="display:none;">
+    <h1>{result}</h1>
+    <Loading></Loading>
+</div>
 
 <input
     on:drop={dropFile}

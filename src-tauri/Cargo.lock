@@ -3,34 +3,6 @@
 version = 3
 
 [[package]]
-name = "EpicMickeyLauncher"
-version = "0.3.2"
-dependencies = [
- "bytes",
- "chrono",
- "copy_dir",
- "dirs-next",
- "fix-path-env",
- "fs_extra",
- "futures-util",
- "json",
- "open 4.1.0",
- "registry",
- "reqwest",
- "scan_dir",
- "serde",
- "serde_json",
- "sevenz-rust",
- "shutil",
- "tauri",
- "tauri-build",
- "tauri-plugin-deep-link",
- "tokio-stream",
- "walkdir 2.3.2",
- "zip-extract",
-]
-
-[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -935,6 +907,34 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.28",
+]
+
+[[package]]
+name = "epic-mickey-launcher"
+version = "0.4.3"
+dependencies = [
+ "bytes",
+ "chrono",
+ "copy_dir",
+ "dirs-next",
+ "fix-path-env",
+ "fs_extra",
+ "futures-util",
+ "json",
+ "open 4.1.0",
+ "registry",
+ "reqwest",
+ "scan_dir",
+ "serde",
+ "serde_json",
+ "sevenz-rust",
+ "shutil",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-deep-link",
+ "tokio-stream",
+ "walkdir 2.3.2",
+ "zip-extract",
 ]
 
 [[package]]

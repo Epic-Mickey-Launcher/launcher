@@ -73,6 +73,7 @@ fn start_em2_steam()
 #[tauri::command]
 fn open_dolphin(path: String) {
 
+    println!("deek");
     let mut config_path = dirs_next::config_dir().expect("could not get config dir");
     config_path.push(r"com.memer.eml");
     config_path.push("DolphinConfig");
@@ -82,6 +83,8 @@ fn open_dolphin(path: String) {
     #[cfg(target_os = "linux")]
     //QT env variable is for wayland functionality
     Command::new(if path == "" {"dolphin-emu"} else {&path}).arg("-u").arg(config_path).env("QT_QPA_PLATFORM", "xcb").env("WAYLAND_DISPLAY", "+").spawn().expect("failed to start dolphin");
+    #[cfg(target_os = "macos")]
+    Command::new("open").arg(path).arg("--args").arg("-u").arg(config_path).spawn();
 }
 
 #[tauri::command]
@@ -647,7 +650,6 @@ fn main() {
     .unwrap();
 
     let _ = fix_path_env::fix();
-
     tauri::Builder::default()
         .setup(|app| {
             let window = app.get_window("main").unwrap();
@@ -735,139 +737,6 @@ fn log(output: &str) {
     file.write(final_output.as_bytes()).unwrap();
 }
 
-#[tauri::command]
-fn open_path_in_file_manager(path: String) {
-    #[cfg(target_os = "windows")]
-    Command::new("explorer.exe")
-        .arg(path)
-        .spawn()
-        .expect("failed to execute process");
-
-    #[cfg(target_os = "macos")]
-    Command::new("open")
-        .arg(path)
-        .spawn()
-        .expect("failed to execute process");
-
-    #[cfg(target_os = "linux")]
-    Command::new("dolphin")
-        .arg(path)
-        .spawn()
-        .expect("failed to execute process");
-}
-
-#[tauri::command]
-fn playgame(dolphin: String, exe: String, id: String) -> i32 {
-
-    let config_path = find_dolphin_dir(&PathBuf::new());
-
-    auto_set_custom_textures();
-
-    let os = env::consts::OS;
-    if !Path::new(&dolphin).exists() {
-        return 1;
-    }
-
-    if os == "windows" {
-        if dolphin.ends_with(".exe") {
-            Command::new(&dolphin)
-                .arg("-b")
-                .arg("-e")
-                .arg(&exe)
-                .arg("-u")
-                .arg(config_path)
-                .spawn()
-                .expect("could not open exe");
-        }
-        return 0;
-    } else if os == "macos" {
-        Command::new("open")
-            .arg("-b")
-            .arg("-e")
-            .arg("-a")
-            .arg(&dolphin)
-            .arg(&exe)
-            .arg("-u")
-            .arg(config_path)
-            .spawn()
-            .expect("could not open dolphin");
-        return 0;
-    } else if os == "linux" {
-
-        Command::new("chmod").arg("+x").arg(&dolphin).output().expect("failed to give executable the correct permissions");
-
-        Command::new(dolphin)
-        .env("WAYLAND_DISPLAY", "0")
-            .arg("-b")
-            .arg("-e")
-            .arg(&exe)
-            .arg("-u")
-            .arg(config_path)
-            .spawn()
-            .expect("could not open dolphin");
-        return 0;
-    }
-
-    return 0;
-}
-
-fn remove_first(s: &str) -> Option<&str> {
-    s.chars().next().map(|c| &s[c.len_utf8()..])
-}
-
-#[tauri::command]
-fn check_iso(path: String) -> CheckISOResult {
-    let mut f = File::open(path).expect("Couldn't open ISO");
-    let mut buffer = [0; 1000];
-    f.read(&mut buffer).expect("failed to read game id");
-    let id = std::str::from_utf8(&buffer[0..6]).unwrap().to_uppercase();
-    let nkit = std::str::from_utf8(&buffer[0x200..0x204])
-        .unwrap()
-        .to_uppercase();
-    let is_nkit = if nkit == "NKIT" { true } else { false };
-    let res = CheckISOResult {
-        id: id.clone(),
-        nkit: is_nkit,
-    };
-
-    log(&format!("Disc ID: {} | NKit: {}", id, is_nkit));
-    res
-}
-
-#[tauri::command]
-async fn change_mod_status(
-    dumploc: String,
-    gameid: String,
-    modid: String,
-    platform: String,
-    active: bool,
-    modname: String,
-    window: Window,
-) {
-    let active = active;
-
-    let name = modname;
-
-    if active {
-        log(&format!("Mod ({}) Enabled", modid));
-        //todo: fix this shit
-        download_mod(
-            "".to_string(),
-            name.to_string(),
-            dumploc,
-            gameid,
-            modid,
-            platform,
-            window,
-        )
-        .await;
-    } else {
-        log(&format!("Mod ({}) Disabled.", modid));
-        delete_mod(dumploc, gameid, platform, modid, !active, window).await;
-    }
-
-    println!("Proccess ended");
-}
 
 #[tauri::command]
 async fn delete_mod(
@@ -963,6 +832,140 @@ async fn delete_mod(
         log("Removed texture files.");
     }
     log("Process ended.");
+    println!("Proccess ended");
+}
+
+#[tauri::command]
+fn open_path_in_file_manager(path: String) {
+    #[cfg(target_os = "windows")]
+    Command::new("explorer.exe")
+        .arg(path)
+        .spawn()
+        .expect("failed to execute process");
+
+    #[cfg(target_os = "macos")]
+    Command::new("open")
+        .arg(path)
+        .spawn()
+        .expect("failed to execute process");
+
+    #[cfg(target_os = "linux")]
+    Command::new("dolphin")
+        .arg(path)
+        .spawn()
+        .expect("failed to execute process");
+}
+
+#[tauri::command]
+fn playgame(dolphin: String, exe: String, id: String) -> i32 {
+
+    let config_path = find_dolphin_dir(&PathBuf::new());
+
+    auto_set_custom_textures();
+
+    let os = env::consts::OS;
+    if !Path::new(&dolphin).exists() {
+        return 1;
+    }
+
+    if os == "windows" {
+        if dolphin.ends_with(".exe") {
+            Command::new(&dolphin)
+                .arg("-b")
+                .arg("-e")
+                .arg(&exe)
+                .arg("-u")
+                .arg(config_path)
+                .spawn()
+                .expect("could not open exe");
+        }
+        return 0;
+    } else if os == "macos" {
+        Command::new("open")
+            .arg(&dolphin)
+            .arg("--args")
+            .arg("-b")
+            .arg("-e")
+            .arg(&exe)
+            .arg("-u")
+            .arg(config_path)
+            .spawn()
+            .expect("could not open dolphin");
+        return 0;
+    } else if os == "linux" {
+
+        Command::new("chmod").arg("+x").arg(&dolphin).output().expect("failed to give executable the correct permissions");
+
+        Command::new(dolphin)
+        .env("WAYLAND_DISPLAY", "0")
+            .arg("-b")
+            .arg("-e")
+            .arg(&exe)
+            .arg("-u")
+            .arg(config_path)
+            .spawn()
+            .expect("could not open dolphin");
+        return 0;
+    }
+
+    return 0;
+}
+
+fn remove_first(s: &str) -> Option<&str> {
+    s.chars().next().map(|c| &s[c.len_utf8()..])
+}
+
+#[tauri::command]
+fn check_iso(path: String) -> CheckISOResult {
+    let mut f = File::open(path).expect("Couldn't open ISO");
+    let mut buffer = [0; 1000];
+    f.read(&mut buffer).expect("failed to read game id");
+    let id = std::str::from_utf8(&buffer[0..6]).unwrap().to_uppercase();
+    let nkit = std::str::from_utf8(&buffer[0x200..0x204])
+        .unwrap()
+        .to_uppercase();
+    let is_nkit = if nkit == "NKIT" { true } else { false };
+    let res = CheckISOResult {
+        id: id.clone(),
+        nkit: is_nkit,
+    };
+
+    log(&format!("Disc ID: {} | NKit: {}", id, is_nkit));
+    res
+}
+
+#[tauri::command]
+async fn change_mod_status(
+    dumploc: String,
+    gameid: String,
+    modid: String,
+    platform: String,
+    active: bool,
+    modname: String,
+    window: Window,
+) {
+    let active = active;
+
+    let name = modname;
+
+    if active {
+        log(&format!("Mod ({}) Enabled", modid));
+        //todo: fix this shit
+        download_mod(
+            "".to_string(),
+            name.to_string(),
+            dumploc,
+            gameid,
+            modid,
+            platform,
+            window,
+        )
+        .await;
+    } else {
+        log(&format!("Mod ({}) Disabled.", modid));
+        delete_mod(dumploc, gameid, platform, modid, !active, window).await;
+    }
+
     println!("Proccess ended");
 }
 
