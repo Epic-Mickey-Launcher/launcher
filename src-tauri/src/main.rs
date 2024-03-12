@@ -223,217 +223,37 @@ fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
 
 #[tauri::command]
 async fn extract_iso(
-    witpath: String,
-    nkit: String,
     isopath: String,
     gamename: String,
-    is_nkit: bool,
     window: Window,
+    dolphin: String
 ) -> String {
-    let mut extracted_iso_path = PathBuf::new();
-    #[cfg(target_os = "windows")]
-    extracted_iso_path.push("c:/extractedwii");
-    #[cfg(target_os = "linux")]
+
+    let mut destination = PathBuf::new();    
+    destination.push(dirs_next::config_dir().expect("could not get config dir"));
+    destination.push("com.memer.eml");
+    destination.push("Games");
+    destination.push(gamename);
+
+    let mut dolphin_tool = PathBuf::from(dolphin);
+    dolphin_tool.pop();
+    dolphin_tool.push("dolphin-tool");
+
+    fs::create_dir_all(&destination).unwrap();
+
+    if !dolphin_tool.exists()
     {
-        extracted_iso_path.push("Z:");
-        extracted_iso_path.push(dirs_next::data_local_dir().unwrap());
-        extracted_iso_path.push("com.memer.eml");
-        extracted_iso_path.push("extractedwii");
+        return "err_toolnoexist".to_string();
     }
 
-    let mut source_path = PathBuf::new();
-    source_path.push(&extracted_iso_path);
+    println!("{}", destination.display());
 
-    /*  extracted_iso_path.push(&witpath);
-     extracted_iso_path.pop();
-    extracted_iso_path.push("extracted_iso");  */
+    Command::new(dolphin_tool)
+    .arg("extract")
+    .arg(isopath).arg(&destination)
+    .output().expect("failed to open dolphin-tool");
 
-    if Path::new(&extracted_iso_path).exists() {
-        fs::remove_dir_all(&extracted_iso_path).expect("Failed to create temp folder");
-    }
-
-    let mut response = "".to_string();
-    let mut m_isopath = PathBuf::new();
-    m_isopath.push(&isopath);
-
-    let mut remove_nkit_processed = false;
-
-    log("Beginning ISO Extraction.");
-
-    if is_nkit {
-        if nkit != "" {
-            log("NKit compressed ISO.");
-
-            window
-                .emit("change_iso_extract_msg", "Converting NKit to ISO...")
-                .unwrap();
-
-            let mut proc_path = PathBuf::new();
-            proc_path.push(&nkit);
-            proc_path.push("ConvertToISO.exe");
-
-            log("Starting NKit conversion.");
-
-            #[cfg(target_os = "windows")]
-            Command::new(proc_path)
-                .arg(&m_isopath)
-                .creation_flags(CREATE_NO_WINDOW)
-                .output()
-                .expect("NKit failed to start");
-
-            #[cfg(target_os = "linux")]
-            Command::new("wine")
-                .arg(proc_path)
-                .arg("z:".to_owned() + &m_isopath.to_str().unwrap())
-                .output()
-                .expect("NKit failed to start");
-
-            log("NKit process finished.");
-
-            source_path.push("DATA");
-
-            //HACK: probably the worst way to do this
-
-            let p = nkit + "/Processed/Wii/";
-
-            let paths = fs::read_dir(p).unwrap();
-            let mut foundfirst = false;
-            for path in paths {
-                if !foundfirst {
-                    let binding = path
-                        .unwrap()
-                        .path()
-                        .to_str()
-                        .expect("Can't get path")
-                        .clone()
-                        .to_string();
-
-                    if binding.ends_with(".iso") {
-                        m_isopath = PathBuf::new();
-
-                        m_isopath = binding.into();
-
-                        println!("{}", m_isopath.display());
-
-                        log(&format!(
-                            "ISO Target changed to {}.",
-                            m_isopath.to_str().unwrap()
-                        ));
-
-                        foundfirst = true;
-                        remove_nkit_processed = true;
-                    }
-                }
-            }
-
-            if !foundfirst {
-                log("New ISO target could not be found. Aborting.");
-                return "err_nkit".to_string();
-            }
-        } else {
-            log("NKit possibly not installed. Aborting.");
-            return "err_nkit".to_string();
-        }
-    }
-
-    window
-        .emit("change_iso_extract_msg", "Extracting ISO...")
-        .unwrap();
-    log("Beginning ISO Extraction.");
-
-    println!(
-        "{} {} {}",
-        &m_isopath.display(),
-        &witpath,
-        &extracted_iso_path.display()
-    );
-
-    #[cfg(target_os = "windows")]
-    Command::new(&witpath)
-        .arg("extract")
-        .arg(&m_isopath)
-        .arg("-D")
-        .arg(&extracted_iso_path)
-        .creation_flags(CREATE_NO_WINDOW)
-        .output()
-        .expect("failed to execute process");
-
-    let p = "Z:".to_owned() + &m_isopath.to_str().unwrap();
-    #[cfg(target_os = "linux")]
-    let extracted_p = "Z:".to_owned() + extracted_iso_path.clone().to_str().unwrap();
-
-    #[cfg(target_os = "linux")]
-    Command::new("wine")
-        .arg(&witpath)
-        .arg("extract")
-        .arg(p)
-        .arg("-D")
-        .arg(extracted_p)
-        .output()
-        .expect("failed to execute process");
-
-    window
-        .emit("change_iso_extract_msg", "Cleaning Up...")
-        .unwrap();
-
-    log("ISO Finished extracting");
-    log("Injecting game files into final directory.");
-
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push("com.memer.eml");
-    path.push("Games");
-    path.push(gamename);
-
-    let without_data = path.clone();
-
-    path.push("DATA");
-
-    if !Path::new(&path).exists() {
-        fs::create_dir_all(&path).expect("Couldn't create game folder");
-    }
-
-    window
-        .emit("change_iso_extract_msg", "Injecting Game Files...")
-        .unwrap();
-
-    let mut s = source_path.clone();
-    s.push("DATA");
-    if s.exists() {
-        source_path.push("DATA");
-
-        let mut update_partition = source_path.clone();
-        update_partition.push("UPDATE");
-
-        //remove unneeded update partition
-        if update_partition.exists() {
-            fs::remove_dir_all(update_partition).unwrap();
-        }
-    }
-
-    if source_path.exists() {
-        inject_files(&source_path, &path);
-
-        window
-            .emit("change_iso_extract_msg", "Cleaning up....")
-            .unwrap();
-
-        if remove_nkit_processed && Path::new(&m_isopath).exists() {
-            fs::remove_file(m_isopath).expect("failed to remove converted nkit iso");
-        }
-
-        response = without_data.display().to_string();
-
-        if Path::new(&extracted_iso_path).exists() {
-            fs::remove_dir_all(extracted_iso_path).expect("Failed to remove temp folder");
-        }
-    } else {
-        log("WIT did not properly extract game. Aborting.");
-        response = "err_extract".to_string();
-    }
-
-    window.emit("change_iso_extract_msg", "Finished!").unwrap();
-    log("ISO Extraction successful.");
-    return response.to_string();
+    return destination.to_str().unwrap().to_string();
 }
 
 #[tauri::command]

@@ -159,22 +159,20 @@
             //nkit: d.NkitPath,
             await invoke("extract_iso", {
               isopath: path,
-              witpath: d.WITPath,
-              nkit: d.NkitPath,
               gamename: res.id,
-              isNkit: res.nkit,
+              dolphin: d.dolphinPath
             }).then(async (res) => {
               console.log(res);
               modInstallElement.$destroy();
-              if (res != "err_nkit") {
-                console.log("fartlock " + res);
-                path = res;
-              } else {
-                //nkit cannot be converted because the toolkit is not installed
-                alert(
-                  "You must install NKit in the Settings tab to extract this iso.",
-                );
+
+              switch(res){
+                case "err_toolnoexist":
+                  await alert("dolphin-tool not found! Please re-download Dolphin from the settings tab.")
+                  return
+            
               }
+
+                path = res;
             });
           } catch (e) {
             await alert(e);
