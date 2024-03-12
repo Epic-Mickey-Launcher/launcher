@@ -27,6 +27,7 @@ use std::path;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
+use std::process::Stdio;
 use std::str;
 use walkdir::WalkDir;
 extern crate chrono;
@@ -777,22 +778,32 @@ fn remove_first(s: &str) -> Option<&str> {
 }
 
 #[tauri::command]
-fn check_iso(path: String) -> CheckISOResult {
-    let mut f = File::open(path).expect("Couldn't open ISO");
-    let mut buffer = [0; 1000];
-    f.read(&mut buffer).expect("failed to read game id");
-    let id = std::str::from_utf8(&buffer[0..6]).unwrap().to_uppercase();
-    let nkit = std::str::from_utf8(&buffer[0x200..0x204])
-        .unwrap()
-        .to_uppercase();
-    let is_nkit = if nkit == "NKIT" { true } else { false };
-    let res = CheckISOResult {
-        id: id.clone(),
-        nkit: is_nkit,
-    };
+fn check_iso(path: String, dolphin: String) -> String {
 
-    log(&format!("Disc ID: {} | NKit: {}", id, is_nkit));
-    res
+    let mut dolphin_tool = PathBuf::from(dolphin);
+    dolphin_tool.pop();
+
+    #[cfg(target_os = "windows")]
+    dolphin_tool.push("DolphinTool.exe");
+    #[cfg(target_os = "linux")]
+    dolphin_tool.push("dolphin-tool");
+    #[cfg(target_os = "macos")]
+    dolphin_tool.push("dolphin-tool");
+
+    let dolphin = Command::new(dolphin_tool)
+    .arg("header")
+    .arg("-i")
+    .arg(path)
+    .stdout(Stdio::piped())
+    .output()
+    .unwrap();
+    let stdout = String::from_utf8(dolphin.stdout).unwrap();
+    let mut s = stdout.split("\n");
+    s.next();
+    s.next();
+    let id_parse = s.next().unwrap();
+    println!("{}", id_parse);
+    id_parse.replace("Game ID: ", "").to_string()
 }
 
 #[tauri::command]

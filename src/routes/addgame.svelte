@@ -114,7 +114,7 @@
       title: "Select folder",
       directory: !iso,
       multiple: false,
-      filters: [{ name: "ISO Images", extensions: ["iso"] }],
+      filters: [{ name: "Wii Images", extensions: ["iso", "wbfs"] }],
     });
 
     console.log(selectedPath);
@@ -123,10 +123,9 @@
 
     if (iso) {
       let d = await ReadJSON("conf.json");
-      await invoke("check_iso", { path: path }).then(async (res) => {
+      await invoke("check_iso", { path: path, dolphin:d.dolphinPath }).then(async (res) => {
 
-        let result = await IdentifyISO(res.id);
-        console.log(result);
+        let result = await IdentifyISO(res);
 
         if(result.game == "")
         {
@@ -159,7 +158,7 @@
             //nkit: d.NkitPath,
             await invoke("extract_iso", {
               isopath: path,
-              gamename: res.id,
+              gamename: res,
               dolphin: d.dolphinPath
             }).then(async (res) => {
               console.log(res);
@@ -285,7 +284,7 @@
     <button
       bind:this={isobutton}
       on:click={() => AddGameDump(true)}
-      class="addgamebutton">Add Game ISO</button
+      class="addgamebutton">Add Game ISO/WBFS</button
     >
   </p>
   <p style="text-align:center">{error}</p>
