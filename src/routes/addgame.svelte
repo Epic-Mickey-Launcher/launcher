@@ -23,7 +23,7 @@
 
   onMount(async () => {
     let d = await ReadJSON("conf.json");
-    if (d.WITPath == "" || d.WITPath == null) {
+    if (d.dolphinPath == "" || d.dolphinPath == null) {
       isobutton.disabled = true;
     }
   });
