@@ -65,14 +65,14 @@ struct CheckISOResult {
 }
 
 #[tauri::command]
-fn start_em2_steam()
-{
-    Command::new("steam").arg("steam://rungameid/245300").spawn();
+fn start_em2_steam() {
+    Command::new("steam")
+        .arg("steam://rungameid/245300")
+        .spawn();
 }
 
 #[tauri::command]
 fn open_dolphin(path: String) {
-
     println!("deek");
     let mut config_path = dirs_next::config_dir().expect("could not get config dir");
     config_path.push(r"com.memer.eml");
@@ -82,9 +82,20 @@ fn open_dolphin(path: String) {
     Command::new(path).arg("-u").arg(config_path).spawn();
     #[cfg(target_os = "linux")]
     //QT env variable is for wayland functionality
-    Command::new(if path == "" {"dolphin-emu"} else {&path}).arg("-u").arg(config_path).env("QT_QPA_PLATFORM", "xcb").env("WAYLAND_DISPLAY", "+").spawn().expect("failed to start dolphin");
+    Command::new(if path == "" { "dolphin-emu" } else { &path })
+        .arg("-u")
+        .arg(config_path)
+        .env("QT_QPA_PLATFORM", "xcb")
+        .env("WAYLAND_DISPLAY", "+")
+        .spawn()
+        .expect("failed to start dolphin");
     #[cfg(target_os = "macos")]
-    Command::new("open").arg(path).arg("--args").arg("-u").arg(config_path).spawn();
+    Command::new("open")
+        .arg(path)
+        .arg("--args")
+        .arg("-u")
+        .arg(config_path)
+        .spawn();
 }
 
 #[tauri::command]
@@ -222,14 +233,8 @@ fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
 }
 
 #[tauri::command]
-async fn extract_iso(
-    isopath: String,
-    gamename: String,
-    window: Window,
-    dolphin: String
-) -> String {
-
-    let mut destination = PathBuf::new();    
+async fn extract_iso(isopath: String, gamename: String, window: Window, dolphin: String) -> String {
+    let mut destination = PathBuf::new();
     destination.push(dirs_next::config_dir().expect("could not get config dir"));
     destination.push("com.memer.eml");
     destination.push("Games");
@@ -237,21 +242,28 @@ async fn extract_iso(
 
     let mut dolphin_tool = PathBuf::from(dolphin);
     dolphin_tool.pop();
+
+    #[cfg(target_os = "windows")]
+    dolphin_tool.push("DolphinTool.exe");
+    #[cfg(target_os = "linux")] 
+    dolphin_tool.push("dolphin-tool");
+    #[cfg(target_os = "macos")] 
     dolphin_tool.push("dolphin-tool");
 
     fs::create_dir_all(&destination).unwrap();
 
-    if !dolphin_tool.exists()
-    {
+    if !dolphin_tool.exists() {
         return "err_toolnoexist".to_string();
     }
 
     println!("{}", destination.display());
 
     Command::new(dolphin_tool)
-    .arg("extract")
-    .arg(isopath).arg(&destination)
-    .output().expect("failed to open dolphin-tool");
+        .arg("extract")
+        .arg(isopath)
+        .arg(&destination)
+        .output()
+        .expect("failed to open dolphin-tool");
 
     return destination.to_str().unwrap().to_string();
 }
@@ -305,26 +317,24 @@ async fn download_zip(url: String, foldername: &PathBuf, local: bool, window: Wi
         let mut download_bytes_count = 0;
 
         while let Some(item) = buffer.next().await {
-
-            let mut success = false; 
+            let mut success = false;
 
             let mut buf = &Bytes::new();
 
-                let res = item.as_ref();
+            let res = item.as_ref();
 
-                buf = match res {
-                    Ok(b) => b,
-                    Err(error) => {
-                        buffer = reqwest::get(&url).await.unwrap().bytes_stream();
-                        download_bytes_count = 0;
-                        fs::remove_file(&temporary_archive_path).expect("failed to remove tmpzip");
-                        f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
-                        println!("Download error occured. Restarting Download.");
-                        log("Download error occured. Restarting Download.");
-                        buf
-                    },
-                };   
-            
+            buf = match res {
+                Ok(b) => b,
+                Err(error) => {
+                    buffer = reqwest::get(&url).await.unwrap().bytes_stream();
+                    download_bytes_count = 0;
+                    fs::remove_file(&temporary_archive_path).expect("failed to remove tmpzip");
+                    f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
+                    println!("Download error occured. Restarting Download.");
+                    log("Download error occured. Restarting Download.");
+                    buf
+                }
+            };
 
             if Bytes::is_empty(buf) {
                 continue;
@@ -557,7 +567,6 @@ fn log(output: &str) {
     file.write(final_output.as_bytes()).unwrap();
 }
 
-
 #[tauri::command]
 async fn delete_mod(
     dumploc: String,
@@ -678,7 +687,6 @@ fn open_path_in_file_manager(path: String) {
 
 #[tauri::command]
 fn playgame(dolphin: String, exe: String, id: String) -> i32 {
-
     let config_path = find_dolphin_dir(&PathBuf::new());
 
     auto_set_custom_textures();
@@ -713,11 +721,14 @@ fn playgame(dolphin: String, exe: String, id: String) -> i32 {
             .expect("could not open dolphin");
         return 0;
     } else if os == "linux" {
-
-        Command::new("chmod").arg("+x").arg(&dolphin).output().expect("failed to give executable the correct permissions");
+        Command::new("chmod")
+            .arg("+x")
+            .arg(&dolphin)
+            .output()
+            .expect("failed to give executable the correct permissions");
 
         Command::new(dolphin)
-        .env("WAYLAND_DISPLAY", "0")
+            .env("WAYLAND_DISPLAY", "0")
             .arg("-b")
             .arg("-e")
             .arg(&exe)
@@ -1092,7 +1103,10 @@ async fn download_mod(
 
         // copy modded files to the game
 
-        log(&format!("Injecting Game files into: {}", &path_final_location.display()));
+        log(&format!(
+            "Injecting Game files into: {}",
+            &path_final_location.display()
+        ));
 
         inject_files(&path_datafiles, &path_final_location);
 
@@ -1128,8 +1142,10 @@ async fn download_mod(
 
         fs::create_dir_all(&path).expect("Failed to create folders.");
 
-
-        log(&format!("Injecting Texture files into: {}", &dolphin_path.display()));
+        log(&format!(
+            "Injecting Texture files into: {}",
+            &dolphin_path.display()
+        ));
 
         inject_files(&path_textures, &dolphin_path)
 
@@ -1187,22 +1203,19 @@ fn linux_check_exist(package: String) -> bool {
     str_output.unwrap().contains(&package)
 }
 
-fn auto_set_custom_textures()
-{
+fn auto_set_custom_textures() {
     let mut buf = find_dolphin_dir(&PathBuf::from("Config"));
 
-    if !buf.exists()
-    {
+    if !buf.exists() {
         fs::create_dir_all(&buf).unwrap();
     }
 
     buf.push("GFX.ini");
 
-    if !buf.exists(){
+    if !buf.exists() {
         let mut f = File::create(&buf).unwrap();
         f.write(b"[Settings]\nHiresTextures = True").unwrap();
-    }
-    else {
+    } else {
         let mut f = File::open(&buf).unwrap();
         let mut b = Vec::new();
         f.read_to_end(&mut b).unwrap();
@@ -1211,7 +1224,6 @@ fn auto_set_custom_textures()
         fs::remove_file(&buf).unwrap();
         f = File::create(&buf).unwrap();
         f.write(str.as_bytes()).unwrap();
-        
     }
 }
 

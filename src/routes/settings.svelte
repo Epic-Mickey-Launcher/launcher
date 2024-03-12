@@ -49,50 +49,8 @@
     //HACK: no
     const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/3b/69/dolphin-master-5.0-19870-x64.7z";
     const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin.7z";
-    const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
-    const NKIT_LINK_WINDOWS = "https://kalsvik.no/res/nkit.tar";
+    const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin.7z";
 
-    async function DownloadWIT(){
-        let modInstallElement = new ModInstall({
-            target: document.body,
-        });
-
-        modInstallElement.modName = "Wiimms ISO Tools";
-        modInstallElement.modIcon = "img/waren.png";
-        modInstallElement.showDownloadProgression = true;
-        invoke("download_tool", {url: WIT_LINK_WINDOWS, foldername: "WIT"}).then(async (path) => {
-            let dat = await ReadJSON("conf.json");
-            let fn = WIT_LINK_WINDOWS.split('/')[WIT_LINK_WINDOWS.split('/').length - 1].replace(".zip", "");
-            dat.WITPath = path + "/" + fn + "/bin/wit.exe";
-            await WriteToJSON(JSON.stringify(dat), "conf.json");
-            SetCurrentPaths();
-            modInstallElement.$destroy();
-        })
-    }
-
-    async function DownloadNKit(){
-
-        if(os == "linux" || os == "macos")
-        {
-            await alert("This tool requires that wine be installed on your computer.");
-        }
-
-        let modInstallElement = new ModInstall({
-            target: document.body,
-        });
-        modInstallElement.description = "This will take a while...";
-        modInstallElement.modName = "NKit";
-        modInstallElement.modIcon = "img/waren.png";
-        modInstallElement.showDownloadProgression = true;
-
-        invoke("download_tool", {url: NKIT_LINK_WINDOWS, foldername: "NKit"}).then(async (path) => {
-            let dat = await ReadJSON("conf.json");
-            dat.NkitPath = path;
-            await WriteToJSON(JSON.stringify(dat), "conf.json");
-            SetCurrentPaths();
-            modInstallElement.$destroy();
-        })
-    }
 
     async function DownloadDolphin(){
 
@@ -120,14 +78,7 @@
     }
 
     onMount(async () => {
-        invoke("get_os").then((_os) => {
-               os = _os;
-               if(os == "macos"){
-wit_button.disabled = true
-dolphin_button.disabled = true
-nkit_button.disabled = true
-        }
-        })
+
 
 
         version = await getTauriVersion()
@@ -141,14 +92,6 @@ nkit_button.disabled = true
         currentDolphinPath = c.dolphinPath;
         currentWITPath = c.WITPath;
         currentNkitPath = c.NkitPath;
-
-        if(os == "linux")
-        {                
-            invoke("linux_check_exist", {package: "wine"}).then(exists => {
-                wit_button.disabled = !exists;
-                nkit_button.disabled = !exists;
-            })
-        }
     }
 
     async function SetDolphinEmulatorOverride(){
@@ -196,8 +139,6 @@ nkit_button.disabled = true
     }
 
 let dolphin_button;
-let nkit_button;
-let wit_button;
 
 </script>
 
@@ -207,18 +148,9 @@ let wit_button;
 <button on:click={SetDolphinPath}>Assign Dolphin Path</button>
 <span style="display:inline"><em>{currentDolphinPath}</em></span>
 <p>
-<button on:click={SetWITPath}>Assign WIT Path</button>
-<span style="display:inline"><em>{currentWITPath}</em></span>
-<p>Nkit Path: {currentNkitPath}</p>
-
-<p>
-<button on:click={SetDolphinEmulatorOverride} >Override Dolphin Emulator Config Folder</button>
-</p>
 
 <h2>Automatically Download & Assign</h2>
 <button bind:this={dolphin_button} on:click={DownloadDolphin}>Download Dolphin</button>
-<button bind:this={wit_button} on:click={DownloadWIT}>Download Wiims ISO Tool</button>
-<button bind:this={nkit_button} on:click={DownloadNKit}>Download NKit</button>
 <h2>Factory Reset</h2>
 <button on:click={RemoveAllConfFiles} >Remove all config files</button>
 <br>

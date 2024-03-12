@@ -2,26 +2,30 @@ const background_modmarket = [
     "back1.webp",
     "back2.webp",
     "back3.webp",
-    'bgtoon.png'
+    'bgtoon.png',
+    "bgNut.png",
 ]
 
 const background_creds_modmarket = [
     "Background from Disney Epic Mickey",
     "Background from Disney Epic Mickey",
     "Background from Disney Epic Mickey",
-    "Background from @toonblot on Discord"
+    "Background from @toonblot on Discord",
+    "Background from @altruisticnut on Discord"
 ];
 
 const background_login = [
     "back1.webp",
     "back2.webp",
     "back3.webp",
+    "bgNut.png",
 ]
 
 const background_creds_login = [
     "Background from Disney Epic Mickey",
     "Background from Disney Epic Mickey",
-    "Background from Disney Epic Mickey"
+    "Background from Disney Epic Mickey",
+    "Background from @altruisticnut on Discord"
 ];
 
 export function GetBackgroundLogin()
