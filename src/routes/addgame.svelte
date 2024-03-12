@@ -114,7 +114,7 @@
       title: "Select folder",
       directory: !iso,
       multiple: false,
-      filters: [{ name: "Wii Images", extensions: ["iso", "wbfs"] }],
+      filters: [{ name: "Wii Images", extensions: ["iso", "wbfs", "gcz", "wia", "rvz"] }],
     });
 
     console.log(selectedPath);

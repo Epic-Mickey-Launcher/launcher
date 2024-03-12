@@ -799,11 +799,15 @@ fn check_iso(path: String, dolphin: String) -> String {
     .unwrap();
     let stdout = String::from_utf8(dolphin.stdout).unwrap();
     let mut s = stdout.split("\n");
-    s.next();
-    s.next();
-    let id_parse = s.next().unwrap();
-    println!("{}", id_parse);
-    id_parse.replace("Game ID: ", "").to_string()
+    let mut id_parse = String::new();
+    while id_parse == "" {
+        let stline = s.next().unwrap();
+        if stline.contains("Game ID: "){
+            id_parse = stline.replace("Game ID: ", "");
+        }
+    }
+
+    id_parse.to_string()
 }
 
 #[tauri::command]
