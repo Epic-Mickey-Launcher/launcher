@@ -50,7 +50,7 @@
     const DOLPHIN_LINK_WINDOWS = "https://dl.dolphin-emu.org/builds/3b/69/dolphin-master-5.0-19870-x64.7z";
     const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin.7z";
     const WIT_LINK_WINDOWS = "https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip";
-    const NKIT_LINK_WINDOWS = "https://cdn.discordapp.com/attachments/1010372370743177257/1112527174478614538/NKit.zip";
+    const NKIT_LINK_WINDOWS = "https://kalsvik.no/res/nkit.tar";
 
     async function DownloadWIT(){
         let modInstallElement = new ModInstall({
