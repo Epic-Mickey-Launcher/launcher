@@ -1,6 +1,6 @@
 <img src="https://kalsvik.no/res/eml.svg" width="400">
 
-### Easiest way to Play, Mod and enjoy Epic Mickey
+### Easiest way to Play, Mod and enjoy Epic Mickey on PC
 ___
 
 ## Support for every Epic Mickey game
@@ -42,6 +42,19 @@ Download the latest .DEB from the latest [Release](https://github.com/KjubDusJub
 
 ## Linux (Arch)
 Epic Mickey Launcher is available on the [AUR](https://aur.archlinux.org/packages/epicmickeylauncher) and can be installed via [yay](https://github.com/Jguer/yay) with ```yay -S epicmickeylauncher```
+
+# Build Instructions
+
+## Prerequisites
+- NodeJS
+- Rust
+- Git
+
+1. Clone the repository: ```git clone https://github.com/KjubDusJub/Epic-Mickey-Launcher.git```
+2. CD into the cloned repository ```cd Epic-Mickey-Launcher```
+3. Install the required NPM packages ```npm install```
+4. Begin a dev session that automatically refreshes changes ```npm run tauri dev```
+5. Build a release for the platform you're currently on ```npm run tauri dev```
 
 # Roadmap
 
