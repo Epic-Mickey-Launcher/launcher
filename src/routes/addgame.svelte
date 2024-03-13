@@ -30,8 +30,11 @@
 
   async function IdentifyISO(id)
   {
+    id = id.replace(" ", "")
 
     let result = {game:"", region:""};
+
+    console.log(id)
 
     switch(id)
     {
@@ -103,6 +106,8 @@
       break;
     
     }
+
+    console.log(result)
 
     return result;
   }

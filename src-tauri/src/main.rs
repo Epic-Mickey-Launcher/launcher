@@ -245,6 +245,8 @@ fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
 
 #[tauri::command]
 async fn extract_iso(isopath: String, gamename: String, window: Window, dolphin: String) -> String {
+    println!("come sex");
+    
     let mut destination = PathBuf::new();
     destination.push(dirs_next::config_dir().expect("could not get config dir"));
     destination.push("com.memer.eml");
@@ -260,6 +262,8 @@ async fn extract_iso(isopath: String, gamename: String, window: Window, dolphin:
     dolphin_tool.push("dolphin-tool");
     #[cfg(target_os = "macos")]
     dolphin_tool.push("dolphin-tool");
+
+    println!("{}", &dolphin_tool.display());
 
     fs::create_dir_all(&destination).unwrap();
 
@@ -801,13 +805,14 @@ fn check_iso(path: String, dolphin: String) -> String {
     let mut s = stdout.split("\n");
     let mut id_parse = String::new();
     while id_parse == "" {
-        let stline = s.next().unwrap();
+        let stline = s.next().unwrap().clone();
         if stline.contains("Game ID: "){
             id_parse = stline.replace("Game ID: ", "");
         }
     }
 
-    id_parse.to_string()
+    println!("{}", &id_parse);
+    id_parse.trim().to_string()
 }
 
 #[tauri::command]
