@@ -245,8 +245,6 @@ fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
 
 #[tauri::command]
 async fn extract_iso(isopath: String, gamename: String, window: Window, dolphin: String) -> String {
-    println!("come sex");
-    
     let mut destination = PathBuf::new();
     destination.push(dirs_next::config_dir().expect("could not get config dir"));
     destination.push("com.memer.eml");
