@@ -89,7 +89,7 @@
                 selectedCategoryImg = "img/em1levelloader/lm.png";
                 break;
             case "Floatyard":
-                selectedCategoryImg = "img/em2levelloader/floatyard.png";
+                selectedCategoryImg = "img/em2levelloader/float.png";
                 break;
             case "Fort Wasteland":
                 selectedCategoryImg = "img/em2levelloader/fort.png";
