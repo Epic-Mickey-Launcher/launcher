@@ -781,7 +781,6 @@ fn remove_first(s: &str) -> Option<&str> {
 
 #[tauri::command]
 fn check_iso(path: String, dolphin: String) -> String {
-
     let mut dolphin_tool = PathBuf::from(dolphin);
     dolphin_tool.pop();
 
@@ -793,18 +792,18 @@ fn check_iso(path: String, dolphin: String) -> String {
     dolphin_tool.push("dolphin-tool");
 
     let dolphin = Command::new(dolphin_tool)
-    .arg("header")
-    .arg("-i")
-    .arg(path)
-    .stdout(Stdio::piped())
-    .output()
-    .unwrap();
+        .arg("header")
+        .arg("-i")
+        .arg(path)
+        .stdout(Stdio::piped())
+        .output()
+        .unwrap();
     let stdout = String::from_utf8(dolphin.stdout).unwrap();
     let mut s = stdout.split("\n");
     let mut id_parse = String::new();
     while id_parse == "" {
-        let stline = s.next().unwrap().clone();
-        if stline.contains("Game ID: "){
+        let stline = s.next().unwrap();
+        if stline.contains("Game ID: ") {
             id_parse = stline.replace("Game ID: ", "");
         }
     }

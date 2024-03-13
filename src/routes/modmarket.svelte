@@ -45,7 +45,7 @@
          SetData("gameinfo", currentSelectedGame);
          await GetAllMods();
       } else {
-         warning.style.display = "block";
+         nogames = true;
       }
    });
 
@@ -58,6 +58,7 @@
    let selectedgamebuild;
    let currentSelectedGame;
 
+   let nogames = false;
 
    let allspawnednodes = [];
 
@@ -221,13 +222,22 @@
 </div>
 <p />
 {#if load}
- <span style="margin-left:45%;">
+
+{#if nogames}
+<div class="warning">
+   <p style="position:relative;top:400px;">
+      You don't have any game builds set up yet!
+   </p>
+</div>
+{:else}
+<span style="margin-left:45%;">
    <Loading></Loading>
  </span>
- {:else if allspawnednodes.length == 0}
+{/if}
+{:else if allspawnednodes.length == 0}
   <h1 style="text-align:center;">No mods could be found with your filters.</h1>
   <Dialog content="Tip: Try to simplify your search to only one word."></Dialog>
- {/if}
+  {/if}
 <p></p>
 <div style="margin-right:auto;margin-left:auto;" bind:this={ModList} />
 
@@ -241,32 +251,21 @@
    {/each}
 </div>
 
-<div style="display:flex;margin:auto;justify-content:center;width:100%;">
+<div style="zindex:-2;display:flex;margin:auto;justify-content:center;width:100%;">
 
 </div>
 
 
-<div class="warning" bind:this={warning}>
-   <p style="position:relative;top:400px;">
-      You don't have any game builds set up yet!
-   </p>
-</div>
+
 
 <style>
    .warning {
-      display: none;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
       top: 0;
       bottom: 0;
       left: 0;
       right: 0;
-      background-color: rgba(43, 15, 15, 0.3);
-      border-radius: 5px;
-      -webkit-backdrop-filter: blur(10px);
-      position: fixed;
-      backdrop-filter: blur(10px);
+      
+     
       margin-top: auto;
       margin-bottom: auto;
       margin-right: auto;

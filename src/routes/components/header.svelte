@@ -99,7 +99,7 @@
                 src="/img/eml.svg"
                 alt=""
                 title={version}
-                style="z-index:1;width:300px;padding:5px 0px;position:relative;right:30px;"
+                style="width:300px;padding:5px 0px;position:relative;right:30px;"
             />
 
             <p style="margin-right:20px" />
@@ -178,6 +178,7 @@
         box-shadow: 2px 2px 10px rgb(0, 0, 0);
         border-radius: 10px;
         display: flex;
+        z-index: 1;
         columns: 1rem 1rem;
         width: 100%;
         backdrop-filter: blur(2px);
@@ -186,7 +187,6 @@
         justify-content: left;
     }
     .headerButton {
-        z-index: 1;
         width: 20%;
         border: none;
         backdrop-filter: blur(4px);
