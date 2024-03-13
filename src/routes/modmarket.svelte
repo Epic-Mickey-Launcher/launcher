@@ -21,6 +21,7 @@
    import Loading from "./components/loading.svelte";
    import Dialog from "./components/dialog.svelte";
    import { GetBackgroundModMarket } from "./library/background.js";
+    import { invoke } from "@tauri-apps/api";
    let warning;
    let load = true;
 
@@ -240,9 +241,10 @@
 {#if load}
    {#if nogames}
       <div class="warning">
-         <p style="position:relative;top:400px;">
-            You don't have any game builds set up yet!
-         </p>
+         <div style="position:relative;top:50vh;pointer-events:all;">
+            <p>You don't have any game builds set up yet!</p>
+            <p><button on:click={() => invoke("open_link", {url:"https://emldocs.kalsvik.no"})} class="hyperlinkbutton">Guide</button></p>
+         </div>
       </div>
    {:else}
       <span style="margin-left:45%;">
@@ -280,12 +282,17 @@
       bottom: 0;
       left: 0;
       right: 0;
-
+      width:100%;
+      height:100%;
+      position:absolute;
+      display:flex;
+      justify-content: center;
       margin-top: auto;
       margin-bottom: auto;
       margin-right: auto;
       margin-left: auto;
       text-align: center;
+      pointer-events: none;
    }
 
    .dropdown select {
