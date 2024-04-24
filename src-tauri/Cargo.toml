@@ -17,12 +17,9 @@ sevenz-rust = "0.2.11"
 dirs-next = "2.0.0"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.4.1", features = [ "api-all"] }
+tauri = { version = "1.6.2", features = [ "api-all"] }
 zip-extract = "0.1.2"
 reqwest = {version = "0.11.13", features = ["stream"] }
-copy_dir = "0.1.2"
-fs_extra = "1.2.0"
-scan_dir = "0.3.3"
 walkdir = "2.3.2"
 bytes = "1.4.0"
 json = "0.12.4"
