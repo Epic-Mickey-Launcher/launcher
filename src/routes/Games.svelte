@@ -1,17 +1,10 @@
 <script>
   import GameNode from "./components/GameNode.svelte";
-  import {
-    BaseDirectory,
-    exists,
-    writeTextFile,
-    readTextFile,
-  } from "@tauri-apps/api/fs";
+  import { exists, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
   import { appLocalDataDir } from "@tauri-apps/api/path";
   import { onMount } from "svelte";
-  import { ReadJSON, WriteToJSON, FileExists, InitConfFiles } from "./library/configfiles.js";
-    import { init } from "svelte/internal";
-    import { ConvertModJsonToNew } from "./library/legacy";
-    import ModInstall from "./components/ModInstall.svelte";
+  import { FileExists, InitConfFiles } from "./library/configfiles.js";
+  import { ConvertModJsonToNew } from "./library/legacy";
 
   let gameNodeDiv;
   let blackoutDiv;
@@ -40,10 +33,9 @@
     let jsonData = JSON.parse(t);
 
     jsonData.forEach(async (dat) => {
-      
-      console.log(dat)
+      console.log(dat);
 
-      await ConvertModJsonToNew(dat.path)
+      await ConvertModJsonToNew(dat.path);
 
       CreateNode(dat.game, dat.path, dat.platform, dat);
     });
@@ -63,19 +55,19 @@
     element.platform = platform;
     element.data = dat;
     element.mouseEnterCB = (g) => {
-        hoveredGame = g;
-        blackoutDiv.style.opacity = 0.9;
-        bannerDiv.style.opacity = 1;
-    }
+      hoveredGame = g;
+      blackoutDiv.style.opacity = 0.9;
+      bannerDiv.style.opacity = 1;
+    };
     element.mouseExitCB = () => {
-        blackoutDiv.style.opacity = 0;
-        bannerDiv.style.opacity = 0;
-    }
+      blackoutDiv.style.opacity = 0;
+      bannerDiv.style.opacity = 0;
+    };
     element.Init();
 
     if (game == "EM1") {
       element.imgLogoURL = "/img/emlogo.png";
-      element.imgBackgroundURL = "/img/EM1banner.png";
+      element.imgBackgroundURL = "/img/em1banner.png";
     } else {
       element.imgLogoURL = "/img/em2logo.png";
       element.imgBackgroundURL = "/img/EM2banner.png";
@@ -85,7 +77,10 @@
 
 <div bind:this={blackoutDiv} class="blackout"></div>
 <div class="gamebanner" bind:this={bannerDiv}>
-  <img style="width:65vw;margin:auto;overflow:hidden;" src="img/{hoveredGame}bannerfull.png">
+  <img
+    style="width:65vw;margin:auto;overflow:hidden;"
+    src="img/{hoveredGame}bannerfull.png"
+  />
 </div>
 
 <h1 style="text-align:center;filter:drop-shadow(0 0 4px black)">Games</h1>
@@ -94,15 +89,15 @@
 <div bind:this={gameNodeDiv} class="gamegrid" />
 <p style="margin-bottom:50px;" />
 <button on:click={AddGame} class="addgamebutton">+</button>
-<style>
 
+<style>
   .addgamebutton {
     margin: 0 auto;
     display: block;
     font-size: 20px;
-    border-radius:100%;
+    border-radius: 100%;
     width: 50px;
-    height:50px;
+    height: 50px;
     border: 1px solid;
     padding: 10px 0px;
     border-color: rgb(138, 138, 138);
@@ -117,22 +112,46 @@
   }
 
   .gamegrid {
-    display: grid;
-    grid-column-start: 1;
-    grid-column-end: 1;
-    grid-row-gap: 24px;
+    display: flex;
+    justify-items: center;
+    gap: 24px;
   }
 
-  .gamebanner{
-    overflow:hidden;
-    align-items:center;position:fixed;width:100vw;height:100vh;z-index:-499;top:0;mask:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 19%, rgba(255,255,255,1) 38%, rgba(255,255,255,1) 50%, rgba(255,255,255,1) 62%, rgba(255,255,255,0) 81%, rgba(255,255,255,0) 100%);display:flex;justify-content:center;overflow:hidden;opacity:0;
+  .gamebanner {
+    overflow: hidden;
+    align-items: center;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    z-index: -499;
+    top: 0;
+    mask: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0) 19%,
+      rgba(255, 255, 255, 1) 38%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(255, 255, 255, 1) 62%,
+      rgba(255, 255, 255, 0) 81%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    opacity: 0;
     transition: 0.5s;
-    filter: brightness(2)
+    filter: brightness(2);
   }
 
-  .blackout{
-    overflow:hidden;
+  .blackout {
+    overflow: hidden;
     transition: 1s;
-    position:fixed;width:100vw;height:100vh;background-color:black;z-index:-500;opacity:0;top:0;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    z-index: -500;
+    opacity: 0;
+    top: 0;
   }
 </style>

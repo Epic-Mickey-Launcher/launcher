@@ -3,16 +3,17 @@
 
    async function SetJsonData() {
       jsonData = await ReadJSON("games.json");
-
+      console.log(jsonData)
+      console.log("ppp")
       return jsonData;
    }
 
    import {
       GET,
+      GetModIconPath,
       GetToken,
       POST,
       serverLink,
-      staticAssetsLink,
    } from "./library/networking.js";
    import { onMount } from "svelte";
    import ModNode from "./components/ModNode.svelte";
@@ -22,6 +23,7 @@
    import Dialog from "./components/dialog.svelte";
    import { GetBackgroundModMarket } from "./library/background.js";
     import { invoke } from "@tauri-apps/api";
+    import { to_number } from "svelte/internal";
    let warning;
    let load = true;
 
@@ -33,15 +35,13 @@
       background.style.backgroundImage = `url(${bg.path})`;
       background_credits = bg.credits;
 
-      let json = await GET("trygetfeaturedmod");
-
-      if (json.id != "") {
-         featuredModImage = json.imglink;
-         featuredModId = json.id;
-      }
-
+    
+      console.log("sleaz")
+         console.log(jsonData[0])
       if (jsonData[0] != null) {
          currentSelectedGame = jsonData[0];
+         console.log("sleaz")
+         console.log(jsonData[0])
          SetData("gameinfo", currentSelectedGame);
          await GetAllMods();
       } else {
@@ -103,39 +103,36 @@
       let token = await GetToken();
 
       let d = {
-         token: token,
-         chunkindex: chunkindex - 1,
-         filter: filter,
-         game: currentSelectedGame.game,
-         platform: currentSelectedGame.platform,
-         inputfilter: search.value.toLowerCase(),
+         Token: token,
+         PageIndex: chunkindex - 1,
+         Order: filter,
+         //filter: filter,
+         //game: currentSelectedGame.game,
+         //platform: currentSelectedGame.platform,
+         SearchQuery: search.value.toLowerCase(),
       };
 
-      let data = await POST("getmodchunk", d);
 
+      let data = await POST("mod/query", d);
+      IntToArray(data.body.RawQuerySize)
       allspawnednodes = [];
 
-      let mods = data.chunk;
-      IntToArray(data.chunks);
-
-      await mods.forEach(async (e) => {
+      await data.body.ModObjs.forEach(async (e) => {
          let modNode = new ModNode({
             target: ModList,
          });
-
-         modNode.modid = e.id;
-         modNode.modName = e.name;
+  
+         modNode.modid = e.ID;
+         modNode.modName = e.Name;
          modNode.moddataobj = e;
-         modNode.iconLink = staticAssetsLink + e.icon;
-         modNode.description = e.description;
-         modNode.downloadLink = staticAssetsLink + e.download;
-         modNode.author = e.author;
-         modNode.update = e.update;
-         modNode.modplatform = e.platform;
-         modNode.modgame = e.game;
-         modNode.downloads = e.downloads;
-         modNode.likes = e.likes;
-         modNode.comments = e.comments;
+         modNode.iconLink = GetModIconPath(e.ID);
+         modNode.description = e.Description;
+         modNode.downloadLink = serverLink + "mod/download?id=" + e.Download;
+         modNode.author = e.Author;
+         modNode.update = e.Version;
+         modNode.modplatform = e.Platform;
+         modNode.modgame = e.Game;
+         modNode.downloads = e.Downloads;
 
          modNode.moddata = e;
          modNode.json = JSON.stringify(e);
@@ -215,12 +212,12 @@
          on:change={() => LoadModList()}
          bind:this={filterDropdown}
       >
-         <option value={1}>Newest</option>
-         <option value={2}>Oldest</option>
-         <option value={3}>Most Downloads</option>
-         <option value={4}>Least Downloads</option>
-         <option value={5}>Most Likes</option>
-         <option value={6}>Least Likes</option>
+         <option value={0}>Newest</option>
+         <option value={1}>Oldest</option>
+         <option value={2}>Most Downloads</option>
+         <option value={3}>Least Downloads</option>
+         <option value={4}>Most Likes</option>
+         <option value={5}>Least Likes</option>
       </select>
    </div>
 

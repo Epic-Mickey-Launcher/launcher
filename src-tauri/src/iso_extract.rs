@@ -2,12 +2,11 @@ use std::process::{Command, Stdio};
 use std::fs;
 use std::path::PathBuf;
 
+use crate::helper;
 use crate::debug;
 
 pub async fn extract(isopath: String, gamename: String, dolphin: String) -> String {
-    let mut destination = PathBuf::new();
-    destination.push(dirs_next::config_dir().expect("could not get config dir"));
-    destination.push("com.memer.eml");
+    let mut destination = helper::get_config_path().expect("could not get config dir");
     destination.push("Games");
     destination.push(gamename);
 

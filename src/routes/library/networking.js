@@ -1,6 +1,6 @@
-export const serverLink = 'https://api.kalsvik.no/';
-export const staticAssetsLink = 'https://api.kalsvik.no/';
+export const serverLink = 'http://localhost:8574/';
 export let loggedin = false;
+export let outdated = false
 import {
   WriteToken,
   ReadToken
@@ -10,7 +10,23 @@ import {
   Invoke
 } from "./callback.js";
 
-let accountinfo;
+let token = ""
+let id = ""
+
+export function GetModIconPath(id)
+{
+  return serverLink + "img/modicon?id=" + id + "&t=" + Date.now()
+}
+
+export function GetPfpPath(id)
+{
+  return serverLink + "img/userpfp?id=" + id + "&t=" + Date.now()
+}
+
+export function SetOutdated()
+{
+  outdated = true
+}
 
 export async function SignIn(userinfo) {
   await Login(userinfo)
@@ -21,18 +37,17 @@ export async function SetLoggedIn(l) {
 }
 
 export async function Register(userinfo) {
-  let info = await POST("register", {
+  let response = await POST("user/register<", {
     username: userinfo.username,
     password: userinfo.password
   })
 
-  if (info.error == 1) {
-    //account with same username already exists
+  if (response.error) {
     return
   }
 
   Login({
-    token: info.token
+    token: response.body
   })
 }
 
@@ -42,46 +57,47 @@ function isNullOrWhitespace( input ) {
 }
 
 export function UploadMod(modfile, cb, r, e, checked) {
-   GetUserInfo().then((info) => {
-    MultipartPOST("modupload", {
-      token: info.token,
+
+    if (!loggedin) return
+
+    MultipartPOST("mod/publish", {
+      token: token,
       modfile: modfile,
       extension: e,
       replacing: r,
       automaticPublish: checked
-    }).then((moduploadresult) => {
-      console.log("itty bitty fart")
-  
-      moduploadresult.json().then((res) => {
+    }).then((response) => {
+      JSON.parse(response.body)
+      .then((res) => {
         Invoke("onModUpload", res.id)
       });
     })
   
-  
-  })
-
 }
 
 export async function GetToken() {
-
-  if(accountinfo == null){
-    return ""
+  if(token === ""){
+    token = await ReadToken()
   }
 
-  return accountinfo.token;
+  return token;
 }
 export async function GetId() {
-  if(accountinfo == null){
-    return ""
-  }
-
-  return accountinfo.id;
+  await GetToken()
+  if (token === "") return null
+  if (id != "") return id
+  let response = await POST("user/idfromtoken", {
+    token: token
+  }, false)
+  if (response.error) return null
+  id = response.body
+  return response.body;
 }
 
 export async function OnSignedIn(cb) {
 
   if (loggedin) {
-    cb(await GetUserInfo())
+    cb()
   } else {
     Subscribe("SignedIn", cb, true)
   }
@@ -89,7 +105,7 @@ export async function OnSignedIn(cb) {
 
 export async function Login(userinfo) {
   loggedin = false;
-  let finalinfo;
+  let response;
 
   if(userinfo.token === "")
   {
@@ -99,24 +115,31 @@ export async function Login(userinfo) {
     }
   }
 
+  let tokenLogin = false
+
   if (userinfo.token != null) {
-    finalinfo = await POST("signintoken", {
+    response = await POST("user/login", {
       token: userinfo.token
-    })
+    }, false)
+
+    tokenLogin = true
   } else {
-    finalinfo = await POST("signin", {
+    response = await POST("user/login", {
       username: userinfo.username,
       password: userinfo.password
-    })
+    }, false)
   }
 
-  if (finalinfo != null) {
-    accountinfo = finalinfo
-    await WriteToken(finalinfo.token)
+  if (!response.error) {
+    if (!tokenLogin) await WriteToken(response.body)
+    console.log(response)
     loggedin = true;
-    Invoke("SignedIn", finalinfo)
+    Invoke("SignedIn", {
+      error:0
+    }) 
   } else {
     loggedin = false
+
     Invoke("SignedIn", {
       error: 1
     })
@@ -124,32 +147,29 @@ export async function Login(userinfo) {
 
 }
 
-export async function GetUserInfo() {
-  if (accountinfo == null) {
-    return {
-      error: 0
-    }
-  } else {
-    return accountinfo
-  }
-}
-
 export async function MultipartPOST(route, data) {
   
   const formData = new FormData();
   for (const name in data) {
+    console.log(name)
+    console.log("trolol")
     formData.append(name, data[name])
   }
+
   const res = await fetch(serverLink + route, {
     method: 'POST',
-
-    body: formData
+    body: formData,
   });
-  return await res;
+  
+  if(res.status != 200)
+  {
+    await alert(serverLink + route + "\nMultipart Request Failed: \"" + await res.text() + "\"")
+  }
+
+  return {body: await res.text(), error: res.status != 200};
 }
 
-export async function POST(route, data) {
-
+export async function POST(route, data, toJson = true) {
   const res = await fetch(serverLink + route, {
     method: 'POST',
     headers: {
@@ -159,8 +179,16 @@ export async function POST(route, data) {
 
     body: JSON.stringify(data)
   });
-  const content = await res.json();
-  return content;
+
+  if(res.status != 200)
+  {
+    console.log("prollem")
+    await alert(serverLink + route + "\nRequest Failed: \"" + await res.text() + "\"")
+  }
+  
+  let content;
+  content = toJson ? await res.json() : await res.text();
+  return {body:content, error: res.status != 200};
 }
 export async function GET(route) {
   const res = await fetch(serverLink + route)

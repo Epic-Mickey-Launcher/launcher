@@ -11,8 +11,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
-use std::str;
-use tauri::{Manager, Window};
+use tauri::Window;
 
 extern crate chrono;
 
@@ -27,27 +26,9 @@ pub mod mod_info;
 pub mod mod_management;
 
 fn main() {
-   debug::init().expect("Failed to initialize Debug.");
+    debug::init().expect("Failed to initialize Debug.");
 
-    let _ = fix_path_env::fix();
     tauri::Builder::default()
-        .setup(|app| {
-            let window = app.get_window("main").unwrap();
-
-            tauri_plugin_deep_link::prepare("com.memer.eml");
-
-
-            tauri_plugin_deep_link::register(
-                "eml",
-                move |request| {
-                  dbg!(&request);
-                  window.emit_all("scheme_request_received", request).unwrap();
-                },
-              )
-              .unwrap(/* If listening to the scheme is optional for your app, you don't want to unwrap here. */);
-
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
             playgame,
             download_mod,
@@ -71,7 +52,8 @@ fn main() {
             delete_mod_cache_all,
             create_portable,
             open_path_in_file_manager,
-            open_config_folder
+            open_config_folder,
+            get_frontend_config_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -133,14 +115,14 @@ async fn extract_iso(isopath: String, gamename: String, dolphin: String) -> Stri
 }
 
 #[tauri::command]
-async fn download_tool(url: String, foldername: String, window: Window) -> PathBuf {
-    download::tool(url, foldername, &window).await
+async fn download_tool(url: String, window: Window) -> PathBuf {
+    download::tool(url, &window).await
 }
 
 #[tauri::command]
-fn get_os() -> &'static str {
+fn get_os() -> String {
     debug::log(&format!("Operating System: {}", env::consts::OS));
-    env::consts::OS
+    env::consts::OS.to_string()
 }
 #[tauri::command]
 fn open_process(path: String, args: String) {
@@ -170,7 +152,6 @@ fn validate_archive(path: String) -> archive::SmallArchiveValidationInfo {
     archive::validate(path)
 }
 
-
 #[tauri::command]
 fn set_dolphin_emulator_override(_path: String) {
     dolphin::set_override(_path);
@@ -182,6 +163,22 @@ fn open_config_folder() {
     path.push(dirs_next::config_dir().unwrap());
     path.push("com.memer.eml");
     open_path_in_file_manager(path.to_str().unwrap().to_owned())
+}
+
+#[tauri::command] // todo: transfer this function to helper module
+fn get_frontend_config_path(npath: String) -> String
+{
+    let mut path = PathBuf::from(&npath);
+    path.pop();
+    path.push("com.memer.eml");
+
+    if path.exists()
+    {
+        debug::log("Legacy frontend config folder detected (com.memer.eml)!");
+        return path.to_str().unwrap().to_string();
+    }
+
+    npath
 }
 
 // Mod Commands
@@ -231,5 +228,3 @@ fn delete_mod_cache(modid: String) {
 async fn validate_mod(url: String, local: bool, window: Window) -> mod_management::ValidationInfo {
     mod_management::validate_mod(url, local, &window).await
 }
-
-

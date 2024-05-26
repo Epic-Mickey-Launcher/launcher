@@ -1,6 +1,6 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
-    import { GetId, GetToken, POST, UploadMod } from "./library/networking";
+    import { GetId, GetToken, POST, UploadMod, outdated } from "./library/networking";
     import { open } from "@tauri-apps/api/dialog";
     import ModInstall from "./components/ModInstall.svelte";
     import { onMount } from "svelte";
@@ -23,14 +23,17 @@
     }
 
     onMount(async () => {
+
+        if (outdated)
+        {
+          await alert("You are on an outdated version! Please update to upload mods.")
+          window.open("#/", "_self")
+          //return
+        }
+
         replacingMod = GetData("modupload_id");
         SetData("modupload_id", "");
-        Subscribe("onModUpload", (id) => {
-            setTimeout(() => {
-                SetData("modpage_id", id);
-                window.open("#/modpage", "_self");
-            }, 1000);
-        });
+    
         let cb = async () => {
             let id = await GetId();
             let request = await POST("getenterrequest", { id: id });
@@ -45,9 +48,13 @@
             }
         };
 
-        Subscribe("onModUploadRequest", () => {
-            setTimeout(cb, 1000);
+        Subscribe("onModUpload", (id) => {
+            setTimeout(() => {
+                SetData("modpage_id", id);
+                window.open("#/modpage", "_self");
+            }, 1000);
         });
+    
     });
 
     let files;

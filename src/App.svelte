@@ -1,6 +1,6 @@
-<script lang="ts">
+<script>
     import Header from "./routes/components/header.svelte";
-    import { InitConfFiles, ReadJSON, ReadToken } from "./routes/library/configfiles.js";
+    import { InitConfFiles, ReadJSON, ReadToken, GetPath } from "./routes/library/configfiles.js";
     import Router from "svelte-spa-router";
     import Games from "./routes/Games.svelte";
     import AddGame from "./routes/addgame.svelte";
@@ -17,11 +17,12 @@
     import { Invoke } from "./routes/library/callback";
     import { emit, listen } from '@tauri-apps/api/event'
     import { invoke } from "@tauri-apps/api/tauri";
+    import { onMount } from "svelte";
 
     let header;
 
     async function RouteLoaded() {
-        //login
+        await GetPath()
         Invoke("OnNewWindow", null);
         let token = await ReadToken();
         if (token != "") {
@@ -58,6 +59,7 @@
         "/accountsettings": accountsettings,
         "/*": Games,
     };
+
     InitConfFiles();
     ListenLoop();
 

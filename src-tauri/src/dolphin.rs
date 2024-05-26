@@ -6,10 +6,10 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::io::Read;
+use crate::helper;
 
 pub fn find_dir(where_in: &PathBuf) -> PathBuf {
-    let mut config_path = dirs_next::config_dir().expect("could not get config dir");
-    config_path.push(r"com.memer.eml");
+    let mut config_path = helper::get_config_path().expect("could not get config dir");
     config_path.push("DolphinConfig");
     config_path.push(where_in);
     config_path
@@ -40,8 +40,7 @@ pub fn auto_set_custom_textures() {
 }
 
 pub fn open(path: String) {
-    let mut config_path = dirs_next::config_dir().expect("could not get config dir");
-    config_path.push(r"com.memer.eml");
+    let mut config_path = helper::get_config_path().expect("could not get config dir");
     config_path.push("DolphinConfig");
 
     #[cfg(target_os = "windows")]
@@ -75,8 +74,7 @@ pub fn open(path: String) {
 }
 
 pub fn set_override(_path: String) {
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml");
+    let mut path = helper::get_config_path().expect("could not get config dir");
 
     fs::create_dir_all(&path).unwrap();
 

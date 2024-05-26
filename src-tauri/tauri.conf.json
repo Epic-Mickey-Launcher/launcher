@@ -58,7 +58,7 @@
         "icons/icon.ico",
         "icons/icon.png"
       ],
-      "identifier": "com.memer.eml",
+      "identifier": "com.kalsvik.eml",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

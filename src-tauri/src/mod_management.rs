@@ -13,7 +13,6 @@ use crate::download;
 pub struct ValidationInfo {
     pub modname: String,
     pub modicon: String,
-    pub extension: String,
     pub validated: bool,
 }
 
@@ -28,34 +27,6 @@ struct ModInfo {
     icon_path: String,
 }
 
-fn inject_files(source: &PathBuf, _destination: &PathBuf) {
-    for entry in WalkDir::new(&source) {
-        let p = PathBuf::from(entry.unwrap().path());
-
-        if p.is_file() {
-            let non_abs = helper::remove_absolute_path(&p, &source);
-            let mut destination = _destination.clone();
-            destination.push(&non_abs);
-
-            let mut destination_folder = _destination.clone();
-            destination_folder.push(non_abs);
-            destination_folder.pop();
-
-            if !destination_folder.exists() {
-                fs::create_dir_all(&destination_folder).expect("Failed to create folders.");
-            }
-
-            if p.exists() {
-                if destination.exists() {
-                    fs::remove_file(&destination).unwrap();
-                }
-
-                fs::copy(p, destination).expect("Failed to copy file");
-            }
-        }
-    }
-}
-
 pub async fn add(
     url: String,
     dumploc: String,
@@ -64,10 +35,8 @@ pub async fn add(
     platform: String,
     window: &Window,
 ) {
-    debug::log("sublime i will register you one day i swear");
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml/cachedMods");
-
+    let mut path = helper::get_config_path().expect("could not get config dir");
+    path.push(r"cachedMods");
     let mut full_path = path.clone();
     full_path.push(&modid);
 
@@ -229,7 +198,7 @@ pub async fn add(
             &path_final_location.display()
         ));
 
-        inject_files(&path_datafiles, &path_final_location);
+        helper::inject_files(&path_datafiles, &path_final_location);
     }
 
     let mut texturefiles: Vec<String> = Vec::new();
@@ -265,7 +234,7 @@ pub async fn add(
             &dolphin_path.display()
         ));
 
-        inject_files(&path_textures, &dolphin_path)
+        helper::inject_files(&path_textures, &dolphin_path)
     }
 
     mod_info::write(
@@ -377,8 +346,8 @@ pub async fn delete(
 }
 
 pub fn delete_cache(modid: String) {
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml/cachedMods");
+    let mut path = helper::get_config_path().expect("could not get config dir");
+    path.push(r"cachedMods");
     path.push(modid);
     if path.exists() {
         fs::remove_dir_all(path).expect("Could not remove mod cache");
@@ -386,8 +355,7 @@ pub fn delete_cache(modid: String) {
 }
 
 pub fn delete_cache_all() {
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml");
+    let mut path = helper::get_config_path().expect("could not get config dir");
     path.push("cachedMods");
 
     if path.exists() {
@@ -400,29 +368,28 @@ pub fn delete_cache_all() {
 pub async fn validate_mod(url: String, local: bool, window: &Window) -> ValidationInfo {
     debug::log("Validating mod");
 
-    let mut path_imgcache = dirs_next::config_dir().expect("could not get config dir");
+    let mut path_imgcache = helper::get_config_path().expect("could not get config dir");
     path_imgcache.push("cache");
 
     fs::create_dir_all(&mut path_imgcache).expect("Failed to create folders.");
 
     path_imgcache.push("temp.png");
 
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml/TMP");
+    let mut path = helper::get_config_path().expect("could not get config dir");
+    path.push(r"TMP");
 
     let mut json_path = path.clone();
     json_path.push("mod.json");
 
     let mut icon_path = path.clone();
 
-    let extension = download::zip(url, &path, local, window).await;
+    download::zip(url, &path, local, window).await;
 
     debug::log("Finished Downloading mod for validation");
 
     let mut validation = ValidationInfo {
         modname: "".to_string(),
         modicon: "".to_string(),
-        extension,
         validated: false,
     };
 

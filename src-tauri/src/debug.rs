@@ -5,10 +5,11 @@ use std::fs::File;
 use std::io::Write;
 use std::fs::OpenOptions;
 
+use crate::helper;
+
 pub fn init() -> std::io::Result<()>
 {
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml");
+    let mut path = helper::get_config_path().expect("could not get config dir");
     fs::create_dir_all(&path)?;
     path.push("Log.txt");
 
@@ -40,8 +41,8 @@ pub fn init() -> std::io::Result<()>
 }
 
 pub fn log(output: &str) {
-    let mut path = dirs_next::config_dir().expect("could not get config dir");
-    path.push(r"com.memer.eml/Log.txt");
+    let mut path = helper::get_config_path().expect("could not get config dir");
+    path.push(r"Log.txt");
     let now = Local::now();
     let date = now.year().to_string()
         + "/"

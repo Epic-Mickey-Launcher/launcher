@@ -4,7 +4,7 @@
     import { invoke } from "@tauri-apps/api/tauri";
     import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
     import { GetData, SetData } from "../library/datatransfer";
-    import { GetToken, POST, staticAssetsLink } from "../library/networking";
+    import { GetToken, POST } from "../library/networking";
     import ModInstall from "./ModInstall.svelte";
     import { exists } from "@tauri-apps/api/fs";
     import DownloadMod from "./downloadMod.svelte";
@@ -17,8 +17,8 @@
     export let modplatform = "";
     export let modgame = "";
     export let update = 0;
-    export let likes = 0;
-    export let comments = 0;
+    export let likes;
+    export let comments;
     export let downloads = 0;
     export let visible = true;
     let authoraccountexists = true;
@@ -45,20 +45,28 @@
     }
 
     export async function Init() {
-        let authorinfo = await POST("getprofileinfo", { id: author });
+        downloadMod = new DownloadMod({
+            target: modNodeDiv,
+        });
 
-        let emblem = authorinfo.emblems.sort((a, b) => {
-            return b.weight - a.weight;
-        })[0];
+        let gameinfo = GetData("gameinfo");
+        console.log(gameinfo)
 
-        color = emblem.color;
+        downloadMod.Initialize(gameinfo, false, moddata);
+        downloadMod.updatecb = () => {
+            downloadButton.disabled = downloadMod.downloadButtonDisabled;
+            downloadStatus = downloadMod.downloadButtonStatus;
+        };
 
-        if (authorinfo.username == null) {
-            authoraccountexists = false;
-            authorname = "Unknown Account";
-        } else {
-            authorname = authorinfo.username;
-        }
+        let response = await POST("user/username", { id: author }, false);
+        if (response.error) return
+        authorname = response.body
+
+        response = await POST("comment/count", { PageID: modid }, false);
+        if (response.error) return
+        comments = response.body;
+      
+        likes = moddata.CachedLikes
 
         let len = 0;
 
@@ -72,18 +80,7 @@
             description = newDesc;
         }
 
-        downloadMod = new DownloadMod({
-            target: modNodeDiv,
-        });
 
-        let gameinfo = GetData("gameinfo");
-        console.log(gameinfo)
-
-        downloadMod.Initialize(gameinfo, false, moddata);
-        downloadMod.updatecb = () => {
-            downloadButton.disabled = downloadMod.downloadButtonDisabled;
-            downloadStatus = downloadMod.downloadButtonStatus;
-        };
     }
 
     async function OpenProfileOfAuthor() {

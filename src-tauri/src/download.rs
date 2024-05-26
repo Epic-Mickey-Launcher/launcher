@@ -8,6 +8,7 @@ use futures_util::StreamExt;
 use bytes::Bytes;
 use crate::debug;
 use crate::archive;
+use crate::helper;
 
 #[derive(Clone, serde::Serialize)]
 struct ModDownloadStats {
@@ -15,30 +16,28 @@ struct ModDownloadStats {
     download_total: String,
 }
 
-pub async fn tool(url: String, foldername: String, window: &Window) -> PathBuf {
+pub async fn tool(url: String, window: &Window) -> PathBuf {
     debug::log(&format!("Beginning download of {}", url));
-    let mut to_pathbuf = PathBuf::new();
-    to_pathbuf.push(dirs_next::config_dir().expect("could not get config dir"));
-    to_pathbuf.push("com.memer.eml");
-    to_pathbuf.push(foldername);
+    let to_pathbuf = helper::get_config_path().unwrap();
     zip(url, &to_pathbuf, false, window).await;
     debug::log(&format!("Download Finished"));
     to_pathbuf
 }
 
-pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window) -> String {
+pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window) {
     debug::log(&format!("Downloading Archive {}", url));
     fs::create_dir_all(&foldername).expect("Failed to create");
 
     let mut temporary_archive_path_buf = foldername.clone();
 
-    temporary_archive_path_buf.push("temp");
+    temporary_archive_path_buf.push("temp.f");
 
     let temporary_archive_path = temporary_archive_path_buf.to_str().unwrap().to_string();
 
+    let mut f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
+
     let mut buffer;
 
-    let mut f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
 
     if !local {
         let res = Client::new().get(&url).send().await.unwrap();
@@ -74,7 +73,6 @@ pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window
                     download_bytes_count = 0;
                     fs::remove_file(&temporary_archive_path).expect("failed to remove tmpzip");
                     f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
-                    debug::log("Download error occured. Restarting Download.");
                     debug::log(&format!("Download error occured. Restarting Download: {}", error));
                     buf
                 }
@@ -107,6 +105,4 @@ pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window
     let extension = archive::extract(temporary_archive_path, &output);
 
     debug::log("Finished archive download");
-
-    extension
 }

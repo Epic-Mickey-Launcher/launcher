@@ -3,16 +3,17 @@
 <script>
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
-    import { ReadToken } from "../library/configfiles";
+    import { ReadToken, GetPath } from "../library/configfiles";
     import { getVersion } from "@tauri-apps/api/app";
     import {
         GET,
         GETEXT,
-        Login,
-        POST,
         SetLoggedIn,
         loggedin,
-        staticAssetsLink,
+        SetOutdated,
+        GetId,
+        GetPfpPath,
+
     } from "../library/networking";
     import { Subscribe } from "../library/callback.js";
     import { invoke } from "@tauri-apps/api/tauri";
@@ -30,21 +31,17 @@
         let callbackOnEnterNewWindow = async () => {
             try {
                 connectionIssues = false;
-                await GET("checkhealth");
+                await GET("server/ping");
             } catch {
                 connectionIssues = true;
             }
         };
 
-        let cb = async (userinfo) => {
-            if (userinfo.error != 1) {
+        let cb = async () => {
+            let id = await GetId()
+            if (loggedin) {
                 SetLoggedIn(true);
-                pfp =
-                    staticAssetsLink +
-                    "img/" +
-                    userinfo.pfp +
-                    "?" +
-                    new Date().getTime();
+                pfp = GetPfpPath(id)
             } else {
                 SetLoggedIn(false);
                 pfp = "img/loggedoutpfp.jpeg";
@@ -61,6 +58,7 @@
         let newest_release = info_stable[0];
         let current_version = await getVersion();
         if (newest_release.tag_name != current_version) {
+            SetOutdated()
             latestDownloadLink = newest_release.html_url;
             updateHyperLink.style.display = "block";
         }
