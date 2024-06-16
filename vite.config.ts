@@ -1,10 +1,15 @@
 import { defineConfig } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import pkg from "svelte-preprocess";
+const { typescript } = pkg
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [svelte()],
-
+let cfg = {
+  plugins: [svelte({
+    preprocess: [
+      typescript({}),
+    ],
+  })],
+  preprocessor: [vitePreprocess()],
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors
   clearScreen: false,
@@ -24,4 +29,8 @@ export default defineConfig({
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
   },
-});
+}
+console.log(cfg)
+// https://vitejs.dev/config/
+export default defineConfig(cfg);
+

@@ -1,15 +1,15 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import Dialog from "./components/dialog.svelte";
   import { Subscribe } from "./library/callback";
-  import { POST, Register, SignIn } from "./library/networking";
+  import { POST, Register, SignIn, UserInfo } from "./library/networking";
   import { GetBackgroundLogin } from "./library/background";
 
-  let user;
-  let pass;
-  let background;
-  let email;
-  let forgotPasswordDialog;
+  let user: any;
+  let pass: any;
+  let background: HTMLDivElement;
+  let email: any;
+  let forgotPasswordDialog: HTMLDialogElement;
 
   onMount(() => {
     background.style.backgroundImage = `url(${GetBackgroundLogin()})`;
@@ -17,13 +17,13 @@
 
   async function SendEmail() {
     let response = await POST("user/otp", { email: email }, false);
-    if (response.err) return;
+    if (response.error) return;
   }
 
-  async function Login(type) {
+  async function Login(type: number) {
     Subscribe(
       "SignedIn",
-      (c) => {
+      (c: { error: number }) => {
         if (c.error != 1) {
           window.open("#/profilepage", "_self");
         }
@@ -31,12 +31,14 @@
       false,
     );
 
+    let userInfo: UserInfo = { username: user, password: pass };
+
     if (type == 1) {
       //login
-      await SignIn({ username: user, password: pass });
+      await SignIn(userInfo);
     } else {
       //register
-      await Register({ username: user, password: pass });
+      await Register(userInfo);
     }
   }
 </script>

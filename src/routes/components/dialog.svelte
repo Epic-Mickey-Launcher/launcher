@@ -1,8 +1,7 @@
 <svelte:options accessors={true} />
 
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
-  import { InitConfFiles } from "../library/configfiles";
 
   let index = 0;
   let currentDialog = "";

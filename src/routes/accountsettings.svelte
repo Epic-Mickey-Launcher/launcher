@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import {
     GetId,
-    GetPfpPath,
+    GetImagePath,
     GetToken,
+    ImageType,
     MultipartPOST,
     OnSignedIn,
     POST,
@@ -12,18 +13,18 @@
   } from "./library/networking";
   import { WriteToken } from "./library/configfiles";
 
-  let username;
-  let password;
-  let email;
-  let bio;
-  let pfpdata;
-  let pfpUrl = "";
+  let username: HTMLInputElement;
+  let password: HTMLInputElement;
+  let email: HTMLInputElement;
+  let bio: HTMLTextAreaElement;
+  let pfpUrl: string = "";
 
-  let files;
+  let files: any;
   $: if (files) {
     let file = files[0];
-    getpfpdata(file);
+    GetPfpData(file);
   }
+
   async function ApplyChanges() {
     if (loggedin) {
       console.log(await GetToken());
@@ -33,7 +34,7 @@
         false,
       );
       if (response.error) {
-        console.log("No. No. No. No. No.");
+        //todo: something probably
       }
     }
   }
@@ -59,30 +60,22 @@
     }
   }
 
-  async function getpfpdata(file) {
-    var reader = new FileReader();
+  async function GetPfpData(file: File) {
     let token = await GetToken();
-    pfpdata = reader.result;
-
     let response = await MultipartPOST("user/set/pfp", {
       image: file,
       token: token,
     });
-
-    if (!response.error) {
-      window.open("#/accountsettings", "_self");
-    }
+    if (!response.error) window.open("#/accountsettings", "_self");
   }
 
   onMount(async () => {
     let id = await GetId();
-    pfpUrl = GetPfpPath();
-
+    pfpUrl = GetImagePath(id, ImageType.User);
     OnSignedIn(async () => {
       let response = await POST("user/username", { ID: id }, false);
       if (response.error) return;
       username.value = response.body;
-
       response = await POST("user/bio", { ID: id }, false);
       if (response.error) return;
       bio.value = response.body;

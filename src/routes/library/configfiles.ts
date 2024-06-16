@@ -1,5 +1,4 @@
 import {
-  BaseDirectory,
   exists,
   writeTextFile,
   readTextFile,
@@ -11,13 +10,14 @@ import {
 } from '@tauri-apps/api/path';
 import { invoke } from "@tauri-apps/api/tauri";
 
-let configPath;
+let configPath: string;
 
 export async function GetPath() {
- configPath = await invoke("get_frontend_config_path", {npath: await appLocalDataDir()})
+  configPath = await invoke("get_frontend_config_path", { npath: await appLocalDataDir() })
 }
 
-async function DataFolderExists() { 
+//todo: what kind of fuckin name is this? fix!
+async function DataFolderExists() {
   GetPath()
   let path = configPath;
   let pathExists = await exists(path);
@@ -26,7 +26,7 @@ async function DataFolderExists() {
   }
 }
 
-export async function WriteToJSON(content, file) {
+export async function WriteToJSON(content: string, file: string) {
   DataFolderExists()
   let path = configPath
   await writeTextFile({
@@ -35,7 +35,7 @@ export async function WriteToJSON(content, file) {
   })
 }
 
-export async function ReadJSON(file) {
+export async function ReadJSON(file: string): Promise<any> {
   DataFolderExists()
   let path = configPath
   console.log(path)
@@ -43,26 +43,24 @@ export async function ReadJSON(file) {
   return JSON.parse(content);
 }
 
-export async function WriteFile(content, file) {
+export async function WriteFile(content: any, file: string) {
   await writeTextFile({
     path: file,
     contents: content
   })
 }
 
-export async function ReadFile(file) {
+export async function ReadFile(file: string) {
   let content = await readTextFile(file)
   return content;
 }
 
-export async function FileExists(path) {
+export async function FileExists(path: string) {
   return await exists(path)
 }
 
-export function GetFullName(name)
-{
-  switch(name)
-  {
+export function GetFullName(name: string) {
+  switch (name) {
     case "EM1":
       return "Epic Mickey 1";
 
@@ -71,11 +69,11 @@ export function GetFullName(name)
   }
 }
 
-export async function WriteToken(token) {
+export async function WriteToken(token: string) {
   await WriteFile(token, configPath + "TOKEN")
 }
 
-export async function ReadToken() {
+export async function ReadToken(): Promise<string> {
   console.log(configPath)
   let appdir = configPath
 
@@ -83,12 +81,11 @@ export async function ReadToken() {
     let token = await ReadFile(appdir + "TOKEN")
     return token
   } else {
-    return await ""
+    return ""
   }
 }
 
-export async function DeleteAllConfigFiles()
-{
+export async function DeleteAllConfigFiles() {
   let appdir = configPath;
   let gamesJsonExists = await exists(appdir + "games.json");
   let confJsonExists = await exists(appdir + "conf.json");
@@ -113,7 +110,7 @@ export async function InitConfFiles() {
 
   if (!confJsonExists) {
     WriteToJSON(JSON.stringify({
-      dolphinPath: "", WITPath:"", NkitPath:""
+      dolphinPath: "", WITPath: "", NkitPath: ""
     }), "conf.json")
   }
 }

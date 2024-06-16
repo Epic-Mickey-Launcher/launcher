@@ -1,45 +1,36 @@
 <svelte:options accessors={true} />
 
-<script>
-  import { SetData, objectbuffer } from "../library/datatransfer.js";
+<script lang="ts">
+  import { SetData } from "../library/datatransfer";
   import { invoke } from "@tauri-apps/api/tauri";
-  import { ReadFile, ReadJSON } from "../library/configfiles.js";
+  import { ReadFile, ReadJSON } from "../library/configfiles";
   import { onMount } from "svelte";
   import { exists } from "@tauri-apps/api/fs";
-  import { POST } from "../library/networking.js";
+  import { POST } from "../library/networking";
   import DownloadMod from "./downloadMod.svelte";
-  export let game = "";
-  export let filepath = "";
-  export let platform = "";
-  export let region = "";
+  import { Game, GameData, Platform } from "../library/gameid";
   export let imgBackgroundURL = undefined;
   export let imgLogoURL = undefined;
   export let errorMSG = "";
-  export let data;
-  export let mouseEnterCB;
-  export let mouseExitCB;
+  export let data: GameData;
   let updateAvailable = false;
   let outdatedMods = [];
-
   let reg = "";
-
-  let platformlogo;
-
-  let mouseOver = false;
+  let platformlogo: any;
 
   async function CheckForUpdate() {
     let mods = [];
 
     try {
       //wrapping this around to stop EML from freaking out when offline
-      let jsonExists = await exists(filepath + "/EMLMods.json");
+      let jsonExists = await exists(data.gamePath + "/EMLMods.json");
       if (jsonExists) {
-        let dataStr = await ReadFile(filepath + "/EMLMods.json");
-        let data = JSON.parse(dataStr);
+        let dataStr = await ReadFile(data.gamePath + "/EMLMods.json");
+        let jsonData: any = JSON.parse(dataStr);
 
-        data.forEach(async (r) => {
+        jsonData.forEach(async (r: any) => {
           let latestUpdate = await POST("getmod", { id: r.modid });
-          if (r.update != latestUpdate.update) {
+          if (r.update != latestUpdate.body.update) {
             updateAvailable = true;
             mods.push(latestUpdate);
           }
@@ -54,11 +45,13 @@
   }
 
   function Unhover() {
-    mainDiv.style.transitionDuration = "0.5s";
     mainDiv.style.transform = "";
+    mainDiv.style.transitionDuration = "1s";
+    node.style.transform = "";
+    playButton.style.opacity = "0";
   }
 
-  function Hover(e) {
+  function Hover(e: { x: number; y: number }) {
     const GAME_NODE_X = 200;
     const GAME_NODE_Y = 300;
 
@@ -72,15 +65,13 @@
     let rawX = e.x - centerX;
     let rawY = e.y - centerY;
 
-    console.log(rawY);
-
     let x = (rawX / GAME_NODE_X) * MAX_ROTATION * 2;
     let y = (rawY / GAME_NODE_Y) * MAX_ROTATION * 2;
 
-    console.log(y);
-
-    mainDiv.style.transitionDuration = "0.1s";
-    mainDiv.style.transform = `rotateX(${-y}deg) rotateY(${x}deg) perspective(500px) scale(1.1)`;
+    playButton.style.opacity = "1";
+    mainDiv.style.transitionDuration = "";
+    mainDiv.style.transform = `rotateX(${-y}deg) rotateY(${x}deg) perspective(500px)`;
+    node.style.transform = `scale(1.1)`;
   }
 
   async function OpenGame() {
@@ -91,11 +82,11 @@
       return;
     }
 
-    if (platform == "wii") {
+    if (data.platform == Platform.Wii) {
       invoke("playgame", {
         dolphin: d.dolphinPath,
-        exe: filepath + "/sys/main.dol",
-        id: data.id,
+        exe: data.gamePath + "/sys/main.dol",
+        id: data.ID,
       }).then((res) => {
         if (res == 1) {
           alert(
@@ -109,7 +100,7 @@
           invoke("start_em2_steam", {});
         } else if (_os == "windows") {
           invoke("playgame", {
-            dolphin: filepath + "/DEM2.exe",
+            dolphin: data.gamePath + "/DEM2.exe",
             exe: "",
             id: "",
           }).then((res) => {
@@ -137,33 +128,25 @@
 
   export async function Init() {
     setTimeout(Hover, 5);
-    switch (platform) {
-      case "wii":
+    switch (data.platform) {
+      case Platform.Wii:
         platformlogo.src = "img/Wii.svg";
         break;
-      case "pc":
+      case Platform.PC:
         platformlogo.src = "img/windows.svg";
         break;
     }
 
-    //muterrs
-    let result = { game: "", result: "" };
-
-    reg = data.region;
     switch (data.region) {
       case "NTSC-U":
-        result.game = "EM1";
-        result.region = "NTSC-U";
-
         regionPath = "img/regions/usa.svg";
-
         break;
 
       case "PAL.DE,ES,IT":
         regionPath = "img/regions/deites.svg";
         break;
 
-      case "PAL,EN,SE,DK":
+      case "PAL.EN,SE,DK":
         regionPath = "img/regions/scandi2.svg";
         break;
 
@@ -192,8 +175,7 @@
 
       case "PAL.EN,FR,ES,NL,PT,TR":
         //every single country here except for turkey is in the eu so i'll just call this the EU version
-
-        region = "img/regions/eu.svg";
+        regionPath = "img/regions/eu.svg";
         break;
     }
 
@@ -207,49 +189,61 @@
     SetData("levelloaderdata", data);
     window.open("#/levelloader", "_self");
   }
-
-  let mainDiv;
+  let node: HTMLDivElement;
+  let mainDiv: HTMLElement;
+  let playButton: HTMLButtonElement;
 </script>
 
 <main
-  style="transition-duration:0.1s"
+  style="display:inline-block;"
   bind:this={mainDiv}
   on:mouseleave={() => Unhover()}
   on:mousemove={Hover}
 >
-  <div class="gamenode" style="background-image: url('{imgBackgroundURL}')">
+  <div
+    class="gamenode"
+    bind:this={node}
+    style="background-image: url('{imgBackgroundURL}')"
+  >
     <div>
       <div style="">
-        <img
-          class="gamelogo"
-          on:mouseleave={() => mouseExitCB()}
-          on:mouseenter={() => mouseEnterCB(game)}
-          src={imgLogoURL}
-          alt=""
-        />
+        <img class="gamelogo" src={imgLogoURL} alt="" />
       </div>
 
       <div
-        style="position:absolute;display:flex;justify-content:center; border-radius:100%;width:128px;height:128px;background-color:rgba(0, 0, 0, 0.2);webkit-backdrop-filter:blur(30px);"
+        style="position:absolute;left:0px;pointer-events:none;top:0px;display:flex;justify-content:center;width:100%;height:100%;"
       >
-        <img src="img/play.svg" style="width:30%;" />
+        <button class="playbutton" bind:this={playButton} on:click={OpenGame}>
+          <img src="img/play.svg" style="width:30%;" />
+        </button>
       </div>
-
       <span
         style="font-size:10px;position:absolute;text-align:center;bottom:30px;width:100%;left:0;"
         >EpicMickey1</span
       >
 
       <div style="">
-        <div style="display:flex; width:100%;">
-          <div style="width:100%;">
-            <button on:click={OpenGame} class="gameplaybutton"
-              ><img src="img/play.svg" style="width:14px;" /></button
-            >
-            <button on:click={OpenLevelLoader} class="gamesettings"
-              ><img src="img/settings.svg" style="width:16px;" /></button
-            >
-          </div>
+        <div
+          style="display:flex; justify-content:center; width:100%; background-color: rgba(20,20,20,0.5); border-radius:0px 0px 5px 5px; position: absolute; bottom:0px; left:0px;"
+        >
+          <button
+            title="Game Settings"
+            on:click={OpenLevelLoader}
+            class="gamesettings"
+            ><img src="img/settings.svg" style="width:16px;" /></button
+          >
+          <button
+            title="Change Level"
+            on:click={OpenLevelLoader}
+            class="gamesettings"
+            ><img src="img/changelevel.svg" style="width:16px;" /></button
+          >
+          <button
+            title="Open Game in Explorer"
+            on:click={OpenLevelLoader}
+            class="gamesettings"
+            ><img src="img/openinexplorer.svg" style="width:16px;" /></button
+          >
         </div>
 
         <br />
@@ -300,15 +294,40 @@
   .gamenode {
     box-shadow: 2px 2px 10px rgb(0, 0, 0);
     border-radius: 10px;
-    margin-right: auto;
-    margin-left: auto;
     width: 200px;
     height: 300px;
     background-size: cover;
     justify-content: center;
     position: relative;
     display: flex;
-    transition: 0.3s;
+    margin: auto;
+    align-self: center;
+    transition: 0.5s;
+  }
+  .playbutton {
+    opacity: 0;
+    top: 80px;
+    pointer-events: fill;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    border-radius: 100%;
+    align-items: center;
+    width: 128px;
+    height: 128px;
+    background-color: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    transition-duration: 0.3s;
+  }
+
+  .playbutton:hover {
+    transform: scale(1.1);
+  }
+
+  .playbutton:active {
+    background-color: rgba(0, 0, 0, 0.5);
+    transform: scale(1);
   }
 
   .gamenode:hover {
@@ -320,35 +339,16 @@
     left: 520px;
     bottom: 135px;
   }
-  .gameplaybutton {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    bottom: 0px;
-    left: 0px;
-    border-radius: 0px 0px 0px 10px;
-    transition-duration: 0.2s;
-    text-align: center;
-    width: 50%;
-    border-right: 1px white;
-  }
 
-  .gameplaybutton:hover {
-  }
-
-  .gamesettings:hover {
-  }
   .gamesettings {
-    display: flex;
+    border: none;
+    background-color: transparent;
     justify-content: center;
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
     border-right: 1px white;
     text-align: center;
-    margin: auto;
-    width: 50%;
-    border-radius: 0px 0px 10px 0px;
+  }
+  .gamesettings:hover {
+    transform: translateY(-3px);
   }
   .gamelogo {
     width: 180px;

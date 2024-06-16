@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { open } from "@tauri-apps/api/dialog";
   import { exists } from "@tauri-apps/api/fs";
   import {
@@ -6,20 +6,26 @@
     WriteFile,
     WriteToJSON,
     ReadFile,
-    FileExists,
   } from "./library/configfiles.js";
   import { invoke } from "@tauri-apps/api/tauri";
   import ModInstall from "./components/ModInstall.svelte";
   import { onMount } from "svelte";
-  import { emit, listen } from "@tauri-apps/api/event";
-  let addgamedumpDiv;
-  let dumpFound;
+  import { listen } from "@tauri-apps/api/event";
+  import { Game, Platform, Region } from "./library/gameid.js";
+
+  interface IdentifyGameResult {
+    game: Game;
+    region: Region;
+  }
+
+  let addgamedumpDiv: HTMLDivElement;
+  let dumpFound: HTMLDivElement;
   let error = "";
-  let gametype = "";
-  let region = "";
-  let id ="";
-  let path;
-  let isobutton;
+  let gametype = Game.None;
+  let region = Region.None;
+  let id = "";
+  let path = "";
+  let isobutton: HTMLButtonElement;
 
   onMount(async () => {
     let d = await ReadJSON("conf.json");
@@ -28,162 +34,147 @@
     }
   });
 
-  async function IdentifyISO(id)
-  {
-    id = id.replace(" ", "")
+  function IdentifyISO(id: string): IdentifyGameResult {
+    id = id.replace(" ", "");
 
-    let result = {game:"", region:""};
+    let result: IdentifyGameResult = { game: Game.None, region: Region.None };
 
-    console.log(id)
-
-    switch(id)
-    {
+    switch (id) {
       //EM1
 
-     case "SEME4Q":
-      result.game = "EM1";
-      result.region = "NTSC-U";
-      break;
+      case "SEME4Q":
+        result.game = Game.EM1;
+        result.region = Region.NTSC_U;
+        break;
 
       case "SEMX4Q":
-      result.game = "EM1";
-      result.region = "PAL.DE,ES,IT";
-      break;
+        result.game = Game.EM1;
+        result.region = Region.PAL_DE_ES_IT;
+        break;
 
       case "SEMY4Q":
-      result.game = "EM1";
-      result.region = "PAL.EN,SE,DK";
-      break;
+        result.game = Game.EM1;
+        result.region = Region.PAL_EN_SE_DK;
+        break;
 
       case "SEMZ4Q":
-      result.game = "EM1";
-      //the BEST version 
-      result.region = "PAL.SE,DK,NO";
-      break;
+        result.game = Game.EM1;
+        //the BEST version
+        result.region = Region.PAL_SE_DK_NO;
+        break;
 
       case "SEMP4Q":
-      result.game = "EM1";
-      result.region = "PAL.EN,FR,NL";
-      break;
+        result.game = Game.EM1;
+        result.region = Region.PAL_EN_FR_NL;
+        break;
 
       case "SEMJ01":
-      result.game = "EM1";
-      //the WORST version 
-      result.region = "NTSC-J";
-      break;
+        result.game = Game.EM1;
+        result.region = Region.NTSC_J;
+        break;
 
       //EM2
 
       case "SERE4Q":
-      result.game = "EM2";
-      result.region = "NTSC-U";
-      break;
+        result.game = Game.EM2;
+        result.region = Region.NTSC_U;
+        break;
 
       case "SERF4Q":
-      result.game = "EM2";
-      result.region = "PAL.FR,DE,IT";
-      break;
+        result.game = Game.EM2;
+        result.region = Region.PAL_FR_DE_IT;
+        break;
 
       case "SERJ91":
-      result.game = "EM2";
-      result.region = "NTSC-J";
-      break;
+        result.game = Game.EM2;
+        result.region = Region.NTSC_J;
+        break;
 
       case "SERK8M":
-      //didnt even know this version existed
-      result.game = "EM2";
-      result.region = "NTSC-K";
-      break;
+        result.game = Game.EM2;
+        result.region = Region.NTSC_K;
+        break;
 
-     case "SERP4Q":
-      result.game = "EM2";
-      result.region = "PAL.EN,FR,ES,NL,PT,TR";
-      break;
+      case "SERP4Q":
+        result.game = Game.EM2;
+        result.region = Region.PAL_EN_FR_ES_NL_PT_TR;
+        break;
 
       case "SERV4Q":
-      result.game = "EM2";
-      result.region = "PAL.SE,DK,NO";
-      break;
-    
+        result.game = Game.EM2;
+        result.region = Region.PAL_SE_DK_NO;
+        break;
     }
-
-    console.log(result)
 
     return result;
   }
 
-
-
-  async function AddGameDump(iso) {
+  async function AddGameDump(iso: boolean) {
     const selectedPath = await open({
       title: "Select folder",
       directory: !iso,
       multiple: false,
-      filters: [{ name: "Wii Images", extensions: ["iso", "wbfs", "gcz", "wia", "rvz"] }],
+      filters: [
+        {
+          name: "Wii Images",
+          extensions: ["iso", "wbfs", "gcz", "wia", "rvz"],
+        },
+      ],
     });
-
-    console.log(selectedPath);
 
     path = selectedPath.toString();
 
     if (iso) {
       let d = await ReadJSON("conf.json");
-      await invoke("check_iso", { path: path, dolphin:d.dolphinPath }).then(async (res) => {
+      await invoke("check_iso", { path: path, dolphin: d.dolphinPath }).then(
+        async (res: string) => {
+          let result = IdentifyISO(res);
 
-        let result = await IdentifyISO(res);
-
-        if(result.game == "")
-        {
-          await alert("This is not an Epic Mickey ISO.");
-          return;
-        }
-
-        
+          if (result.game == Game.None) {
+            await alert("This is not an Epic Mickey ISO.");
+            return;
+          }
 
           let modInstallElement = new ModInstall({
             target: document.body,
           });
           try {
-        
-
             modInstallElement.action = "Extracting";
             modInstallElement.modIcon =
-              result.game == "EM1"
-                ? "img/emicon.png"
-                : "img/em2icon.png";
+              result.game == Game.EM1 ? "img/emicon.png" : "img/em2icon.png";
             modInstallElement.description =
               "This might take a really long time.";
 
-            await listen("change_iso_extract_msg", (e) => {
+            await listen("change_iso_extract_msg", (e: any) => {
               modInstallElement.description = e.payload;
             });
 
-            modInstallElement.modName = result.game + " (WII, " + result.region + ")"; 
+            modInstallElement.modName =
+              result.game + " (WII, " + result.region + ")";
 
-            //nkit: d.NkitPath,
             await invoke("extract_iso", {
               isopath: path,
               gamename: res,
-              dolphin: d.dolphinPath
-            }).then(async (res) => {
-              console.log(res);
+              dolphin: d.dolphinPath,
+            }).then(async (res: string) => {
               modInstallElement.$destroy();
 
-              switch(res){
+              switch (res) {
                 case "err_toolnoexist":
-                  await alert("dolphin-tool not found! Please re-download Dolphin from the settings tab.")
-                  return
-            
+                  await alert(
+                    "dolphin-tool not found! Please re-download Dolphin from the settings tab.",
+                  );
+                  return;
               }
 
-                path = res;
+              path = res;
             });
           } catch (e) {
             await alert(e);
             modInstallElement.$destroy();
           }
-        
-      });
+        },
+      );
     }
     let wiiFolderExists = await exists(path + "/DATA");
     let exeExists = await exists(path + "/DEM2.exe");
@@ -198,22 +189,20 @@
     }
 
     if (wiiFolderExists) {
-
       let p = dataPath + "/sys/boot.bin";
-      id = await invoke("get_bootbin_id", {path: p});
-      console.log(id)
-      let info = await IdentifyISO(id);
+      id = await invoke("get_bootbin_id", { path: p });
+      console.log(id);
+      let info = IdentifyISO(id);
       gametype = info.game;
-      platform = "wii"
+      platform = Platform.Wii;
       region = info.region;
-      gamename = info.game + " (Wii)";
+      gamename = info.game.toString() + " (Wii)";
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
-     
     } else if (exeExists) {
-      gametype = "EM2";
+      gametype = Game.EM2;
       gamename = "Epic Mickey 2 (PC)";
-      platform = "pc";
+      platform = Platform.PC;
       dataPath = selectedPath;
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
@@ -223,15 +212,18 @@
   }
 
   let gamename = "";
-  let platform = "";
-  let dataPath;
+  let platform = Platform.None;
+  let dataPath: string | string[];
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
-    console.log(jsonData);
-
     if (
-      jsonData.find((r) => r.game == gametype && r.platform == platform && r.region == region) != null
+      jsonData.find(
+        (r: { game: string; platform: string; region: string }) =>
+          r.game == gametype.toString() &&
+          r.platform == platform.toString() &&
+          r.region == region.toString(),
+      ) != null
     ) {
       alert(
         gametype +
@@ -244,7 +236,13 @@
       return;
     }
 
-    let newData = { path: dataPath, game: gametype, platform: platform, id:id, region:region};
+    let newData = {
+      path: dataPath,
+      game: gametype,
+      platform: platform,
+      id: id,
+      region: region,
+    };
 
     jsonData.push(newData);
 

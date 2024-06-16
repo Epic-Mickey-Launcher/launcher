@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { GetData, SetData } from "./library/datatransfer";
   import {
+    CommentData,
     GetId,
-    GetModIconPath,
-    GetPfpPath,
+    GetImagePath,
     GetToken,
+    ImageType,
     POST,
     loggedin,
   } from "./library/networking";
@@ -14,35 +15,50 @@
   import { exists } from "@tauri-apps/api/fs";
   import Loading from "./components/loading.svelte";
   import DownloadMod from "./components/downloadMod.svelte";
-
-  let commentInput;
+  import { parse } from "marked";
+  import DOMPurify from "dompurify";
+  let commentInput: HTMLTextAreaElement;
   let update = false;
-  let downloadButton;
+  let downloadButton: HTMLButtonElement;
   let id = "";
   let allRegions = [];
   let downloads = 0;
   let likes = 0;
   let liked = false;
   let authoraccountexists = true;
-  let modid;
+  let modid: { toString: () => any };
   let authorname = "";
-  let dumploc;
+  let dumploc: any;
   let time = "";
-  let gameinfo;
-  let modinfo;
-  let youtubevideoembed;
-  let downloadMod;
-  let localid;
-  let ownercontrols;
+  let gameinfo: any;
+  let modinfo: {
+    Downloads: number;
+    CachedLikes: number;
+    Author: string;
+    Video: string;
+    ID: string;
+    Published: boolean;
+    id: any;
+    update: any;
+    platform: string;
+    game: any;
+    author: any;
+    Name: any;
+    Description: any;
+  };
+  let youtubevideoembed: HTMLIFrameElement;
+  let downloadMod: DownloadMod;
+  let localid: string;
+  let ownercontrols: HTMLDivElement;
   let commentNodes = [];
   let commentsCount = 0;
-  let hearticon;
+  let hearticon: SVGSVGElement;
   let selectRegion = false;
-  let youtubelink;
+  let youtubelink: string;
   let downloadStatus = "Download";
-  let commentsDiv;
+  let commentsDiv: HTMLDivElement;
   let modPublished = true;
-  let mainDiv;
+  let mainDiv: HTMLDivElement;
 
   async function SetJsonData() {
     let jsonData = await ReadJSON("games.json");
@@ -50,7 +66,7 @@
     return jsonData;
   }
 
-  async function InstantiateComment(userid, comment, id) {
+  async function InstantiateComment(userid: any, comment: any, id: any) {
     let commentNode = new CommentNode({
       target: commentsDiv,
     });
@@ -58,26 +74,19 @@
     let commentName = "";
 
     let userinfo = await POST("getprofileinfo", { id: userid });
-    if (userinfo.username == null) {
+
+    if (userinfo.body.username == null) {
       commentName = "Unknown Account";
     } else {
-      commentName = userinfo.username;
+      commentName = userinfo.body.username;
     }
 
-    let emblem = userinfo.body.emblems.sort((a, b) => {
-      return b.weight - a.weight;
-    })[0];
-
-    commentNode.InitCommentNode(
-      comment,
-      GetPfpPath(userinfo.body.id),
-      userinfo.body.username,
-      userinfo.body.id,
-      id,
-      localid,
-      modid,
-      emblem.color,
-    );
+    const commentData: CommentData = {
+      accountid: userinfo.body.id,
+      commentid: id,
+      pageid: modinfo.ID,
+    };
+    commentNode.InitCommentNode(commentData);
 
     commentNode.onDelete = () => {
       RefreshComments();
@@ -149,7 +158,7 @@
         pageid: modid,
         comment: commentInput.value.trim(),
       });
-      if (res.res == 0) {
+      if (res.body.res == 0) {
         RefreshComments();
       }
       commentInput.value = "";
@@ -165,10 +174,12 @@
 
     let comments = await POST("getcomments", { pageid: modid });
     if (comments != null) {
-      commentsCount = comments.comments.length;
-      comments.comments.reverse().forEach(async (r) => {
-        InstantiateComment(r.user, r.comment, r.id);
-      });
+      commentsCount = comments.body.comments.length;
+      comments.body.comments
+        .reverse()
+        .forEach(async (r: { user: any; comment: any; id: any }) => {
+          InstantiateComment(r.user, r.comment, r.id);
+        });
     }
   }
 
@@ -192,7 +203,7 @@
   async function PublishMod() {
     let token = await GetToken();
     let res = await POST("publishmod", { token: token, id: modid });
-    if (res.finished === true) {
+    if (res.body.finished === true) {
       window.open("#/modmarket", "_self");
     }
   }
@@ -239,7 +250,7 @@
       CheckIfDownloaded();
     };
   }
-  async function CheckInstall(path) {
+  async function CheckInstall(path: string) {
     let file_exists = await exists(path + "/EMLMods.json");
 
     if (!file_exists) {
@@ -249,7 +260,7 @@
     let dataStr = await ReadFile(path + "/EMLMods.json");
 
     let dataJson = JSON.parse(dataStr);
-    let json = dataJson.find((r) => r.modid == modid);
+    let json = dataJson.find((r: { modid: any }) => r.modid == modid);
     downloadStatus = "Download";
     if (json != null) {
       if (json.update != modinfo.update) {
@@ -273,7 +284,8 @@
     }
 
     allRegions = Gamesjson.filter(
-      (r) => r.platform == platform && r.game == modinfo.game,
+      (r: { platform: any; game: any }) =>
+        r.platform == platform && r.game == modinfo.game,
     );
     console.log(allRegions);
 
@@ -335,7 +347,7 @@
     style="display:flex;width:100%;height:100%;justify-content:center;"
   >
     <img
-      src={GetModIconPath()}
+      src={GetImagePath(modinfo.ID, ImageType.Mod)}
       alt=""
       style="border-radius:20px;margin-right:20px;width:200px;height:200px;"
     />
@@ -364,11 +376,17 @@
           >{authorname}</button
         >
 
-        <span>| Published on: {time}</span>
+        <span>| Published on: {time}</span> <br />
+        <span>Repository URL: </span> <br />
+        <span>Latest Commit: </span>
       </p>
       <p></p>
-      <div style="max-width:500px; word-wrap: break-word;">
-        <span style="max-width:200px;">{modinfo.Description}</span>
+      <div
+        style="max-width:500px; word-wrap: break-word;padding:10px;border-radius:5px;background-color:rgb(20, 20, 20)"
+      >
+        <span style="max-width:200px;"
+          >{@html DOMPurify.sanitize(parse("# Markdown \n is awesome"))}</span
+        >
       </div>
       <p>
         <iframe
@@ -458,6 +476,7 @@
     >
   </div>
 {/if}
+<CommentNode></CommentNode>
 
 <style>
   .selectregion {

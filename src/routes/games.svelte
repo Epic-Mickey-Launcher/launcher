@@ -1,43 +1,36 @@
-<script>
+<script lang="ts">
   import GameNode from "./components/GameNode.svelte";
   import { exists, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
   import { appLocalDataDir } from "@tauri-apps/api/path";
   import { onMount } from "svelte";
   import { FileExists, InitConfFiles } from "./library/configfiles.js";
   import { ConvertModJsonToNew } from "./library/legacy";
+  import { Game, GameData } from "./library/gameid";
+  import Settings from "./settings.svelte";
 
-  let gameNodeDiv;
-  let blackoutDiv;
-  let bannerDiv;
+  let gameNodeDiv: HTMLDivElement;
+  let blackoutDiv: HTMLDivElement;
+  let bannerDiv: HTMLDivElement;
   let hoveredGame = "EM1";
 
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
-
     let confExists = await FileExists(appLocalDataDirPath + "conf.json");
     if (!confExists) {
       InitConfFiles();
     }
-
     let jsonExists = await exists(appLocalDataDirPath + "games.json");
-
     if (!jsonExists) {
       await writeTextFile({
         path: appLocalDataDirPath + "games.json",
         contents: "[]",
       });
     }
-
     let t = await readTextFile(appLocalDataDirPath + "games.json");
-
-    let jsonData = JSON.parse(t);
-
-    jsonData.forEach(async (dat) => {
-      console.log(dat);
-
-      await ConvertModJsonToNew(dat.path);
-
-      CreateNode(dat.game, dat.path, dat.platform, dat);
+    let jsonData: GameData[] = JSON.parse(t);
+    jsonData.forEach(async (dat: GameData) => {
+      await ConvertModJsonToNew(dat.gamePath);
+      CreateNode(dat);
     });
   });
 
@@ -45,27 +38,24 @@
     window.open("#/addgame", "_self");
   }
   //todo: remove useless variables game, directory, platform
-  function CreateNode(game, directory, platform, dat) {
+  function CreateNode(dat: GameData) {
     var element = new GameNode({
       target: gameNodeDiv,
     });
 
-    element.filepath = directory;
-    element.game = game;
-    element.platform = platform;
     element.data = dat;
-    element.mouseEnterCB = (g) => {
+    element.mouseEnterCB = (g: string) => {
       hoveredGame = g;
-      blackoutDiv.style.opacity = 0.9;
-      bannerDiv.style.opacity = 1;
+      blackoutDiv.style.opacity = "0.9";
+      bannerDiv.style.opacity = "1";
     };
     element.mouseExitCB = () => {
-      blackoutDiv.style.opacity = 0;
-      bannerDiv.style.opacity = 0;
+      blackoutDiv.style.opacity = "0";
+      bannerDiv.style.opacity = "0";
     };
     element.Init();
 
-    if (game == "EM1") {
+    if (dat.game == Game.EM1.toString()) {
       element.imgLogoURL = "/img/emlogo.png";
       element.imgBackgroundURL = "/img/em1banner.png";
     } else {
@@ -78,6 +68,7 @@
 <div bind:this={blackoutDiv} class="blackout"></div>
 <div class="gamebanner" bind:this={bannerDiv}>
   <img
+    alt=""
     style="width:65vw;margin:auto;overflow:hidden;"
     src="img/{hoveredGame}bannerfull.png"
   />
@@ -86,24 +77,29 @@
 <h1 style="text-align:center;filter:drop-shadow(0 0 4px black)">Games</h1>
 <hr style="width:500px" />
 <p />
-<div bind:this={gameNodeDiv} class="gamegrid" />
+<div style="display:flex;justify-content:center">
+  <div bind:this={gameNodeDiv} class="gamegrid" />
+</div>
 <p style="margin-bottom:50px;" />
-<button on:click={AddGame} class="addgamebutton">+</button>
+<button on:click={AddGame} class="addgamebutton"
+  ><span style="position:relative;bottom:8px;">+</span></button
+>
 
 <style>
   .addgamebutton {
     margin: 0 auto;
-    display: block;
+    display: flex;
+    justify-content: center;
+    text-align: center;
     font-size: 20px;
-    border-radius: 100%;
-    width: 50px;
-    height: 50px;
+    border-radius: 10px;
+    width: 100px;
+    height: 30px;
     border: 1px solid;
     padding: 10px 0px;
     border-color: rgb(138, 138, 138);
     background-color: rgb(82, 82, 82);
     transition-duration: 0.1s;
-
     margin-bottom: 30px;
   }
 

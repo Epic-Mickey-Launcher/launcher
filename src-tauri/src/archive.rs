@@ -31,7 +31,6 @@ pub fn validate(path: String) -> SmallArchiveValidationInfo {
 pub fn extract(input_path: String, output_path: &PathBuf) -> std::io::Result<()> {
     debug::log(&format!("Extracting Archive {}", input_path));
 
-    println!("Archive is TAR");
     #[cfg(target_os = "windows")]
     Command::new("tar")
         .arg("-xf")
@@ -59,5 +58,5 @@ pub fn extract(input_path: String, output_path: &PathBuf) -> std::io::Result<()>
 
     fs::remove_file(input_path)?;
 
-    Ok(())    
+    Ok(())
 }

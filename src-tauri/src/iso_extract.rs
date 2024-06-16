@@ -1,9 +1,9 @@
-use std::process::{Command, Stdio};
 use std::fs;
 use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
-use crate::helper;
 use crate::debug;
+use crate::helper;
 
 pub async fn extract(isopath: String, gamename: String, dolphin: String) -> String {
     let mut destination = helper::get_config_path().expect("could not get config dir");
@@ -37,7 +37,6 @@ pub async fn extract(isopath: String, gamename: String, dolphin: String) -> Stri
 }
 
 pub fn check(path: String, dolphin: String) -> String {
-
     debug::log("Checking Game ID");
 
     let mut dolphin_tool = PathBuf::from(dolphin);
@@ -51,22 +50,22 @@ pub fn check(path: String, dolphin: String) -> String {
     dolphin_tool.push("dolphin-tool");
 
     let dolphin = Command::new(dolphin_tool)
-    .arg("header")
-    .arg("-i")
-    .arg(path)
-    .stdout(Stdio::piped())
-    .output()
-    .unwrap();
+        .arg("header")
+        .arg("-i")
+        .arg(path)
+        .stdout(Stdio::piped())
+        .output()
+        .unwrap();
     let stdout = String::from_utf8(dolphin.stdout).unwrap();
     let mut s = stdout.split("\n");
     let mut id_parse = String::new();
     while id_parse == "" {
         let stline = s.next().unwrap();
-        if stline.contains("Game ID: "){
+        if stline.contains("Game ID: ") {
             id_parse = stline.replace("Game ID: ", "");
         }
     }
     let id = id_parse.trim().to_string();
     debug::log(&format!("ID Check Result: {}", id));
-    id 
+    id
 }
