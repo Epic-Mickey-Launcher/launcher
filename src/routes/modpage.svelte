@@ -338,6 +338,8 @@
         r.game.toLowerCase() == modInfo.Game.toLowerCase(),
     );
 
+    console.log(allRegions.length);
+
     if (allRegions.length == 1) {
       gameInfo = allRegions[0];
       id = allRegions[0].id;
@@ -355,6 +357,9 @@
         downloadButton.disabled = true;
         downloadStatus = "Already Installed";
       }
+    } else if (allRegions.length == 0) {
+      downloadButton.disabled = true;
+      downloadStatus = `${modInfo.Game} (${platform}) not installed!`;
     }
 
     if (haveGame && allRegions.length == 1) {
@@ -366,9 +371,6 @@
         downloadButton.disabled = true;
         downloadStatus = "Already Installed";
       }
-    } else if (allRegions.length < 0) {
-      downloadButton.disabled = true;
-      downloadStatus = `${modInfo.Game} (${platform}) not installed!`;
     }
   }
 
