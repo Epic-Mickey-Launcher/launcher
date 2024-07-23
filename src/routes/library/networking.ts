@@ -1,4 +1,4 @@
-export const serverLink = 'http://localhost:8574/';
+export const serverLink = 'https://emlapi.kalsvik.no/';
 export const statusMessageLink = 'https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus'
 export let loggedin = false;
 export let outdated = false
