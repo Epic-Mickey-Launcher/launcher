@@ -39,7 +39,7 @@
   let dolphin_button: HTMLButtonElement;
   let version = "";
 
-  const DOLPHIN_LINK_WINDOWS = "https://kalsvik.no/res/dolphin_windows.tar.gz";
+  const DOLPHIN_LINK_WINDOWS = "https://kalsvik.no/res/Dolphin-x64.tar.gz";
   const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin_linux.tar.gz";
   const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin_mac.zip";
 
