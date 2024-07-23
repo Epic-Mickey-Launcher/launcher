@@ -4,9 +4,11 @@
   import { Subscribe } from "./library/callback";
   import { POST, Register, SignIn, UserInfo } from "./library/networking";
   import { GetBackgroundLogin } from "./library/background";
+  import Loading from "./components/loading.svelte";
 
   let user: any;
   let pass: any;
+  let loadingDialog: HTMLDialogElement;
   let background: HTMLDivElement;
   let email: any;
   let forgotPasswordDialog: HTMLDialogElement;
@@ -21,6 +23,7 @@
   }
 
   async function Login(type: number) {
+    loadingDialog.showModal();
     Subscribe(
       "SignedIn",
       (c: { error: number }) => {
@@ -40,6 +43,7 @@
       //register
       await Register(userInfo);
     }
+    loadingDialog.close();
   }
 </script>
 
@@ -65,6 +69,10 @@
         type="password"
       />
     </p>
+
+    <dialog bind:this={loadingDialog}>
+      <span>Logging in...</span>
+    </dialog>
     <dialog bind:this={forgotPasswordDialog}>
       <span
         >If you have an E-Mail linked to your account, you can request a
