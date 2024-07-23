@@ -51,7 +51,7 @@ pub fn extract(
         .arg(&input_path)
         .arg("-C")
         .arg(&output_path)
-        .spawn();
+        .spawn()?;
 
     let error = result.wait()?;
 
