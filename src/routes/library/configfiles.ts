@@ -3,12 +3,14 @@ import {
   writeTextFile,
   readTextFile,
   createDir,
-  removeFile
+  removeFile,
+  removeDir
 } from "@tauri-apps/api/fs"
 import {
   appLocalDataDir
 } from '@tauri-apps/api/path';
 import { invoke } from "@tauri-apps/api/tauri";
+import app from "src/main";
 
 let configPath: string;
 
@@ -104,16 +106,9 @@ export async function ReadToken(): Promise<string> {
 export async function DeleteAllConfigFiles() {
   await DataFolderExists()
   let appdir = configPath;
-  let gamesJsonExists = await exists(appdir + "games.json");
-  let confJsonExists = await exists(appdir + "conf.json");
-
-  if (gamesJsonExists) {
-    await removeFile(appdir + "games.json");
-  }
-
-  if (confJsonExists) {
-    await removeFile(appdir + "conf.json");
-  }
+  removeDir(appdir, {
+    recursive: true
+  })
 }
 
 export async function InitConfFiles() {
