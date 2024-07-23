@@ -35,7 +35,7 @@ pub fn extract(
         .arg(&input_path)
         .arg("-C")
         .arg(&output_path)
-        .output()?;
+        .spawn()?;
 
     #[cfg(target_os = "linux")]
     let mut result = Command::new("tar")
@@ -51,7 +51,7 @@ pub fn extract(
         .arg(&input_path)
         .arg("-C")
         .arg(&output_path)
-        .output();
+        .spawn();
 
     let error = result.wait()?;
 
