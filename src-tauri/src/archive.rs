@@ -35,7 +35,6 @@ pub fn extract(
         .arg(&input_path)
         .arg("-C")
         .arg(&output_path)
-        .creation_flags(CREATE_NO_WINDOW)
         .output()?;
 
     #[cfg(target_os = "linux")]
