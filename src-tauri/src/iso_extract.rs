@@ -27,7 +27,7 @@ pub async fn extract(
     fs::create_dir_all(&destination)?;
 
     if !dolphin_tool.exists() {
-        return Ok("err_toolnoexist".to_string());
+        return Err("dolphin tool does not exist".into());
     }
 
     Command::new(dolphin_tool)
