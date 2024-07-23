@@ -20,7 +20,6 @@
   import User from "./components/User.svelte";
   import { invoke } from "@tauri-apps/api";
   import Commit from "./components/Commit.svelte";
-  import ModInstall from "./components/ModInstall.svelte";
   let commentInput: HTMLTextAreaElement;
   let update = false;
   let downloadButton: HTMLButtonElement;
@@ -44,7 +43,6 @@
   let modPublished = true;
   let mainDiv: HTMLDivElement;
   let sendButton: HTMLButtonElement;
-
   let gameInfo: GameConfig;
   let modInfo: Mod;
 
@@ -399,7 +397,7 @@
   <button on:click={() => commitHistory.close()}>Close</button>
 </dialog>
 
-{#if !modInfo == null}
+{#if modInfo == null}
   <span style="margin-left:45%;">
     <Loading></Loading>
   </span>
