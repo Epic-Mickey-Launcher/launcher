@@ -1,4 +1,5 @@
 export const serverLink = 'http://localhost:8574/';
+export const statusMessageLink = 'https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus'
 export let loggedin = false;
 export let outdated = false
 import {
@@ -42,7 +43,6 @@ export enum ImageType {
 */
 export function GetImagePath(id: string, type: ImageType, ignoreCaching: boolean = true): string {
   let typeString = type == ImageType.User ? "userpfp" : "modicon";
-  console.log(typeString)
   let query = serverLink + "img/" + typeString + "?id=" + id
   if (ignoreCaching) {
     query += "&t=" + Date.now()
@@ -56,6 +56,10 @@ export function SetOutdated() {
 
 export async function SignIn(userinfo: UserInfo) {
   await Login(userinfo)
+}
+
+export async function ClearInMemoryToken() {
+  token = ""
 }
 
 export async function SetLoggedIn(value: boolean) {
@@ -140,7 +144,17 @@ export async function Login(userinfo: UserInfo) {
     response = await POST("user/login", {
       token: userinfo.token
     }, false)
+    await WriteToken(userinfo.token)
+    token = userinfo.token
     tokenLogin = true
+    id = ""
+
+    loggedin = true
+    Invoke("SignedIn", {
+      error: 0
+    })
+
+    return
   } else {
     response = await POST("user/login", {
       username: userinfo.username,
@@ -149,7 +163,10 @@ export async function Login(userinfo: UserInfo) {
   }
 
   if (!response.error) {
-    if (!tokenLogin) await WriteToken(response.body)
+    if (!tokenLogin) {
+      await WriteToken(response.body)
+      token = response.body
+    }
     loggedin = true;
     Invoke("SignedIn", {
       error: 0
@@ -187,7 +204,7 @@ export async function MultipartPOST(route: string, data: any): Promise<Response>
   return response
 }
 
-export async function POST(route: string, data: any, toJson = true): Promise<Response> {
+export async function POST(route: string, data: any, toJson = true, suppressError = false): Promise<Response> {
   const res = await fetch(serverLink + route, {
     method: 'POST',
     headers: {
@@ -198,7 +215,7 @@ export async function POST(route: string, data: any, toJson = true): Promise<Res
     body: JSON.stringify(data)
   });
 
-  if (res.status != 200) {
+  if (res.status != 200 && !suppressError) {
     await alert(serverLink + route + "\nRequest Failed: \"" + await res.text() + "\"")
   }
 

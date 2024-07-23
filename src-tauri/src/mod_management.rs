@@ -1,18 +1,15 @@
-use tauri::Window;
+use crate::{debug, dolphin, download, git, helper, mod_info};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::path::{Path, PathBuf};
+use tauri::Window;
 use walkdir::WalkDir;
-use std::path::{PathBuf, Path};
-use crate::mod_info;
-use crate::dolphin;
-use crate::helper;
-use crate::debug;
-use crate::download;
 
 #[derive(Serialize, Deserialize)]
 pub struct ValidationInfo {
     pub modname: String,
     pub modicon: String,
+    pub result: String,
     pub validated: bool,
 }
 
@@ -34,8 +31,8 @@ pub async fn add(
     modid: String,
     platform: String,
     window: &Window,
-) {
-    let mut path = helper::get_config_path().expect("could not get config dir");
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut path = helper::get_config_path()?;
     path.push(r"cachedMods");
     let mut full_path = path.clone();
     full_path.push(&modid);
@@ -46,22 +43,20 @@ pub async fn add(
     mod_json_path_check.push("mod.json");
 
     if !mod_json_path_check.exists() && !url.is_empty() {
-        fs::create_dir_all(&full_path).expect("Couldn't create mod cache folder");
+        fs::create_dir_all(&full_path)?;
 
         let is_local = !url.starts_with("http");
 
-        download::zip(url, &full_path, is_local, window).await;
+        download::zip(url, &full_path, is_local, window).await?;
         debug::log("done downloading");
     }
-    
+
     let mut path_json = full_path.clone();
     path_json.push("mod.json");
 
-    let json_string =
-        fs::read_to_string(path_json).expect("mod.json does not exist or could not be read");
+    let json_string = fs::read_to_string(path_json)?;
 
-    let json_data: ModInfo = serde_json::from_str(&json_string)
-        .expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
+    let json_data: ModInfo = serde_json::from_str(&json_string)?;
 
     //inject files
 
@@ -81,7 +76,7 @@ pub async fn add(
 
         path_final_location.push(&dumploc);
 
-        if platform == "wii" {
+        if platform.to_lowercase() == "wii" {
             path_final_location.push("files");
         }
 
@@ -92,7 +87,7 @@ pub async fn add(
 
         path_backup.push("backup");
 
-        fs::create_dir_all(&path_backup).expect("couldn't create backup folder");
+        fs::create_dir_all(&path_backup)?;
 
         let path_search_clone = path_datafiles.clone();
 
@@ -113,12 +108,7 @@ pub async fn add(
             let p = entry.unwrap();
 
             if !p.path().is_file() {
-                let p_str = helper::correct_all_slashes(
-                    p.path()
-                        .to_str()
-                        .expect("Couldn't convert path to string.")
-                        .to_string(),
-                );
+                let p_str = helper::correct_all_slashes(p.path().to_str().unwrap().to_string());
 
                 //HACK: this can probably be done better right?
                 let dont_end_with = format!(r"{}{}", "/", json_data.custom_game_files_path);
@@ -129,8 +119,7 @@ pub async fn add(
 
                 let p_str_shortened = p_str.replace(&path_datafiles_str, "");
 
-                let p_str_final =
-                    helper::remove_first(&p_str_shortened).expect("couldn't remove slash from string");
+                let p_str_final = helper::remove_first(&p_str_shortened).unwrap();
 
                 dirs.push(p_str_final.to_string());
             }
@@ -141,7 +130,7 @@ pub async fn add(
             dir.push(&path_backup);
             dir.push(directory);
 
-            fs::create_dir_all(&dir).expect("Failed to create folders.");
+            fs::create_dir_all(&dir)?;
         }
 
         debug::log("Created Folders");
@@ -154,17 +143,11 @@ pub async fn add(
             let p = entry.unwrap();
 
             if p.path().is_file() {
-                let p_str = helper::correct_all_slashes(
-                    p.path()
-                        .to_str()
-                        .expect("Couldn't convert path to string.")
-                        .to_string(),
-                );
+                let p_str = helper::correct_all_slashes(p.path().to_str().unwrap().to_string());
 
                 let p_str_shortened = &p_str.replace(&path_datafiles_str, "");
 
-                let p_str_final =
-                    helper::remove_first(&p_str_shortened).expect("couldn't remove slash from string");
+                let p_str_final = helper::remove_first(&p_str_shortened).unwrap();
 
                 files.push(p_str_final.to_string());
             }
@@ -173,7 +156,7 @@ pub async fn add(
         for file in &files {
             let mut source = PathBuf::new();
             source.push(&dumploc);
-            if platform == "wii" {
+            if platform.to_lowercase() == "wii" {
                 source.push("files");
             }
             source.push(file);
@@ -185,9 +168,8 @@ pub async fn add(
             if std::path::Path::new(&source).exists()
                 && !std::path::Path::new(&destination).exists()
             {
-                fs::copy(&source, destination).expect("couldn't copy file to backup");
+                fs::copy(&source, &destination)?;
             }
-
             files_to_restore.push(file.to_string());
         }
 
@@ -198,7 +180,7 @@ pub async fn add(
             &path_final_location.display()
         ));
 
-        helper::inject_files(&path_datafiles, &path_final_location);
+        helper::inject_files(&path_datafiles, &path_final_location)?;
     }
 
     let mut texturefiles: Vec<String> = Vec::new();
@@ -234,34 +216,36 @@ pub async fn add(
             &dolphin_path.display()
         ));
 
-        helper::inject_files(&path_textures, &dolphin_path)
+        helper::inject_files(&path_textures, &dolphin_path)?;
     }
 
     mod_info::write(
-        &format!("{}/{}", &dumploc, modid),
+        format!("{}/{}", dumploc, modid),
         files_to_restore,
         texturefiles,
-    ).expect("Failed to write mod info file.");
+    )?;
 
     debug::log("Process ended successfully");
+
+    Ok(())
 }
 
 pub async fn delete(
     dumploc: String,
     gameid: String,
-    platform: String,       
+    platform: String,
     modid: String,
     active: bool,
     window: &Window,
-) {
+) -> Result<(), Box<dyn std::error::Error>> {
     debug::log(&format!("Attempting to delete mod ({}).", modid));
     let p = PathBuf::from(format!("{}/{}", dumploc, modid));
 
     if !p.exists() {
-        return;
+        return Err("Mod does not exist in game.".into());
     }
 
-    let data = mod_info::read(&p.to_str().unwrap().to_string()).unwrap();
+    let data = mod_info::read(&p.to_str().unwrap().to_string())?;
 
     let files = data.files;
     let texturefiles = data.textures;
@@ -269,7 +253,7 @@ pub async fn delete(
     if active {
         let mut datafiles_path = PathBuf::new();
         datafiles_path.push(&dumploc);
-        if platform == "wii" {
+        if platform.to_lowercase() == "wii" {
             datafiles_path.push("files");
         }
 
@@ -288,26 +272,20 @@ pub async fn delete(
             destination_path.push(&datafiles_path);
             destination_path.push(&file);
 
-            if source_path.exists()
-                && destination_path.exists()
-            {
-                files_to_remove -= 1;
+            files_to_remove -= 1;
 
-                window
-                    .emit(
-                        "change_description_text_delete",
-                        format!(
-                            "Restoring original files... Remaining files: {}",
-                            files_to_remove
-                        ),
-                    )
-                    .unwrap();
+            window.emit(
+                "change_description_text_delete",
+                format!(
+                    "Restoring original files... Remaining files: {}",
+                    files_to_remove
+                ),
+            )?;
 
-                fs::copy(source_path, destination_path).unwrap();
-            }
-            else if destination_path.exists()
-            {
-                fs::remove_file(destination_path).expect("Could not delete custom file.");
+            if source_path.exists() && destination_path.exists() {
+                fs::copy(source_path, destination_path)?;
+            } else if destination_path.exists() {
+                fs::remove_file(destination_path)?;
             }
         }
 
@@ -323,100 +301,103 @@ pub async fn delete(
 
             path.push(&dolphin_path);
 
-            let path_final = helper::remove_first(&file).expect("couldn't remove slash from string");
+            let path_final =
+                helper::remove_first(&file).expect("couldn't remove slash from string");
 
             path.push(path_final);
 
             if std::path::Path::new(&path).exists() {
                 files_to_remove -= 1;
 
-                window
-                    .emit(
-                        "change_description_text_delete",
-                        format!("Deleting Textures... Remaining files: {}", files_to_remove),
-                    )
-                    .unwrap();
+                window.emit(
+                    "change_description_text_delete",
+                    format!("Deleting Textures... Remaining files: {}", files_to_remove),
+                )?;
 
-                fs::remove_file(&path).unwrap();
+                fs::remove_file(&path)?;
             }
         }
         debug::log("Removed texture files.");
     }
     debug::log("Process ended.");
+
+    Ok(())
 }
 
-pub fn delete_cache(modid: String) {
-    let mut path = helper::get_config_path().expect("could not get config dir");
+pub fn delete_cache(modid: String) -> std::io::Result<()> {
+    let mut path = helper::get_config_path()?;
     path.push(r"cachedMods");
     path.push(modid);
     if path.exists() {
-        fs::remove_dir_all(path).expect("Could not remove mod cache");
+        fs::remove_dir_all(path)?;
     }
+    Ok(())
 }
 
-pub fn delete_cache_all() {
-    let mut path = helper::get_config_path().expect("could not get config dir");
+pub fn delete_cache_all() -> std::io::Result<()> {
+    let mut path = helper::get_config_path()?;
     path.push("cachedMods");
-
     if path.exists() {
-        fs::remove_dir_all(&path).unwrap();
+        fs::remove_dir_all(&path)?;
     }
 
-    fs::create_dir(path).unwrap();
+    fs::create_dir(path)?;
+    Ok(())
 }
 
-pub async fn validate_mod(url: String, local: bool, window: &Window) -> ValidationInfo {
+pub async fn validate_mod(
+    url: String,
+    local: bool,
+    window: &Window,
+) -> Result<ValidationInfo, Box<dyn std::error::Error>> {
     debug::log("Validating mod");
 
-    let mut path_imgcache = helper::get_config_path().expect("could not get config dir");
-    path_imgcache.push("cache");
-
-    fs::create_dir_all(&mut path_imgcache).expect("Failed to create folders.");
-
-    path_imgcache.push("temp.png");
-
-    let mut path = helper::get_config_path().expect("could not get config dir");
-    path.push(r"TMP");
-
-    let mut json_path = path.clone();
-    json_path.push("mod.json");
-
-    let mut icon_path = path.clone();
-
-    download::zip(url, &path, local, window).await;
-
-    debug::log("Finished Downloading mod for validation");
+    let mut path = helper::get_config_path()?;
+    path.push(".tempverify");
+    fs::create_dir_all(&path)?;
+    git::clone(&url, &path)?;
 
     let mut validation = ValidationInfo {
         modname: "".to_string(),
+        validated: true,
         modicon: "".to_string(),
-        validated: false,
+        result: "No Issues.".to_string(),
     };
 
-    if Path::exists(&json_path) {
-        let json_string =
-            fs::read_to_string(&json_path).expect("mod.json does not exist or could not be read");
-        let json_data: ModInfo = serde_json::from_str(&json_string)
-            .expect("Mod data either doesn't exist or couldn't be loaded due to formatting error.");
-        icon_path.push(json_data.icon_path);
-
-        if Path::exists(&icon_path) {
-            fs::copy(icon_path, &path_imgcache).expect("Could not copy icon file to cache");
-            validation.validated = true;
-            validation.modicon = path_imgcache
-                .to_str()
-                .expect("Couldn't convert path to string.")
-                .to_string();
-            validation.modname = json_data.name;
-        } else {
-            debug::log("Icon file does not exist");
+    let config = match eml_validate::validate(&path) {
+        Ok(config) => config,
+        Err(e) => {
+            validation.result = e.to_string();
+            validation.validated = false;
+            //this is a violation of all things holy
+            eml_validate::ModInfo {
+                name: "".to_string(),
+                game: "".to_string(),
+                platform: "".to_string(),
+                custom_game_files_path: "".to_string(),
+                custom_textures_path: "".to_string(),
+                description: "".to_string(),
+                dependencies: Vec::new(),
+                icon_path: "".to_string(),
+            }
         }
-    } else {
-        debug::log("Mod.json does not exist");
+    };
+
+    validation.modname = config.name;
+
+    if validation.validated {
+        let mut mod_icon_path = path.clone();
+        mod_icon_path.push(config.icon_path);
+        let image_buffer = std::fs::read(mod_icon_path)?;
+        let mut data_url = dataurl::DataUrl::new();
+        data_url.set_data(&image_buffer);
+        data_url.set_media_type("image/png".to_string().into());
+        validation.modicon = data_url.to_string();
     }
-    
+
+    fs::remove_dir_all(path)?;
     debug::log("Finished Validating mod");
-    validation
+    Ok(validation)
 }
 
 pub async fn change_status(
@@ -426,26 +407,18 @@ pub async fn change_status(
     platform: String,
     active: bool,
     window: &Window,
-) {
+) -> Result<(), Box<dyn std::error::Error>> {
     let active = active;
 
     if active {
         debug::log(&format!("Mod ({}) Enabled", modid));
         //todo: fix this shit
-        add(
-            "".to_string(),
-            dumploc,
-            gameid,
-            modid,
-            platform,
-            window,
-        )
-        .await;
+        add("".to_string(), dumploc, gameid, modid, platform, window).await?;
     } else {
         debug::log(&format!("Mod ({}) Disabled.", modid));
-        delete(dumploc, gameid, platform, modid, !active, window).await;
+        delete(dumploc, gameid, platform, modid, !active, window).await?;
     }
 
     debug::log("Proccess ended");
+    Ok(())
 }
-

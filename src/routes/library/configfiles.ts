@@ -18,7 +18,7 @@ export async function GetPath() {
 
 //todo: what kind of fuckin name is this? fix!
 async function DataFolderExists() {
-  GetPath()
+  await GetPath()
   let path = configPath;
   let pathExists = await exists(path);
   if (!pathExists) {
@@ -26,8 +26,25 @@ async function DataFolderExists() {
   }
 }
 
+export async function ReadOneTimeNoticeBlacklist(): Promise<string> {
+  await DataFolderExists();
+  let appdir = configPath
+  return await FileExists(appdir + "otn") ? await readTextFile(appdir + "otn") : ""
+}
+export async function CheckOneTimeNoticeBlacklist(id: string): Promise<boolean> {
+  let buffer = await ReadOneTimeNoticeBlacklist()
+  return buffer.includes(id)
+}
+export async function WriteOneTimeNoticeBlacklist(id: string) {
+  await DataFolderExists();
+  let appdir = configPath
+  let buffer = await ReadOneTimeNoticeBlacklist()
+  buffer += id + ","
+  await writeTextFile(appdir + "otn", buffer)
+}
+
 export async function WriteToJSON(content: string, file: string) {
-  DataFolderExists()
+  await DataFolderExists()
   let path = configPath
   await writeTextFile({
     path: path + file,
@@ -36,9 +53,8 @@ export async function WriteToJSON(content: string, file: string) {
 }
 
 export async function ReadJSON(file: string): Promise<any> {
-  DataFolderExists()
+  await DataFolderExists()
   let path = configPath
-  console.log(path)
   let content = await readTextFile(path + file)
   return JSON.parse(content);
 }
@@ -74,7 +90,7 @@ export async function WriteToken(token: string) {
 }
 
 export async function ReadToken(): Promise<string> {
-  console.log(configPath)
+  await DataFolderExists();
   let appdir = configPath
 
   if (await FileExists(appdir + "TOKEN")) {
@@ -86,6 +102,7 @@ export async function ReadToken(): Promise<string> {
 }
 
 export async function DeleteAllConfigFiles() {
+  await DataFolderExists()
   let appdir = configPath;
   let gamesJsonExists = await exists(appdir + "games.json");
   let confJsonExists = await exists(appdir + "conf.json");
@@ -100,6 +117,7 @@ export async function DeleteAllConfigFiles() {
 }
 
 export async function InitConfFiles() {
+  await DataFolderExists()
   let path = configPath
   let gamesJsonExists = await exists(path + "games.json");
   let confJsonExists = await exists(path + "conf.json");

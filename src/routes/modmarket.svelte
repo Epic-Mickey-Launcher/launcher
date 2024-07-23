@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    GET,
-    GetImagePath,
-    GetToken,
-    ImageType,
-    POST,
-    serverLink,
-  } from "./library/networking";
+  import { GetToken, POST } from "./library/networking";
   import { onMount } from "svelte";
   import ModNode from "./components/ModNode.svelte";
   import { GetFullName, ReadJSON } from "./library/configfiles";
@@ -15,8 +8,7 @@
   import Dialog from "./components/dialog.svelte";
   import { GetBackgroundModMarket } from "./library/background";
   import { invoke } from "@tauri-apps/api";
-  import { to_number } from "svelte/internal";
-  let warning: any;
+  import { Mod } from "./library/types";
   let load = true;
   let jsonData: any[];
 
@@ -93,6 +85,8 @@
     let token = await GetToken();
 
     let d = {
+      Game: currentSelectedGame.game,
+      Platform: currentSelectedGame.platform,
       Token: token,
       PageIndex: chunkindex - 1,
       Order: filter,
@@ -103,48 +97,36 @@
     IntToArray(data.body.RawQuerySize);
     allspawnednodes = [];
 
-    await data.body.ModObjs.forEach(
-      async (e: {
-        ID: string;
-        Name: string;
-        Description: string;
-        Download: string;
-        Author: string;
-        Version: number;
-        Platform: string;
-        Game: string;
-        Downloads: number;
-      }) => {
-        let modNode = new ModNode({
-          target: ModList,
-        });
+    await data.body.ModObjs.forEach(async (e: Mod) => {
+      let modNode = new ModNode({
+        target: ModList,
+      });
 
-        modNode.modid = e.ID;
-        modNode.modName = e.Name;
-        modNode.moddataobj = e;
-        modNode.iconLink = GetImagePath(e.ID, ImageType.Mod);
-        modNode.description = e.Description;
-        modNode.downloadLink = serverLink + "mod/download?id=" + e.Download;
-        modNode.author = e.Author;
-        modNode.update = e.Version;
-        modNode.modplatform = e.Platform;
-        modNode.modgame = e.Game;
-        modNode.downloads = e.Downloads;
+      modNode.modData = e;
+      modNode.gameData = jsonData.find(
+        (r: { game: any; platform: any }) =>
+          r.game == currentSelectedGame.game &&
+          r.platform == currentSelectedGame.platform,
+      );
+      modNode.Init();
 
-        modNode.moddata = e;
-        modNode.json = JSON.stringify(e);
-        modNode.gamedata = jsonData.find(
-          (r: { game: any; platform: any }) =>
-            r.game == currentSelectedGame.game &&
-            r.platform == currentSelectedGame.platform,
-        );
-        modNode.Init();
-
-        allspawnednodes.push(modNode);
-      },
-    );
+      allspawnednodes.push(modNode);
+    });
 
     load = false;
+
+    let delay = 0.03;
+
+    allspawnednodes.forEach(async (node) => {
+      setTimeout(async () => {
+        if (node == null) {
+          return;
+        }
+        node.modNodeDiv.style.opacity = 1;
+        node.modNodeDiv.style.transform = "translateX(0px)";
+      }, delay * 1000);
+      delay += 0.03;
+    });
   }
 
   let background: HTMLDivElement;

@@ -1,23 +1,22 @@
 use std::fs::File;
-use std::io::Write;
 use std::io::Read;
+use std::io::Write;
 
 pub struct ModFilesInfo {
     pub files: Vec<String>,
     pub textures: Vec<String>,
 }
 
-impl ModFilesInfo{
+impl ModFilesInfo {
     pub fn empty() -> ModFilesInfo {
-        ModFilesInfo{
+        ModFilesInfo {
             files: Vec::new(),
-            textures: Vec::new()
+            textures: Vec::new(),
         }
     }
 }
 
-
-pub fn write(path: &String, files: Vec<String>, textures: Vec<String>) -> std::io::Result<()> {
+pub fn write(path: String, files: Vec<String>, textures: Vec<String>) -> std::io::Result<()> {
     let mut file = File::create(path)?;
 
     if files.len() > 0 {
@@ -69,8 +68,5 @@ pub fn read(path: &String) -> std::io::Result<ModFilesInfo> {
         }
     }
 
-    Ok(ModFilesInfo {
-        files,
-        textures,
-    })
+    Ok(ModFilesInfo { files, textures })
 }

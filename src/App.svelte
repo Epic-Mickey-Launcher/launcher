@@ -23,6 +23,7 @@
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
   import { invoke } from "@tauri-apps/api/tauri";
+  import { exit } from "@tauri-apps/api/process";
 
   async function RouteLoaded() {
     await GetPath();
@@ -40,6 +41,20 @@
     }
   }
 
+  async function ErrorCatcher() {
+    await listen("on_rust_error", async (event: any) => {
+      let res = await confirm(
+        'Rust Backend Error!\n"' +
+          event.payload +
+          "\\nThis error might cause further instability. It is recommended that you restart EML to avoid this. Do you want to quit?",
+      );
+
+      if (res) {
+        exit(0);
+      }
+    });
+  }
+
   async function ListenLoop() {
     await listen("scheme_request_received", (event: any) => {
       let parsed = event.payload.message;
@@ -47,6 +62,7 @@
       window.open("#/modpage", "_self");
     });
   }
+  ErrorCatcher();
 
   let routes = {
     "/": Games,

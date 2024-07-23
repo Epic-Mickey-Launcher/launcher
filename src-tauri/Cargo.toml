@@ -30,6 +30,8 @@ shutil = "0.1.2"
 tauri-plugin-deep-link = "0.1.1"
 fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs" }
 chrono = "0.4.31"
+eml-validate = "0.1.0"
+dataurl = "0.1.2"
 
 [features]
 default = ["custom-protocol"]

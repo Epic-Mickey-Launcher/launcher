@@ -1,12 +1,12 @@
 extern crate dirs_next;
-use std::process::Command;
-use std::path::PathBuf;
+use crate::helper;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::Write;
 use std::io::Read;
-use crate::helper;
+use std::io::Write;
+use std::path::PathBuf;
+use std::process::Command;
 
 pub fn find_dir(where_in: &PathBuf) -> PathBuf {
     let mut config_path = helper::get_config_path().expect("could not get config dir");
@@ -17,13 +17,10 @@ pub fn find_dir(where_in: &PathBuf) -> PathBuf {
 
 pub fn auto_set_custom_textures() {
     let mut buf = find_dir(&PathBuf::from("Config"));
-
     if !buf.exists() {
         fs::create_dir_all(&buf).unwrap();
     }
-
     buf.push("GFX.ini");
-
     if !buf.exists() {
         let mut f = File::create(&buf).unwrap();
         f.write(b"[Settings]\nHiresTextures = True").unwrap();
@@ -73,46 +70,36 @@ pub fn open(path: String) {
     }
 }
 
-pub fn set_override(_path: String) {
-    let mut path = helper::get_config_path().expect("could not get config dir");
-
-    fs::create_dir_all(&path).unwrap();
-
+pub fn set_override(_path: String) -> std::io::Result<()> {
+    let mut path = helper::get_config_path()?;
+    fs::create_dir_all(&path)?;
     path.push("dolphinoverride");
-
-    let mut f = File::create(&path).expect("Failed to create file");
-
-    f.write_all(_path.as_bytes())
-        .expect("Failed to write to file");
+    let mut f = File::create(&path)?;
+    f.write_all(_path.as_bytes())?;
+    Ok(())
 }
 
-pub fn create_portable(dolphinpath: String) {
+pub fn create_portable(dolphinpath: String) -> std::io::Result<()> {
     let mut dolphin_config_path = PathBuf::from(&dolphinpath);
-
     dolphin_config_path.pop();
-
     let config_folder_name = if env::consts::OS == "windows" {
         "User"
     } else {
         "user"
     };
-
     dolphin_config_path.push(config_folder_name);
-
     let mut path = PathBuf::from(&dolphinpath);
     path.pop();
-
     path.push("portable.txt");
-
-    println!("{}", &path.display());
-
     if !path.exists() {
         File::create(&path).expect("Failed to create file");
-        set_override(dolphin_config_path.clone().to_str().unwrap().to_string());
+        set_override(dolphin_config_path.clone().to_str().unwrap().to_string())?;
         dolphin_config_path.push("Config");
         fs::create_dir_all(&dolphin_config_path).unwrap();
         dolphin_config_path.push("GFX.ini");
         let mut f = File::create(dolphin_config_path).expect("Failed to create file");
         f.write(b"[Settings]\nHiresTextures = True").unwrap();
     }
+
+    Ok(())
 }

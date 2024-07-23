@@ -2,24 +2,32 @@
 
 <script lang="ts">
   import { SetData } from "../library/datatransfer";
+  import { GetImagePath, ImageType } from "../library/networking";
 
-  export let name: string;
-  export let description: string;
-  export let modicon: string;
-  export let id: string;
+  export let mod: any;
 
   function OnClick() {
-    SetData("modpage_id", id);
+    SetData("modpage_id", mod.ID);
     window.open("#/modpage", "_self");
+  }
+
+  function ShortenDescription(buffer: string): string {
+    if (buffer.length < 100) return buffer;
+
+    return buffer.substring(0, 100).trim() + "...";
   }
 </script>
 
 <div class="modNode">
-  <img src={modicon} alt="" style="width:200px;border-radius:10px;" />
+  <img
+    src={GetImagePath(mod.ID, ImageType.Mod)}
+    alt=""
+    style="width:200px;border-radius:10px;"
+  />
   <p>
-    <button on:click={OnClick} class="hyperlinkbutton">{name}</button>
+    <button on:click={OnClick} class="hyperlinkbutton">{mod.Name}</button>
     <br />
-    <span style="font-size:10px;">{description}</span>
+    <span style="font-size:10px;">{ShortenDescription(mod.Description)}</span>
   </p>
 </div>
 

@@ -38,7 +38,15 @@
   onMount(async () => {
     console.log("Listening for download-stat");
 
-    const lis = await listen("download-stat", (event: any) => {
+    await listen("download-action", (event: any) => {
+      action = event.payload;
+    });
+
+    await listen("download-description", (event: any) => {
+      description = event.payload;
+    });
+
+    await listen("download-stat", (event: any) => {
       MBTotal = event.payload.Download_Total;
       MBDownloaded = event.payload.Download_Remaining;
       if (MBTotal > 0 && MBDownloaded > 0) {

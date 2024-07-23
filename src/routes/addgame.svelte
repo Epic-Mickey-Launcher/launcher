@@ -11,7 +11,7 @@
   import ModInstall from "./components/ModInstall.svelte";
   import { onMount } from "svelte";
   import { listen } from "@tauri-apps/api/event";
-  import { Game, Platform, Region } from "./library/gameid.js";
+  import { GameConfig, Game, Platform, Region } from "./library/types";
 
   interface IdentifyGameResult {
     game: Game;
@@ -191,7 +191,6 @@
     if (wiiFolderExists) {
       let p = dataPath + "/sys/boot.bin";
       id = await invoke("get_bootbin_id", { path: p });
-      console.log(id);
       let info = IdentifyISO(id);
       gametype = info.game;
       platform = Platform.Wii;
@@ -203,7 +202,7 @@
       gametype = Game.EM2;
       gamename = "Epic Mickey 2 (PC)";
       platform = Platform.PC;
-      dataPath = selectedPath;
+      dataPath = selectedPath[0];
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
     } else {
@@ -213,13 +212,13 @@
 
   let gamename = "";
   let platform = Platform.None;
-  let dataPath: string | string[];
+  let dataPath: string;
   async function Continue() {
     let jsonData = await ReadJSON("games.json");
 
     if (
       jsonData.find(
-        (r: { game: string; platform: string; region: string }) =>
+        (r: GameConfig) =>
           r.game == gametype.toString() &&
           r.platform == platform.toString() &&
           r.region == region.toString(),
@@ -229,14 +228,16 @@
         gametype +
           " (" +
           platform +
-          ") " +
+          ", " +
+          region.toString() +
+          ")" +
           " has already been added to your game list. There is no need for two versions of it.",
       );
       window.open("#/", "_self");
       return;
     }
 
-    let newData = {
+    let newData: GameConfig = {
       path: dataPath,
       game: gametype,
       platform: platform,
@@ -245,20 +246,18 @@
     };
 
     jsonData.push(newData);
-
     await WriteToJSON(JSON.stringify(jsonData), "games.json");
 
     let fileExists = await exists(dataPath + "/EMLMods.json");
-
     if (!fileExists) {
       await WriteFile("[]", dataPath + "/EMLMods.json");
     }
 
     //theres no reason it shouldnt but better to be safe than sorry
-    let conffileexists = await exists(dataPath + "/ConfigFiles.ini");
+    let configFileExists = await exists(dataPath + "/ConfigFiles.ini");
 
     //enables level loader inside of em2
-    if (conffileexists) {
+    if (configFileExists) {
       let conffilecontent = await ReadFile(dataPath + "/ConfigFiles.ini");
       conffilecontent = conffilecontent.replace(
         "ShowDevLevelLoad=false",

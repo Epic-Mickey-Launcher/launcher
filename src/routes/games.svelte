@@ -1,17 +1,17 @@
 <script lang="ts">
+  import OneTimeNotice from "./components/OneTimeNotice.svelte";
   import GameNode from "./components/GameNode.svelte";
   import { exists, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
   import { appLocalDataDir } from "@tauri-apps/api/path";
   import { onMount } from "svelte";
   import { FileExists, InitConfFiles } from "./library/configfiles.js";
-  import { ConvertModJsonToNew } from "./library/legacy";
-  import { Game, GameData } from "./library/gameid";
-  import Settings from "./settings.svelte";
+  import { Game, GameConfig } from "./library/types";
 
   let gameNodeDiv: HTMLDivElement;
   let blackoutDiv: HTMLDivElement;
   let bannerDiv: HTMLDivElement;
   let hoveredGame = "EM1";
+  let nodes = [];
 
   onMount(async () => {
     const appLocalDataDirPath = await appLocalDataDir();
@@ -27,10 +27,17 @@
       });
     }
     let t = await readTextFile(appLocalDataDirPath + "games.json");
-    let jsonData: GameData[] = JSON.parse(t);
-    jsonData.forEach(async (dat: GameData) => {
-      await ConvertModJsonToNew(dat.gamePath);
+    let jsonData: GameConfig[] = JSON.parse(t);
+    jsonData.forEach((dat: GameConfig) => {
       CreateNode(dat);
+    });
+
+    let delay = 0;
+    nodes.forEach((card) => {
+      setTimeout(() => {
+        card.node.style.opacity = 1;
+      }, delay * 1000);
+      delay += 0.05;
     });
   });
 
@@ -38,11 +45,12 @@
     window.open("#/addgame", "_self");
   }
   //todo: remove useless variables game, directory, platform
-  function CreateNode(dat: GameData) {
+  function CreateNode(dat: GameConfig) {
     var element = new GameNode({
       target: gameNodeDiv,
     });
 
+    nodes.push(element);
     element.data = dat;
     element.mouseEnterCB = (g: string) => {
       hoveredGame = g;
@@ -60,7 +68,7 @@
       element.imgBackgroundURL = "/img/em1banner.png";
     } else {
       element.imgLogoURL = "/img/em2logo.png";
-      element.imgBackgroundURL = "/img/EM2banner.png";
+      element.imgBackgroundURL = "/img/em2banner.png";
     }
   }
 </script>
@@ -84,6 +92,11 @@
 <button on:click={AddGame} class="addgamebutton"
   ><span style="position:relative;bottom:8px;">+</span></button
 >
+
+<OneTimeNotice
+  id="dolphinconfig"
+  content="EML uses a Dolphin Config separate from your global one. To apply any changes, you must open Dolphin in EML config mode. You can do so by pressing CTRL + D now."
+></OneTimeNotice>
 
 <style>
   .addgamebutton {

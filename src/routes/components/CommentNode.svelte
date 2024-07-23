@@ -1,18 +1,19 @@
 <svelte:options accessors />
 
 <script lang="ts">
-  import { POST, GetId, CommentData } from "../library/networking";
+  import { onMount } from "svelte";
+  import { POST, GetId, CommentData, GetToken } from "../library/networking";
   import User from "./User.svelte";
   let date: string;
-  let comment: string;
   let isCommentAuthor: boolean;
-  let data: CommentData;
-
+  export let content: string;
+  export let commentID: string;
+  export let id: string;
   export let onDelete: any;
+  let deleted = false;
 
-  export function InitCommentNode(_data: CommentData) {
-    data = _data;
-    let timestamp = parseInt(data.commentid);
+  export function InitCommentNode() {
+    let timestamp = parseInt(commentID);
     let d = new Date(timestamp);
     date = d.toLocaleString();
     CompareLocalID();
@@ -21,51 +22,70 @@
   async function CompareLocalID() {
     let localID = await GetId();
 
-    if (localID === data.accountid) {
+    if (localID == id) {
       isCommentAuthor = true;
     }
-
-    isCommentAuthor = true;
   }
 
   async function Delete() {
-    await POST("deletecomment", {
-      CommentID: data.commentid,
-      PageID: data.pageid,
-    });
+    await POST(
+      "comment/delete",
+      {
+        ID: commentID,
+        Token: await GetToken(),
+      },
+      false,
+    );
     onDelete();
+    deleted = true;
   }
+
+  onMount(() => {
+    InitCommentNode();
+  });
 </script>
 
-<div
-  style="width:50%;height:100px;background-color:#2e2e2e;border-radius:10px;display:flex;padding:3px;filter: drop-shadow(1px 1px 3px black);margin:auto;"
->
-  <span
-    style="margin-top:auto;margin-bottom:auto;text-align:center;margin-left:10px;"
+{#if !deleted}
+  <div
+    style="width:200px;min-height:40px;max-height:80px;background-color:#2e2e2e;display:flex;margin:auto;overflow-y: scroll;"
   >
-    <br />
-  </span>
-  <div style="align-items:left;text-align:left;">
-    <span style="margin-left:0px;">
-      <User></User>
-      {#if isCommentAuthor}
-        <button
-          on:click={Delete}
-          class="hyperlinkbutton"
-          style="font-size:10px;color:red;">Delete</button
-        >
-        <span style="font-size:10px;"> | </span>
-      {/if}
-      <span style="font-size:10px;">Sent on: {date}</span>
+    <span
+      style="margin-top:auto;margin-bottom:auto;text-align:center;margin-left:3px;"
+    >
       <br />
-      <div>
-        <span style="text-align:left;word-wrap: break-word;width:50%;">
-          {comment}
-        </span>
-      </div>
     </span>
+    <div style="align-items:left;text-align:left;">
+      <span style="margin-left:0px;word-wrap: break-word;">
+        <User ID={id}></User>
+        <br />
+        <span
+          style="word-wrap:normal;word-break:normal;text-wrap:pretty;overflow-x:hidden;font-size:10px;line-height:1.4em;display: block;padding-left: 1px;padding-right: 3px;"
+        >
+          {content}
+        </span>
+      </span>
+    </div>
+    <br />
   </div>
 
-  <br />
-</div>
-<p></p>
+  <div
+    style="width:100%;height:20px;background-color: black;background-color: rgb(35 35 35);"
+  >
+    {#if isCommentAuthor}
+      <button
+        on:click={Delete}
+        class="hyperlinkbutton"
+        style="font-size:10px;color:red;float:right;margin-left:5px;margin-top:4px;"
+        >Delete</button
+      >
+    {/if}
+
+    <button
+      on:click={Delete}
+      class="hyperlinkbutton"
+      style="font-size:10px;float:right;margin-top: 3px;">Report</button
+    >
+
+    <span style="font-size:6px;">Sent on: {date}</span>
+  </div>
+{/if}

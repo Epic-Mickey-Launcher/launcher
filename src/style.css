@@ -29,7 +29,7 @@ dialog:backdrop {
   padding: 0px;
 }
 .hyperlinkbutton:hover{
-  cursor:pointer;
+  cursor:grab;
   background-color: transparent;
 }
 
@@ -69,7 +69,7 @@ textarea{
   transition-duration: 0.1s;
 }
 button:hover{
-  cursor:pointer;
+  cursor:grab;
   background-color: rgb(43, 43, 43);
 }
 button:hover:disabled{

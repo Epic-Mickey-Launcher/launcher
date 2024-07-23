@@ -1,30 +1,40 @@
+use crate::debug;
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use std::fs;
+use tauri::Window;
 use walkdir::WalkDir;
-use crate::debug;
 
 const CONFIG_NAME: &str = "com.kalsvik.eml";
 const CONFIG_NAME_LEG: &str = "com.memer.eml";
 
-pub fn open_path_in_file_manager(path: String) {
+pub fn open_path_in_file_manager(path: String) -> std::io::Result<()> {
     #[cfg(target_os = "windows")]
-    Command::new("explorer.exe")
-        .arg(path)
-        .spawn()
-        .expect("failed to execute process");
+    Command::new("explorer.exe").arg(path).spawn()?;
 
     #[cfg(target_os = "macos")]
-    Command::new("open")
-        .arg(path)
-        .spawn()
-        .expect("failed to execute process");
+    Command::new("open").arg(path).spawn()?;
 
     #[cfg(target_os = "linux")]
-    Command::new("xdg-open")
-        .arg(path)
-        .spawn()
-        .expect("failed to execute process");
+    Command::new("xdg-open").arg(path).spawn()?;
+    Ok(())
+}
+
+pub fn check_old_config_path() -> bool {
+    PathBuf::from(CONFIG_NAME_LEG).exists()
+}
+
+pub fn migrate_old_config() -> std::io::Result<()> {
+    let new_config = PathBuf::from(CONFIG_NAME);
+    let old_config = PathBuf::from(CONFIG_NAME_LEG);
+    if !old_config.exists() {
+        debug::log("Old config does not exist.");
+        return Ok(());
+    }
+
+    inject_files(&old_config, &new_config)?;
+
+    Ok(())
 }
 
 pub fn get_config_path() -> std::io::Result<PathBuf> {
@@ -37,13 +47,18 @@ pub fn get_config_path() -> std::io::Result<PathBuf> {
     legacy_path.push(CONFIG_NAME_LEG);
 
     if legacy_path.exists() {
-        return Ok(legacy_path)
+        return Ok(legacy_path);
     }
 
     Ok(path)
 }
 
-pub fn inject_files(source: &PathBuf, _destination: &PathBuf) {
+pub fn handle_error(error: &str, window: &Window) {
+    debug::log(&format!("Error: {}", error));
+    window.emit("on_rust_error", error).unwrap()
+}
+
+pub fn inject_files(source: &PathBuf, _destination: &PathBuf) -> std::io::Result<()> {
     for entry in WalkDir::new(&source) {
         let p = PathBuf::from(entry.unwrap().path());
 
@@ -57,18 +72,20 @@ pub fn inject_files(source: &PathBuf, _destination: &PathBuf) {
             destination_folder.pop();
 
             if !destination_folder.exists() {
-                fs::create_dir_all(&destination_folder).expect("Failed to create folders.");
+                fs::create_dir_all(&destination_folder)?;
             }
 
             if p.exists() {
                 if destination.exists() {
-                    fs::remove_file(&destination).unwrap();
+                    fs::remove_file(&destination)?;
                 }
 
-                fs::copy(p, destination).expect("Failed to copy file");
+                fs::copy(p, destination)?;
             }
         }
     }
+
+    Ok(())
 }
 
 pub fn remove_first(s: &str) -> Option<&str> {
@@ -85,4 +102,3 @@ pub fn remove_absolute_path(path: &PathBuf, _abs_path: &PathBuf) -> PathBuf {
 
     return PathBuf::from(path[abs_path..path.len()].to_string());
 }
-

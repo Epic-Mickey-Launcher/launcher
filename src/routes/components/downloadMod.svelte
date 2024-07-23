@@ -5,23 +5,18 @@
   import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
   import {
     GetImagePath,
-    GetToken,
     ImageType,
     POST,
     serverLink,
   } from "../library/networking";
 
+  import { GameConfig, InstalledMod, Mod, Platform } from "../library/types";
+
   import ModInstall from "./ModInstall.svelte";
   import { exists } from "@tauri-apps/api/fs";
 
-  let gamedata: { platform: any; game: any; path: string; id: any };
-  let moddata: {
-    Platform: any;
-    Game: any;
-    ID: string;
-    Version: any;
-    Name: string;
-  };
+  let gamedata: GameConfig;
+  let moddata: Mod;
 
   export let downloadButtonStatus = "";
   export let downloadButtonDisabled = false;
@@ -48,17 +43,21 @@
   }
 
   async function CheckIfDownloaded() {
+    if (moddata == null) return;
+    if (gamedata == null) return;
+
     let haveGame = false;
 
-    let platform = moddata.Platform;
+    let platform = moddata.Platform.toLowerCase();
 
     if (platform == undefined) {
-      platform = "wii";
+      platform = Platform.Wii;
     }
 
-    console.log(platform);
-
-    if (gamedata.platform == platform && gamedata.game == moddata.Game) {
+    if (
+      gamedata.platform.toLowerCase() == platform &&
+      gamedata.game == moddata.Game
+    ) {
       haveGame = true;
     }
 
@@ -118,9 +117,8 @@
     }
 
     if (platform == null) {
-      platform = "wii";
+      platform = Platform.Wii;
     }
-
     await invoke("download_mod", {
       url: serverLink + "mod/download?id=" + moddata.ID,
       name: moddata.Name,
@@ -130,7 +128,7 @@
       platform: platform,
     });
     let json_exists = await exists(gamedata.path + "/EMLMods.json");
-    let current_mods = [];
+    let current_mods: InstalledMod[] = [];
     if (json_exists) {
       current_mods = JSON.parse(
         await ReadFile(gamedata.path + "/EMLMods.json"),
@@ -149,12 +147,16 @@
       gamedata.path + "/EMLMods.json",
     );
     modInstallElement.$destroy();
-    let token = await GetToken();
-    await POST("addmodimpression", {
-      token: token,
-      modid: moddata.ID,
-      impression: { download: true, like: false },
-    });
+
+    if (moddata.ID.trim() != "") {
+      await POST(
+        "mod/download/increment",
+        {
+          ID: moddata.ID,
+        },
+        false,
+      );
+    }
     CheckIfDownloaded();
     downloading = false;
   }

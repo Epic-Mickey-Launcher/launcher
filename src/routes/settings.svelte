@@ -5,6 +5,7 @@
     FileExists,
     ReadJSON,
     WriteToJSON,
+    ConfigFile,
   } from "./library/configfiles.js";
   import { open } from "@tauri-apps/api/dialog";
   import { invoke } from "@tauri-apps/api/tauri";
@@ -39,7 +40,7 @@
   let version = "";
 
   const DOLPHIN_LINK_WINDOWS = "https://kalsvik.no/res/dolphin_windows.zip";
-  const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin_linux.7z";
+  const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin_linux.tar.gz";
   const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin_mac.zip";
 
   async function DownloadDolphin() {
@@ -53,8 +54,6 @@
     if (os == "windows") url = DOLPHIN_LINK_WINDOWS;
     else if (os == "macos") url = DOLPHIN_LINK_MACOS;
     else if (os == "linux") url = DOLPHIN_LINK_LINUX;
-    console.log(os);
-
     invoke("download_tool", { url: url, foldername: "Dolphin" }).then(
       async (path) => {
         let dat = await ReadJSON("conf.json");
@@ -72,16 +71,16 @@
   }
 
   onMount(async () => {
-    invoke("get_os");
+    os = await invoke("get_os");
     version = await getTauriVersion();
-    //await SetCurrentPaths();
+    await SetCurrentPaths();
   });
 
   async function SetCurrentPaths() {
-    let c = await ReadJSON("conf.json");
-    currentDolphinPath = c.dolphinPath;
-    currentWITPath = c.WITPath;
-    currentNkitPath = c.NkitPath;
+    let config: ConfigFile = await ReadJSON("conf.json");
+    currentDolphinPath = config.dolphinPath;
+    currentWITPath = config.WITPath;
+    currentNkitPath = config.NkitPath;
   }
 
   async function DeleteModCache() {
@@ -126,3 +125,4 @@
 <br />
 <button on:click={DeleteModCache}>Delete mod cache</button>
 <p></p>
+<span>© 2024 Jonas Kalsvik</span>

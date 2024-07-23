@@ -143,8 +143,6 @@
       target: modNodeGrid,
     });
 
-    console.log(data);
-
     modNode.index = index;
     modNode.gamedata = data;
     modNode.modName = element.name;

@@ -15,15 +15,16 @@ use tauri::Window;
 
 extern crate chrono;
 
-pub mod play;
-pub mod helper;
-pub mod download;
 pub mod archive;
-pub mod dolphin;
 pub mod debug;
+pub mod dolphin;
+pub mod download;
+pub mod git;
+pub mod helper;
 pub mod iso_extract;
 pub mod mod_info;
 pub mod mod_management;
+pub mod play;
 
 fn main() {
     debug::init().expect("Failed to initialize Debug.");
@@ -63,7 +64,8 @@ fn main() {
 fn start_em2_steam() {
     Command::new("steam")
         .arg("steam://rungameid/245300")
-        .spawn().unwrap();
+        .spawn()
+        .unwrap();
 }
 
 #[tauri::command]
@@ -72,13 +74,17 @@ fn open_dolphin(path: String) {
 }
 
 #[tauri::command]
-fn open_link(url: String) {
-    open::that(url).expect("Failed to open URL in default browser");
+fn open_link(url: String, window: Window) {
+    open::that(url).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
 }
 
 #[tauri::command]
-fn create_portable(dolphinpath: String) {
-    dolphin::create_portable(dolphinpath);
+fn create_portable(dolphinpath: String, window: Window) {
+    dolphin::create_portable(dolphinpath).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
 }
 
 #[tauri::command]
@@ -91,8 +97,10 @@ fn delete_docs_folder() {
 }
 
 #[tauri::command]
-fn delete_mod_cache_all() {
-    mod_management::delete_cache_all();
+fn delete_mod_cache_all(window: Window) {
+    mod_management::delete_cache_all().unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
 }
 
 #[tauri::command]
@@ -105,18 +113,30 @@ fn get_bootbin_id(path: String) -> String {
 }
 
 #[tauri::command]
-fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>) {
-   mod_info::write(&path, files, textures).expect("Failed to write mod data.");
+fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>, window: Window) {
+    mod_info::write(path, files, textures).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    })
 }
 
 #[tauri::command]
-async fn extract_iso(isopath: String, gamename: String, dolphin: String) -> String {
-    iso_extract::extract(isopath, gamename, dolphin).await
+async fn extract_iso(isopath: String, gamename: String, dolphin: String, window: Window) -> String {
+    iso_extract::extract(isopath, gamename, dolphin)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+            "".to_string()
+        })
 }
 
 #[tauri::command]
-async fn download_tool(url: String, window: Window) -> PathBuf {
-    download::tool(url, &window).await
+async fn download_tool(url: String, foldername: String, window: Window) -> PathBuf {
+    download::tool(url, foldername, &window)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+            PathBuf::new()
+        })
 }
 
 #[tauri::command]
@@ -133,47 +153,57 @@ fn open_process(path: String, args: String) {
 }
 
 #[tauri::command]
-fn open_path_in_file_manager(path: String) {
-    helper::open_path_in_file_manager(path);
+fn open_path_in_file_manager(path: String, window: Window) {
+    helper::open_path_in_file_manager(path).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
 }
 
 #[tauri::command]
-fn playgame(dolphin: String, exe: String) -> i32 {
-    play::game(dolphin, exe)
+fn playgame(dolphin: String, exe: String, window: Window) {
+    play::game(dolphin, exe).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    })
 }
 
 #[tauri::command]
-fn check_iso(path: String, dolphin: String) -> String {
-    iso_extract::check(path, dolphin)
+fn check_iso(path: String, dolphin: String, window: Window) -> String {
+    iso_extract::check(path, dolphin).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+        "".to_string()
+    })
 }
 
 #[tauri::command]
-fn validate_archive(path: String) -> archive::SmallArchiveValidationInfo {
-    archive::validate(path)
+fn validate_archive(path: String, window: Window) -> archive::SmallArchiveValidationInfo {
+    archive::validate(path).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+        archive::SmallArchiveValidationInfo { under_limit: false }
+    })
 }
 
 #[tauri::command]
-fn set_dolphin_emulator_override(_path: String) {
-    dolphin::set_override(_path);
+fn set_dolphin_emulator_override(_path: String, window: Window) {
+    dolphin::set_override(_path).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    })
 }
 
 #[tauri::command]
-fn open_config_folder() {
+fn open_config_folder(window: Window) {
     let mut path = PathBuf::new();
     path.push(dirs_next::config_dir().unwrap());
     path.push("com.memer.eml");
-    open_path_in_file_manager(path.to_str().unwrap().to_owned())
+    open_path_in_file_manager(path.to_str().unwrap().to_owned(), window)
 }
 
 #[tauri::command] // todo: transfer this function to helper module
-fn get_frontend_config_path(npath: String) -> String
-{
+fn get_frontend_config_path(npath: String) -> String {
     let mut path = PathBuf::from(&npath);
     path.pop();
     path.push("com.memer.eml");
 
-    if path.exists()
-    {
+    if path.exists() {
         debug::log("Legacy frontend config folder detected (com.memer.eml)!");
         return path.to_str().unwrap().to_string();
     }
@@ -192,7 +222,11 @@ async fn download_mod(
     platform: String,
     window: Window,
 ) {
-    mod_management::add(url, dumploc, gameid, modid, platform, &window).await;
+    mod_management::add(url, dumploc, gameid, modid, platform, &window)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+        })
 }
 
 #[tauri::command]
@@ -204,7 +238,11 @@ async fn change_mod_status(
     active: bool,
     window: Window,
 ) {
-    mod_management::change_status(dumploc, gameid, modid, platform, active, &window).await;
+    mod_management::change_status(dumploc, gameid, modid, platform, active, &window)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+        });
 }
 
 #[tauri::command]
@@ -216,15 +254,31 @@ async fn delete_mod(
     active: bool,
     window: Window,
 ) {
-    mod_management::delete(dumploc, gameid, platform, modid, active, &window).await;
+    mod_management::delete(dumploc, gameid, platform, modid, active, &window)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+        });
 }
 
 #[tauri::command]
-fn delete_mod_cache(modid: String) {
-    mod_management::delete_cache(modid);
+fn delete_mod_cache(modid: String, window: Window) {
+    mod_management::delete_cache(modid).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
 }
 
 #[tauri::command]
 async fn validate_mod(url: String, local: bool, window: Window) -> mod_management::ValidationInfo {
-    mod_management::validate_mod(url, local, &window).await
+    mod_management::validate_mod(url, local, &window)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+            mod_management::ValidationInfo {
+                modicon: "".to_string(),
+                modname: "".to_string(),
+                result: error.to_string(),
+                validated: false,
+            }
+        })
 }

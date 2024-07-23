@@ -1,16 +1,19 @@
-use std::process::Command;
-use std::path::{PathBuf, Path};
-use std::env;
 use crate::dolphin;
+use std::env;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
-pub fn game(dolphin: String, exe: String) -> i32 {
+pub fn game(dolphin: String, exe: String) -> std::io::Result<()> {
     let config_path = dolphin::find_dir(&PathBuf::new());
 
     dolphin::auto_set_custom_textures();
 
     let os = env::consts::OS;
     if !Path::new(&dolphin).exists() {
-        return 1;
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "Dolphin does not exist.",
+        ));
     }
 
     if os == "windows" {
@@ -21,10 +24,8 @@ pub fn game(dolphin: String, exe: String) -> i32 {
                 .arg(&exe)
                 .arg("-u")
                 .arg(config_path)
-                .spawn()
-                .expect("could not open exe");
+                .spawn()?;
         }
-        return 0;
     } else if os == "macos" {
         Command::new("open")
             .arg(&dolphin)
@@ -34,15 +35,9 @@ pub fn game(dolphin: String, exe: String) -> i32 {
             .arg(&exe)
             .arg("-u")
             .arg(config_path)
-            .spawn()
-            .expect("could not open dolphin");
-        return 0;
+            .spawn()?;
     } else if os == "linux" {
-        Command::new("chmod")
-            .arg("+x")
-            .arg(&dolphin)
-            .output()
-            .expect("failed to give executable the correct permissions");
+        Command::new("chmod").arg("+x").arg(&dolphin).output()?;
 
         Command::new(dolphin)
             .env("WAYLAND_DISPLAY", "0")
@@ -51,11 +46,8 @@ pub fn game(dolphin: String, exe: String) -> i32 {
             .arg(&exe)
             .arg("-u")
             .arg(config_path)
-            .spawn()
-            .expect("could not open dolphin");
-        return 0;
+            .spawn()?;
     }
 
-    return 0;
+    return Ok(());
 }
-

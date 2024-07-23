@@ -90,7 +90,7 @@
       <Dialog
         content={[
           "Make sure to use a unique password from your other accounts for optimal security!",
-          "All password are hashed with the SHA-256 algorithm on our database!",
+          "All password are hashed with the Bcrypt algorithm on our database!",
           "Our <a href='https://placeholder.trololol'>server source code</a> is completely open for anyone to view and use!",
         ]}
       ></Dialog>

@@ -29,8 +29,7 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true,
-        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**"] 
-        
+        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**","$LOCALDATA/com.memer.eml/**", "$HOME/**"] 
       },
       
       "dialog": {
@@ -47,13 +46,11 @@
     "bundle": {
       "active": true,
       "category": "Developer Tool",
-      "copyright": "",
+      "copyright": "Jonas Kalsvik",
       "deb": {
         "depends": []
-        
       },
       "externalBin": [],
-      
       "icon": [
         "icons/icon.ico",
         "icons/icon.png"

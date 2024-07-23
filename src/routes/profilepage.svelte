@@ -4,24 +4,24 @@
   import {
     GetId,
     GetImagePath,
+    GetToken,
     ImageType,
     POST,
     loggedin,
   } from "./library/networking";
-  import { GetData } from "./library/datatransfer";
+  import { GetData, SetData } from "./library/datatransfer";
   import { Subscribe } from "./library/callback";
   import Loading from "./components/loading.svelte";
 
+  let profileDiv: HTMLElement;
   let isownerofprofile: boolean;
   let modNodeGroup: HTMLDivElement;
-
   let username = "";
   let bio = "";
   let pfplink = "";
-
   let profilepage: HTMLDivElement;
   let err: HTMLDivElement;
-
+  let mods = [];
   let emblemName = "";
   let emblemColor = "";
   let profileinfo: {
@@ -32,17 +32,15 @@
     emblems: any[];
   };
   let joindate = "";
-  let modLength = 1;
+  let modLength = 0;
   let loaded = false;
 
   onMount(async () => {
     let cb = async () => {
       loaded = false;
-
       let selfID = await GetId();
-
       let idofprofile = await GetData("profile_id");
-
+      SetData("profile_id", undefined);
       if (idofprofile == undefined) {
         console.log("loading own profile " + selfID);
         idofprofile = selfID;
@@ -53,8 +51,6 @@
           return;
         }
       }
-
-      console.log(idofprofile);
 
       let request = await POST(
         "user/username",
@@ -85,103 +81,84 @@
       joindate = d.toLocaleString();
 
       loaded = true;
+      profileDiv.style.opacity = "1";
 
-      if (false) {
-        modLength = profileinfo.mods.length;
-
-        username = profileinfo.username;
-        bio = profileinfo.bio;
-        pfplink = GetImagePath(profileinfo.id, ImageType.User);
-
-        let emblem = profileinfo.emblems.sort(
-          (a: { weight: number }, b: { weight: number }) => {
-            return b.weight - a.weight;
-          },
-        )[0];
-
-        if (emblemName != null) {
-          emblemName = emblem.emblemname;
-          emblemColor = emblem.color;
-        }
-
-        profileinfo.mods.forEach(
-          (m: { description: any; name: any; id: string }) => {
-            let desc = m.description;
-
-            if (desc.length > 70) {
-              desc = desc.substring(0, 70) + "...";
-            }
-
-            new Userprofilemodnode({
-              target: modNodeGroup,
-              props: {
-                name: m.name,
-                description: desc,
-                id: m.id,
-                modicon: GetImagePath(m.id, ImageType.Mod),
-              },
-            });
-          },
-        );
+      let query = await POST("mod/query", {
+        AuthorID: idofprofile,
+        Token: await GetToken(),
+      });
+      if (query.body.ModObjs != null) {
+        mods = query.body.ModObjs;
+        modLength = mods.length;
+      } else {
+        modLength = 0;
       }
     };
+
     Subscribe("SignedIn", cb, false);
   });
 </script>
 
 {#if !loaded}
-  <span style="margin-left:45%;">
+  <span style="position: absolute; top:45%; left:45%;">
     <Loading></Loading>
   </span>
 {/if}
+<main bind:this={profileDiv} style="opacity: 0;">
+  <div bind:this={profilepage} style="text-align:center;">
+    <img class="pfp" src={pfplink + "?"} alt="" />
+    <br />
+    <span style="font-size:30px;">{username}</span>
+    <br />
+    <span style="font-size:10px;">EML Member since {joindate}</span>
+    <p>
+      <span>{bio}</span>
+    </p>
+    {#if emblemName != ""}
+      <div
+        style="border: 2px solid {emblemColor};width:120px;margin:auto;border-radius:30px;"
+      >
+        <p style="color:{emblemColor};">{emblemName}</p>
+      </div>
+    {/if}
+    <p />
 
-<div bind:this={profilepage} style="text-align:center;">
-  <img class="pfp" src={pfplink + "?"} alt="" />
-  <br />
-  <span style="font-size:30px;">{username}</span>
-  <br />
-  <span style="font-size:10px;">EML Member since {joindate}</span>
-  <p>
-    <span>{bio}</span>
-  </p>
-  {#if emblemName != ""}
-    <div
-      style="border: 2px solid {emblemColor};width:120px;margin:auto;border-radius:30px;"
-    >
-      <p style="color:{emblemColor};">{emblemName}</p>
-    </div>
-  {/if}
-  <p />
-
-  {#if modLength > 0}
-    <hr />
-    <span style="font-size:30px;">Mods</span>
-    <p></p>
-    <div style="width:100%;display:flex;justify-content:center;">
-      <div style="width:100vw;overflow-x:auto;">
+    {#if modLength > 0}
+      <hr />
+      <span style="font-size:30px;">Mods</span>
+      <p></p>
+      <div style="width:100%;display:flex;justify-content:center;">
         <div
           bind:this={modNodeGroup}
-          style="display:flex;justify-content:left;gap:5px;"
-        ></div>
+          style="display:grid;justify-content:center;gap:5px;width:100%;grid-template-columns: repeat(5, 0fr);"
+        >
+          {#each mods as mod}
+            <Userprofilemodnode {mod}></Userprofilemodnode>
+          {/each}
+        </div>
       </div>
-    </div>
-  {/if}
-
-  <p>
-    {#if isownerofprofile}
-      <button
-        on:click={() => window.open("#/accountsettings", "_self")}
-        class="hyperlinkbutton">Edit Profile</button
-      >
     {/if}
-  </p>
-</div>
 
-<div bind:this={err} style="display:none;">
-  <h2>You do not have an account.</h2>
-</div>
+    <p>
+      {#if isownerofprofile}
+        <button
+          on:click={() => window.open("#/accountsettings", "_self")}
+          class="hyperlinkbutton">Edit Profile</button
+        >
+      {/if}
+    </p>
+  </div>
+
+  <div bind:this={err} style="display:none;">
+    <h2>You do not have an account.</h2>
+  </div>
+</main>
 
 <style>
+  * {
+    transition-duration: 0.3s;
+  }
+
   .pfp {
     z-index: 20;
     border-radius: 100%;

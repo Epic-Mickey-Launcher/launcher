@@ -37,7 +37,6 @@
       },
     );
 
-    console.log(gamedata);
     let gameid = gamedata.id;
 
     invoke("delete_mod", {

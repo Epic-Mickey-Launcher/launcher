@@ -1,14 +1,14 @@
-use std::path::PathBuf;
+use crate::archive;
+use crate::debug;
+use crate::helper;
+use bytes::Bytes;
+use futures_util::StreamExt;
 use reqwest::Client;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::path::PathBuf;
 use tauri::Window;
-use std::fs;
-use futures_util::StreamExt;
-use bytes::Bytes;
-use crate::debug;
-use crate::archive;
-use crate::helper;
 
 #[derive(Clone, serde::Serialize)]
 struct ModDownloadStats {
@@ -16,31 +16,39 @@ struct ModDownloadStats {
     download_total: String,
 }
 
-pub async fn tool(url: String, window: &Window) -> PathBuf {
+pub async fn tool(
+    url: String,
+    foldername: String,
+    window: &Window,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     debug::log(&format!("Beginning download of {}", url));
-    let to_pathbuf = helper::get_config_path().unwrap();
-    zip(url, &to_pathbuf, false, window).await;
+    let mut to_pathbuf = helper::get_config_path()?;
+    to_pathbuf.push(foldername);
+    fs::create_dir_all(&to_pathbuf)?;
+    zip(url, &to_pathbuf, false, window).await?;
     debug::log(&format!("Download Finished"));
-    to_pathbuf
+    Ok(to_pathbuf)
 }
 
-pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window) {
+pub async fn zip(
+    url: String,
+    foldername: &PathBuf,
+    local: bool,
+    window: &Window,
+) -> Result<(), Box<dyn std::error::Error>> {
     debug::log(&format!("Downloading Archive {}", url));
-    fs::create_dir_all(&foldername).expect("Failed to create");
+    fs::create_dir_all(&foldername)?;
 
     let mut temporary_archive_path_buf = foldername.clone();
 
-    temporary_archive_path_buf.push("temp.f");
+    temporary_archive_path_buf.push("temp");
 
     let temporary_archive_path = temporary_archive_path_buf.to_str().unwrap().to_string();
 
-    let mut f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
-
     let mut buffer;
 
-
     if !local {
-        let res = Client::new().get(&url).send().await.unwrap();
+        let res = Client::new().get(&url).send().await?;
 
         let total_size = res
             .content_length()
@@ -57,10 +65,10 @@ pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window
             )
             .unwrap();
 
-        buffer = reqwest::get(&url).await.unwrap().bytes_stream();
+        buffer = reqwest::get(&url).await?.bytes_stream();
 
         let mut download_bytes_count = 0;
-
+        let mut f = File::create(&temporary_archive_path)?;
         while let Some(item) = buffer.next().await {
             let mut buf = &Bytes::new();
 
@@ -69,11 +77,14 @@ pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window
             buf = match res {
                 Ok(b) => b,
                 Err(error) => {
-                    buffer = reqwest::get(&url).await.unwrap().bytes_stream();
+                    buffer = reqwest::get(&url).await?.bytes_stream();
                     download_bytes_count = 0;
-                    fs::remove_file(&temporary_archive_path).expect("failed to remove tmpzip");
-                    f = File::create(&temporary_archive_path).expect("Failed to create tmpzip");
-                    debug::log(&format!("Download error occured. Restarting Download: {}", error));
+                    fs::remove_file(&temporary_archive_path)?;
+                    f = File::create(&temporary_archive_path)?;
+                    debug::log(&format!(
+                        "Download error occured. Restarting Download: {}",
+                        error
+                    ));
                     buf
                 }
             };
@@ -94,15 +105,13 @@ pub async fn zip(url: String, foldername: &PathBuf, local: bool, window: &Window
                 )
                 .unwrap();
 
-            f.write_all(buf).expect("Failed to write to tmpzip");
+            f.write_all(buf)?;
         }
     } else {
         fs::copy(&url, &temporary_archive_path).expect("Failed to copy local file");
     }
-
-    let output = PathBuf::from(&foldername);
-
-    let extension = archive::extract(temporary_archive_path, &output);
-
+    archive::extract(temporary_archive_path.clone(), foldername)?;
+    fs::remove_file(temporary_archive_path)?;
     debug::log("Finished archive download");
+    Ok(())
 }
