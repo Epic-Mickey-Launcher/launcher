@@ -47,8 +47,8 @@
     });
 
     await listen("download-stat", (event: any) => {
-      MBTotal = event.payload.Download_Total;
-      MBDownloaded = event.payload.Download_Remaining;
+      MBTotal = event.payload.download_total;
+      MBDownloaded = event.payload.download_remaining;
       if (MBTotal > 0 && MBDownloaded > 0) {
         progress = ((MBDownloaded / MBTotal) * 100).toString();
       }
