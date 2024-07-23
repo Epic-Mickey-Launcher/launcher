@@ -433,7 +433,10 @@
             on:click={PostComment}
             title="send"
             class="sendComment"
-            ><img src="img/send.svg" style="width:8px;margin:auto;" /></button
+            ><img
+              src="img/send.svg"
+              style="width:8px;margin:auto;z-index: 3;"
+            /></button
           >
 
           <div>
