@@ -1,9 +1,12 @@
 import {
   writable
 } from 'svelte/store';
+import { CachedUser } from './types';
 
 export const stringbuffer = writable("");
 export const objectbuffer = writable({});
+
+export let cachedUsers: CachedUser[] = []
 
 export interface DataEntry {
   name: string,
