@@ -8,6 +8,12 @@ export interface User {
   EmailHash: string
 }
 
+export interface CachedUser {
+  Username: string
+  ID: string
+  CachedPfp: string
+}
+
 export interface InstalledMod {
   name: string,
   modid: string,
