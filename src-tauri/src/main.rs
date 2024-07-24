@@ -200,14 +200,6 @@ fn open_config_folder(window: Window) {
 #[tauri::command] // todo: transfer this function to helper module
 fn get_frontend_config_path(npath: String) -> String {
     let mut path = PathBuf::from(&npath);
-    path.pop();
-    path.push("com.memer.eml");
-
-    if path.exists() {
-        debug::log("Legacy frontend config folder detected (com.memer.eml)!");
-        return path.to_str().unwrap().to_string();
-    }
-
     npath
 }
 

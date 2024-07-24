@@ -43,13 +43,6 @@ pub fn get_config_path() -> std::io::Result<PathBuf> {
     let mut path = config_path.clone();
     path.push(CONFIG_NAME);
 
-    let mut legacy_path = config_path.clone();
-    legacy_path.push(CONFIG_NAME_LEG);
-
-    if legacy_path.exists() {
-        return Ok(legacy_path);
-    }
-
     Ok(path)
 }
 

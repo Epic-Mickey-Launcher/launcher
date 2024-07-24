@@ -10,6 +10,7 @@ pub async fn extract(
     gamename: String,
     dolphin: String,
 ) -> Result<String, Box<dyn std::error::Error>> {
+    debug::log("beginning ISO extraction");
     let mut destination = helper::get_config_path()?;
     destination.push("Games");
     destination.push(gamename);
@@ -30,15 +31,18 @@ pub async fn extract(
         return Err("dolphin tool does not exist".into());
     }
 
-    Command::new(dolphin_tool)
+    if destination.exists() {
+        fs::remove_dir_all(&destination)?;
+    }
+
+     Command::new(dolphin_tool)
         .arg("extract")
         .arg("-i")
         .arg(isopath)
         .arg("-o")
         .arg(&destination)
-        .arg("-g")
-        .arg("-q")
         .output()?;
+ 
 
     let output = destination.to_str().unwrap();
 
