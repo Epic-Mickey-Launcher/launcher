@@ -32,8 +32,7 @@
   let selectedLevel = "";
 
   let selectedCategoryName = "";
-  let selectedCategoryImg = "img/EM1banner.png";
-
+  let selectedCategoryImg = "img/em1banner.png";
   function LoadImage(categoryname: string) {
     selectedCategoryName = categoryname;
 
@@ -160,9 +159,9 @@
 
   data = GetData("levelloaderdata");
 
-  if (data.game == "EM2" && data.platform == "wii") {
+  if (data.game.toLowerCase() == "em2" && data.platform.toLowerCase() == "wii") {
     currentLevelJSON = levelsDataEM2;
-  } else if (data.game == "EM1") {
+  } else if (data.game.toLocaleLowerCase() == "em1") {
     currentLevelJSON = levelsData;
   } else {
     currentLevelJSON = [];
