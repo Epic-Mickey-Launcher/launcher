@@ -423,7 +423,7 @@
           style="width:200px;height:235px; background-color: rgb(20 20 20);border-radius: 0px 0px 10px 10px;position: relative;overflow-y:scroll;top:-20px;scrollbar-width: none;"
         >
           <textarea
-            style="background-color: rgb(30 30 30);position:sticky;top:0px;border: none;resize: none;border-bottom: 1px white solid;"
+            style="background-color: rgb(30 30 30);position:sticky;top:0px;border: none;resize: none;border-bottom: 1px white solid;width:200px;"
             placeholder="Comment..."
             bind:this={commentInput}
             on:input={OnCommentInput}

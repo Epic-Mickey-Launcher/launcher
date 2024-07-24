@@ -47,7 +47,7 @@
 
 {#if !deleted}
   <div
-    style="width:200px;min-height:40px;max-height:80px;background-color:#2e2e2e;display:flex;margin:auto;overflow-y: scroll;"
+    style="width:200px;min-height:40px;max-height:80px;background-color:#2e2e2e;display:flex;margin:auto;overflow-y: scroll;scrollbar-width: none;"
   >
     <span
       style="margin-top:auto;margin-bottom:auto;text-align:center;margin-left:3px;"

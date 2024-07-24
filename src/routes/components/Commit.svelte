@@ -22,6 +22,7 @@
 
 <style>
   .commitDiv {
+    scrollbar-width: none;
     margin: auto;
     width: 90%;
     height: 50px;
