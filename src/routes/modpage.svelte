@@ -412,7 +412,7 @@
   >
     <div style="display:flex;flex-direction:column;gap:0px;">
       <img
-        src={GetImagePath(modInfo.ID, ImageType.Mod)}
+        src={GetImagePath(modInfo.ID, ImageType.Mod, false)}
         alt=""
         style="border-radius:20px 20px 0 0;margin-right:20px;width:200px;height:200px;z-index:1;"
       />

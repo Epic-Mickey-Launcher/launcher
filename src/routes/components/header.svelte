@@ -447,6 +447,7 @@
     pointer-events: none;
     overflow-y: scroll;
     transform-origin: top right;
+    scrollbar-width:none;
   }
   .pfpbutton {
     margin: auto;

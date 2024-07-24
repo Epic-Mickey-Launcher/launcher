@@ -20,7 +20,7 @@
 
 <div class="modNode">
   <img
-    src={GetImagePath(mod.ID, ImageType.Mod)}
+    src={GetImagePath(mod.ID, ImageType.Mod, false)}
     alt=""
     style="width:200px;border-radius:10px;"
   />

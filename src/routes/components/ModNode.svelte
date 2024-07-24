@@ -96,7 +96,7 @@
         <img
           class="modNodeImg"
           alt=""
-          src={GetImagePath(modData.ID, ImageType.Mod)}
+          src={GetImagePath(modData.ID, ImageType.Mod, false)}
         />
         <br />
         <span style="font-size:8px;">Likes: {likes}</span>

@@ -90,7 +90,7 @@
     let modInstallElement = new ModInstall({
       target: document.body,
     });
-    modInstallElement.modIcon = GetImagePath(moddata.ID, ImageType.Mod);
+    modInstallElement.modIcon = GetImagePath(moddata.ID, ImageType.Mod, false);
     modInstallElement.modName = moddata.Name;
     modInstallElement.showDownloadProgression = true;
 

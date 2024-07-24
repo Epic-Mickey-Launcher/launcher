@@ -80,11 +80,7 @@
       >
     {/if}
 
-    <button
-      on:click={Delete}
-      class="hyperlinkbutton"
-      style="font-size:10px;float:right;margin-top: 3px;">Report</button
-    >
+    
 
     <span style="font-size:6px;">Sent on: {date}</span>
   </div>
