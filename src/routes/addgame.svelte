@@ -202,7 +202,7 @@
       gametype = Game.EM2;
       gamename = "Epic Mickey 2 (PC)";
       platform = Platform.PC;
-      dataPath = selectedPath[0];
+      dataPath = selectedPath;
       addgamedumpDiv.style.display = "none";
       dumpFound.style.display = "block";
     } else {
