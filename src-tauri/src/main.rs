@@ -191,9 +191,7 @@ fn set_dolphin_emulator_override(_path: String, window: Window) {
 
 #[tauri::command]
 fn open_config_folder(window: Window) {
-    let mut path = PathBuf::new();
-    path.push(dirs_next::config_dir().unwrap());
-    path.push("com.memer.eml");
+    let path = helper::get_config_path().unwrap();
     open_path_in_file_manager(path.to_str().unwrap().to_owned(), window)
 }
 
