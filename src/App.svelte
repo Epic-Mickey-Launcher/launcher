@@ -84,21 +84,24 @@
 
   let funcKeyDown: boolean;
   function keyDown(e: KeyboardEvent) {
-    if (e.code == "17") {
+    if (e.code == "17" || e.code == "ControlLeft" || e.code == "ControlRight") {
       funcKeyDown = true;
     }
   }
 
   function keyUp(e: KeyboardEvent) {
-    if (e.code == "17") {
+    if (e.code == "17" || e.code == "ControlLeft" || e.code == "ControlRight") {
       funcKeyDown = false;
     }
 
-    if (funcKeyDown) {
+    if (funcKeyDown) { 
+      console.log(e.code)
       switch (e.code) {
+        case "KeyY":
         case "85":
           invoke("open_config_folder");
           break;
+        case "KeyD":
         case "68":
           ReadJSON("conf.json").then((d) => {
             invoke("open_dolphin", { path: d.dolphinPath });
