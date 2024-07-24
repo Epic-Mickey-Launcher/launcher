@@ -5,6 +5,7 @@
   import { POST, Register, SignIn, UserInfo } from "./library/networking";
   import { GetBackgroundLogin } from "./library/background";
   import Loading from "./components/loading.svelte";
+  import { invoke } from "@tauri-apps/api";
 
   let user: any;
   let pass: any;
@@ -12,7 +13,6 @@
   let background: HTMLDivElement;
   let email: any;
   let forgotPasswordDialog: HTMLDialogElement;
-
   onMount(() => {
     background.style.backgroundImage = `url(${GetBackgroundLogin()})`;
   });
@@ -36,13 +36,19 @@
 
     let userInfo: UserInfo = { username: user, password: pass };
 
-    if (type == 1) {
-      //login
-      await SignIn(userInfo);
-    } else {
-      //register
-      await Register(userInfo);
+    try {
+      if (type == 1) {
+       //login
+        await SignIn(userInfo);
+      } else {
+        //register
+       await Register(userInfo);
+      }
     }
+    catch {
+      loadingDialog.close();
+    }
+    
     loadingDialog.close();
   }
 </script>
@@ -99,7 +105,7 @@
         content={[
           "Make sure to use a unique password from your other accounts for optimal security!",
           "All password are hashed with the Bcrypt algorithm in our database!",
-          "Our <a href='https://placeholder.trololol'>server source code</a> is completely open for anyone to view and use!",
+          "Our server source code is completely open for anyone to view and use!",
         ]}
       ></Dialog>
     </div>
