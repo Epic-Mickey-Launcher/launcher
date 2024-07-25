@@ -395,7 +395,7 @@
         style="        border-radius: 0px 10px 10px 0px;"
         on:click={() => ExitLevelLoader(1)}>Save Level and Return</button
       >
-      <plaintext><s>stolen</s> borrowed from RampantLeaf & SlayCap</plaintext>
+      <span><s>stolen</s> borrowed from RampantLeaf & SlayCap</span>
     </p>
   </div>
 

@@ -28,6 +28,7 @@
   let downloads = 0;
   let likes = 0;
   let liked = false;
+  let removeCommentButton = false;
   let time = "";
   let youtubevideoembed: HTMLIFrameElement;
   let downloadMod: DownloadMod;
@@ -137,6 +138,7 @@
       commentInput.value.trim().length > 0 &&
       commentInput.value.trim().length < 300
     ) {
+      removeCommentButton = true;
       let token = await GetToken();
       let res = await POST(
         "comment/send",
@@ -152,6 +154,7 @@
       }
       commentInput.value = "";
       FocusOutCommentInput();
+      removeCommentButton = false;
     }
   }
 
@@ -430,7 +433,7 @@
             on:input={OnCommentInput}
             on:focusout={FocusOutCommentInput}
           ></textarea>
-
+          {#if !removeCommentButton}
           <button
             bind:this={sendButton}
             on:click={PostComment}
@@ -442,6 +445,7 @@
               style="width:8px;margin:auto;z-index: 3;"
             /></button
           >
+          {/if}
         </div>
 
 
