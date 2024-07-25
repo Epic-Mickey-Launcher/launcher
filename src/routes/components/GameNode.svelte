@@ -109,6 +109,12 @@
       });
     }
   }
+  function OpenDirectory() {
+    invoke("get_os").then((os) => {
+      let p = os == "windows" ? data.path.replace("/", "\\") : data.path;
+      invoke("open_path_in_file_manager", { path: p });
+    });
+  }
 
   async function UpdateAllMods() {
     let downloadMod = new DownloadMod({ target: mainDiv });
@@ -231,15 +237,10 @@
             class="gamesettings"
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
-          <button
-            title="Change Level"
-            on:click={OpenLevelLoader}
-            class="gamesettings"
-            ><img src="img/changelevel.svg" style="width:16px;" /></button
-          >
+        
           <button
             title="Open Game in Explorer"
-            on:click={OpenLevelLoader}
+            on:click={OpenDirectory}
             class="gamesettings"
             ><img src="img/openinexplorer.svg" style="width:16px;" /></button
           >
