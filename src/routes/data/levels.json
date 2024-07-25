@@ -4,7 +4,9 @@
             "name": "Start Screen",
             "path": "Levels/Main_Menu.Level"
         }]
-    }, {
+    }, 
+
+    {
         "categoryname": "Gremlin Village",
         "levels": [{
             "name": "Slalom",
@@ -16,19 +18,21 @@
             "name": "Jungle Boat Ride",
             "path": "Levels/GV_ZoneC_Start.level"
         }, {
-            "name": "Asiaboat Ride",
+            "name": "Asia Boat Ride",
             "path": "Levels/GV_ZoneD_Start.level"
         }, {
             "name": "World of Gremlins",
             "path": "Levels/GV_ZoneF_Start.level"
         }, {
-            "name": "EuroBoat Ride",
+            "name": "European Boat Ride",
             "path": "Levels/GV_ZoneI_Start.level"
         }, {
             "name": "Clock Tower Boss",
             "path": "Levels/SW_ClockWorkBoss_static.Level"
         }]
-    }, {
+    }, 
+
+    {
         "categoryname": "Lonesome Manor",
         "levels": [{
             "name": "Manor House",
@@ -49,7 +53,9 @@
             "name": "Mad Doctor's Attic",
             "path": "Levels/HM_StartM.Level"
         }]
-    }, {
+    }, 
+
+    {
         "categoryname": "Tomorrow City",
         "levels": [{
             "name": "Notilus Room",
@@ -61,13 +67,13 @@
             "name": "Great Big Tomorrow",
             "path": "Levels/TL_D2.Level"
         }, {
-            "name": "Tomorrow City Square",
+            "name": "Tomorrow City Square Visit 1",
             "path": "Levels/TL_MiniHub.Level"
         }, {
-            "name": "Space Voyage",
+            "name": "Space Voyage Visit 1",
             "path": "Levels/TL_SpaceMountain.Level"
         }, {
-            "name": "Space Voyage Petetronic Boss",
+            "name": "Petetronic Boss",
             "path": "Levels/TL_SpaceMountain_TronPete.Level"
         }, {
             "name": "Tomorrow City Square Visit 2",
@@ -76,13 +82,15 @@
             "name": "Space Voyage Visit 2",
             "path": "Levels/TL_SpaceVoyage_Visit2.Level"
         }]
-    }, {
+    }, 
+
+    {
         "categoryname": "Pirates of the Wasteland",
         "levels": [{
             "name": "Pirates of the Wasteland",
             "path": "Levels/PotW_Start.Level"
         }, {
-            "name": "Tortooga",
+            "name": "Tortooga Visit 1",
             "path": "Levels/PotW_Start_Tortuga.Level"
         }, {
             "name": "Jungle",
@@ -91,7 +99,7 @@
             "name": "Tortooga Visit 2",
             "path": "Levels/PotW_Start_TortugaV2.Level"
         }, {
-            "name": "Tortooga Visit 2 (with pirates)",
+            "name": "Tortooga Visit 2 (With Pirates)",
             "path": "Levels/PotW_Start_TortugaV2_Pirates.Level"
         }, {
             "name": "Pirate Voyage",
@@ -100,10 +108,12 @@
             "name": "Skull Island",
             "path": "Levels/PotW_Skull_Start.Level"
         }, {
-            "name": "Jolly Roger Boss Battle",
+            "name": "Captain Hook Boss",
             "path": "Levels/PotW_JollyRoger_Start.Level"
         }]
-    }, {
+    }, 
+
+    {
         "categoryname": "Dark Beauty Castle",
         "levels": [{
             "name": "Lab Visit 1",
@@ -112,34 +122,34 @@
             "name": "Utilidor 3",
             "path": "Levels/DBC_Utilidor_3_1st.Level"
         }, {
-            "name": "Courtyard",
+            "name": "Castle Entrance",
             "path": "Levels/DBC_Courtyard_1st.Level"
         }, {
             "name": "Lab Visit 2",
             "path": "Levels/DBC_Start.Level"
         }, {
-            "name": "2D Sleeping Beauty",
+            "name": "Sleeping Beauty",
             "path": "Levels/DBC_Start_ZoneC.Level"
         }, {
             "name": "Throne Room",
             "path": "Levels/DBC_Start_ZoneF.Level"
         }, {
-            "name": "2D Fantasia 1",
+            "name": "Fantasia 1",
             "path": "Levels/DBC_Start_ZoneG.Level"
         }, {
-            "name": "2D Fantasia 2",
+            "name": "Fantasia 2",
             "path": "Levels/DBC_Start_ZoneGH.Level"
         }, {
-            "name": "ControlTower",
+            "name": "Control Tower",
             "path": "Levels/DBC_Start_ZoneH.Level"
         }, {
             "name": "Utilidor 4",
             "path": "Levels/DBC_Start_ZoneO.Level"
         }, {
-            "name": "2D Fantasia 3",
+            "name": "Fantasia 3",
             "path": "Levels/DBC_Start_ZoneP.Level"
         }, {
-            "name": "2D Fantasia 4",
+            "name": "Fantasia 4",
             "path": "Levels/DBC_Start_ZoneQ.Level"
         }, {
             "name": "Utilidor 7",
@@ -157,16 +167,18 @@
             "name": "Inside the Blot",
             "path": "Levels/DBC_Start_ZoneS.Level"
         }]
-    }, {
-        "categoryname": "Mickey Junk Mountain",
+    }, 
+
+    {
+        "categoryname": "Mickeyjunk Mountain",
         "levels": [{
             "name": "The Heaps",
             "path": "Levels/MJM_ZoneA.Level"
         }, {
-            "name": "The Piles 1 ",
+            "name": "The Piles Start",
             "path": "Levels/MJM_ZoneG1.Level"
         }, {
-            "name": "The Piles 2",
+            "name": "The Piles Airlock",
             "path": "Levels/MJM_ZoneG2.Level"
         }, {
             "name": "Mt. Osmore Slopes",
@@ -177,6 +189,9 @@
         }, {
             "name": "Mt. Osmore Caverns Visit 2",
             "path": "Levels/MJM_ZoneF2.Level"
+        }, {
+            "name": "Shadow Blot Boss",
+            "path": "ShadowBlot_Boss.Level"
         }]
     },
 
@@ -200,6 +215,9 @@
         }, {
             "name": "Mean Street Visit 6",
             "path": "Levels/MeanStreet_V6_Launcher.level"
+        }, {
+            "name": "Mean Street Visit 6 (No Enemies)",
+            "path": "Levels/MeanStreet_V6_NoEnemies.level"
         }]
     },
 
@@ -209,10 +227,10 @@
             "name": "Ventureland Visit 1",
             "path": "Levels/Adventureland_v1_Launcher.level"
         }, {
-            "name": "Ventureland Visit 2 (no Pirates)",
+            "name": "Ventureland Visit 2 (No Pirates)",
             "path": "Levels/Adventureland_v2_No_Pirates_Launcher.level"
         }, {
-            "name": "Ventureland Visit 2 (with Pirates)",
+            "name": "Ventureland Visit 2 (With Pirates)",
             "path": "Levels/Adventureland_v2_Pirates_Launcher.level"
         }, {
             "name": "Venutureland Visit 3",
@@ -226,10 +244,10 @@
             "name": "Bog Easy Visit 1",
             "path": "Levels/NewOrleans_V1.Level"
         }, {
-            "name": "Bog Easy Visit 2 With Ghosts",
+            "name": "Bog Easy Visit 2 (With Ghosts)",
             "path": "Levels/NewOrleans_V2_Ghosts.level"
         }, {
-            "name": "Bog Easy Visit 2 Without Ghosts",
+            "name": "Bog Easy Visit 2 (No Ghosts)",
             "path": "Levels/NewOrleans_V2_NoGhosts.level"
         }, {
             "name": "Bog Easy Visit 3",
@@ -250,16 +268,17 @@
             "path": "Levels/ToonTown_FromMJ2.level"
         }]
     },
+    
     {
-        "categoryname": "Tests",
+        "categoryname": "Test Maps",
         "levels": [{
-            "name": "AI Test Map",
+            "name": "AI Test",
             "path": "Levels/AI_Test.level"
         }, {
-            "name": "NPC Test Map",
+            "name": "NPC Test 1",
             "path": "Levels/NPC_Test.level"
         }, {
-            "name": "NPC Test Map 2",
+            "name": "NPC Test 2",
             "path": "Levels/NPC_Test_2.level"
         }, {
             "name": "Building Standards",
@@ -277,47 +296,90 @@
             "name": "Jeff Tses Particle Zoo",
             "path": "Environments/_Test/Jeff_Tse_TestLevel.gsa"
         }, {
-            "name": "Eve_Colvin_Zoo",
+            "name": "Eve Colvin Zoo",
             "path": "Levels/Eve_Colvin_Zoo.level"
         }, {
-            "name": "Jamey_Test",
+            "name": "Jamey Test",
             "path": "Levels/JM_Test_01.level"
         }, {
-            "name": "Blake_Zoo",
+            "name": "Blake Zoo",
             "path": "Levels/Jimmie_AVA_Test.level"
         }, {
-            "name": "Dallin_Zoo",
+            "name": "Dallin Zoo",
             "path": "Levels/Jimmie_AVA_Test.level"
         }, {
-            "name": "Jimmie_Zoo",
+            "name": "Jimmie Zoo",
             "path": "Levels/Jimmie_AVA_Test.level"
         }, {
-            "name": "JohnnyB_Zoo",
+            "name": "JohnnyB Zoo",
             "path": "Levels/Jimmie_AVA_Test.level"
         }, {
-            "name": "Common_FX_Zoo",
+            "name": "Common FX Zoo",
             "path": "levels/Common_FX_Zoo.level"
+        }, {
+            "name": "Jeff Massung's Test Level",
+            "path": "jeffm.level"
+        }, {
+            "name": "Shader Test",
+            "path": "BT_ShaderTest.level"
+        }, {
+            "name": "EB Village Test",
+            "path": "EB_VillageTest.level"
         }, {
             "name": "Mickey Arcade",
             "path": "Levels/mickey_arcade.Level"
+        }, {
+            "name": "Wal-Mart White Room",
+            "path": "WM_WhiteRoom.level"
+        }, {
+            "name": "Tomorrow City: Space Mountain Zone A",
+            "path": "Environments/ThePark/TomorrowLand/GSA/sm_tl_zonea.gsa"
         }]
-    }, {
-        "categoryname": "E3",
+    }, 
+
+    {
+        "categoryname": "Old Demo Maps",
         "levels": [{
-            "name": "Start",
+            "name": "E3: Ventureland",
             "path": "Levels/E3Demo_VL.level"
         }, {
-            "name": "Steamboat Willie",
+            "name": "E3: Steamboat Willie",
             "path": "Levels/E3Demo_SBW.level"
         }, {
-            "name": "Scalp Rock",
+            "name": "E3: Skull Island",
             "path": "Levels/E3Demo_SR.level"
+        }, {
+            "name": "Mean Street",
+            "path": "Environments/MeanStreets/hub_meanstreet.gsa"
+        }, {
+            "name": "OsTown",
+            "path": "Environments/MeanStreets/hub_toontown.gsa"
+        }, {
+            "name": "Ventureland",
+            "path": "Environments/MeanStreets/hub_adventureland.gsa"
+        }, {
+            "name": "Bog Easy",
+            "path": "Environments/MeanStreets/hub_nosquare.gsa"
+        }, {
+            "name": "The Sorcerer's Apprentice 1",
+            "path": "Environments/ThePark/DarkBeautyCastle/GSA/dbc_zonex.gsa"
+        }, {
+            "name": "The Sorcerer's Apprentice 2",
+            "path": "Environments/ThePark/DarkBeautyCastle/GSA/dbc_zonew.gsa"
+        }, {
+            "name": "The Sorcerer's Apprentice 3",
+            "path": "Environments/ThePark/DarkBeautyCastle/GSA/dbc_zoney.gsa"
+        }, {
+            "name": "The Sorcerer's Apprentice 4",
+            "path": "Environments/ThePark/DarkBeautyCastle/GSA/dbc_zonez_alt.gsa"
         }]
-    }, {
+    }, 
+
+    {
         "categoryname": "Projector Levels",
         "levels": [{
-            "name": "2dFilm_SleepingBeauty (SW_ZoneD)",
-            "path": "Levels/2D_SleepingBeauty.level"
+            "name": "Mickey and the Beanstalk",
+            "path": "Levels/2D_Beanstalk.level"
         }, {
             "name": "Steamboat Willie 1",
             "path": "Levels/2D_SteamboatWillie01.level"
@@ -334,29 +396,56 @@
             "name": "Clock Cleaners 2",
             "path": "Levels/2D_ClockCleaners02.level"
         }, {
-            "name": "Mickey's Steamroller",
+            "name": "Thru the Mirror",
+            "path": "Levels/2D_ThruTheMirror.level"
+        }, {
+            "name": "Mickey's Steam-Roller",
             "path": "Levels/2D_MickeySteamroller01.level"
-        }, {
-            "name": "Jungle Rhythm 1",
-            "path": "Levels/2D_JungleRhythm01.level"
-        }, {
-            "name": "Jungle Rhythm 2",
-            "path": "Levels/2D_JungleRhythm02.level"
-        }, {
-            "name": "The Castaway 1",
-            "path": "Levels/2D_Castaway01.level"
-        }, {
-            "name": " The Castaway 2",
-            "path": "Levels/2D_Castaway02.level"
-        }, {
-            "name": "Plutopia 1",
-            "path": "Levels/2D_Plutopia01.level"
         }, {
             "name": "Alpine Climbers 1",
             "path": "Levels/MJM_AlpineA.level"
         }, {
             "name": "Alpine Climbers 2",
             "path": "Levels/MJM_AlpineB.level"
+        }, {
+            "name": "Trolley Troubles",
+            "path": "Levels/MJM_TrolleyA.level"
+        }, {
+            "name": "Great Guns",
+            "path": "Levels/MJM_GunsA.level"
+        }, {
+            "name": "Oh What a Knight",
+            "path": "Levels/MJM_KnightA.level"
+        }, {
+            "name": "Plutopia 1",
+            "path": "Levels/2D_Plutopia01.level"
+        }, {
+            "name": "Plutopia 2",
+            "path": "Levels/2D_Plutopia02.level"
+        }, {
+            "name": "Mickey's Mechanical Man 1",
+            "path": "Levels/2D_MechanicalMan01.level"
+        }, {
+            "name": "Mickey's Mechanical Man 2",
+            "path": "Levels/2D_MechanicalMan02.level"
+        }, {
+            "name": "Jungle Rhythm 1",
+            "path": "Levels/2D_JungleRhythm01.level"
+        }, {
+            "name": "Jungle Rhythm 2",
+            "path": "Levels/2D_JungleRhythm02.Level"
+        }, {
+            "name": "The Castaway 1",
+            "path": "Levels/2D_Castaway01.level"
+        }, {
+            "name": "The Castaway 2",
+            "path": "Levels/2D_Castaway02.level"
+        }, {
+            "name": "The Whalers",
+            "path": "Levels/2D_TheWhalers.level"
+        }, {
+            "name": "Shanghaied",
+            "path": "Levels/2D_Shanghaied.level"
         }, {
             "name": "Lonesome Ghosts 1",
             "path": "Levels/2D_LonesomeGhost01.level"
@@ -368,49 +457,7 @@
             "path": "Levels/2D_MadDoctor01.level"
         }, {
             "name": "The Mad Doctor 2",
-            "path": "Levels/2D_MadDoctor02.Level"
-        }, {
-            "name": "Fantasia 1",
-            "path": "Levels/2D_Fantasia01.level"
-        }, {
-            "name": "Fantasia 2",
-            "path": "Levels/2D_Fantasia02.level"
-        }, {
-            "name": "Fantasia 3",
-            "path": "Levels/2D_Fantasia03.level"
-        }, {
-            "name": "Fantasia 4",
-            "path": "Levels/2D_Fantasia04.level"
-        }, {
-            "name": "Oh What a Knight 1",
-            "path": "Levels/MJM_KnightA.level"
-        }, {
-            "name": "Trolley Troubles",
-            "path": "Levels/MJM_TrolleyA.level"
-        }, {
-            "name": "Mickey's Mechanical Man 1",
-            "path": "Levels/2D_MechanicalMan01.level"
-        }, {
-            "name": "Great Guns",
-            "path": "Levels/MJM_GunsA.level"
-        }, {
-            "name": "Thru The Mirror",
-            "path": "Levels/2D_ThruTheMirror.level"
-        }, {
-            "name": "Mickey's Mechanical Man 2",
-            "path": "Levels/2D_MechanicalMan02.level"
-        }, {
-            "name": "Ye Olden Days",
-            "path": "Levels/2D_YeOldenDays.level"
-        }, {
-            "name": "Mickey and the Beanstalk",
-            "path": "Levels/2D_Beanstalk.level"
-        }, {
-            "name": "The Whalers",
-            "path": "Levels/2D_TheWhalers.level"
-        }, {
-            "name": "Shanghaied",
-            "path": "Levels/2D_Shanghaied.level"
+            "path": "Levels/2D_MadDoctor02.level"
         }, {
             "name": "The Haunted House 1",
             "path": "Levels/2D_HauntedHouse01.level"
@@ -421,11 +468,28 @@
             "name": "The Haunted House 3",
             "path": "Levels/2D_HauntedHouse03.level"
         }, {
-            "name": "Plutopia 2",
-            "path": "Levels/2D_Plutopia02.level"
+            "name": "Ye Olden Days",
+            "path": "Levels/2D_YeOldenDays.level"
+        }, {
+            "name": "Sleeping Beauty",
+            "path": "Levels/2D_SleepingBeauty.level"
+        }, {
+            "name": "The Sorcerer's Apprentice 1",
+            "path": "Levels/2D_Fantasia01.level"
+        }, {
+            "name": "The Sorcerer's Apprentice 2",
+            "path": "Levels/2D_Fantasia02.level"
+        }, {
+            "name": "The Sorcerer's Apprentice 3",
+            "path": "Levels/2D_Fantasia03.level"
+        }, {
+            "name": "The Sorcerer's Apprentice 4",
+            "path": "Levels/2D_Fantasia04.level"
         }]
-    }, {
-        "categoryname": "Interior",
+    }, 
+
+    {
+        "categoryname": "Interiors",
         "levels": [{
             "name": "MS Walt's Apartment",
             "path": "Environments/ThePark/MeanStreetUSA/Zones/GSA/MSUSA_2D_walts.gsa"
@@ -445,28 +509,28 @@
             "name": "POTW Hut Shop",
             "path": "Environments/ThePark/AdventureLand/Zones/GSA/AL_Minihub_2D_Jungleshop.gsa"
         }, {
-            "name": "POTW Tree House (abandoned)",
+            "name": "POTW Tree House (Abandoned)",
             "path": "Environments/ThePark/AdventureLand/SwissFamily/Zones/GSA/AL_Minihub_2D_swiss_family_robinson.gsa"
         }, {
-            "name": "POTW Tree House (lived)",
+            "name": "POTW Tree House (Lived)",
             "path": "Environments/ThePark/AdventureLand/SwissFamily/Zones/GSA/AL_Minihub_2D_swiss_family_robinson_lived.gsa"
         }, {
             "name": "POTW Jail",
             "path": "Environments/ThePark/AdventureLand/Pirates/GSA/P_2D_Jail.gsa"
         }, {
-            "name": " OT Mickey's Home",
+            "name": "OST Mickey's Home",
             "path": "Environments/ThePark/ToonTown/Zones/GSA/TT_2D_MickeyHome.gsa"
         }, {
-            "name": "OT Ortensia's Home",
+            "name": "OST Ortensia's Home",
             "path": "Environments/ThePark/ToonTown/GSA/TT_2D_OrtensiaHome.gsa"
         }, {
-            "name": "OT Clarabelle's Kitchen",
+            "name": "OST Clarabelle's Kitchen",
             "path": "Environments/ThePark/ToonTown/Zones/GSA/TT_2D_ClaraKitchen.gsa"
         }, {
             "name": "TC Nautilus",
             "path": "Environments/ThePark/TomorrowLand/GSA/TL_2D_Nautilus.gsa"
         }, {
-            "name": "HM Hiddendock",
+            "name": "BOG Hiddendock",
             "path": "Environments/ThePark/NewOrleansSquare/GSA/NOS_2D_Hiddendock.gsa"
         }, {
             "name": "POTW Jail",
@@ -475,13 +539,13 @@
             "name": "POTW Teepee",
             "path": "Environments/ThePark/AdventureLand/Pirates/GSA/P_2D_Teepee.gsa"
         }, {
-            "name": "GV Gremin Hut",
+            "name": "GV Gremlin Hut",
             "path": "Environments/ThePark/fantasyland/SmallWorld/Zones/SW_2D_greminhut.gsa"
         }, {
-            "name": "HM Bog Easy Shop",
+            "name": "BOG LeBaten Shop",
             "path": "Environments/ThePark/NewOrleansSquare/Zones/GSA/NOS_2D_NewOrleansShop.gsa"
         }, {
-            "name": "HM Mark Twain's Ship",
+            "name": "BOG Ferry Boat",
             "path": "Environments/ThePark/NewOrleansSquare/Zones/GSA/NOS_2D_MarkTwainsShip.gsa"
         }]
     }

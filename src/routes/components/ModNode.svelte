@@ -1,180 +1,151 @@
 <svelte:options accessors={true} />
 
-<script>
-    import { invoke } from "@tauri-apps/api/tauri";
-    import { ReadFile, ReadJSON, WriteFile } from "../library/configfiles";
-    import { GetData, SetData } from "../library/datatransfer";
-    import { GetToken, POST, staticAssetsLink } from "../library/networking";
-    import ModInstall from "./ModInstall.svelte";
-    import { exists } from "@tauri-apps/api/fs";
-    import DownloadMod from "./downloadMod.svelte";
-    export let modName = "";
-    export let description = "";
-    export let iconLink = "";
-    export let downloadLink = "";
-    export let author = "";
-    export let modid = "";
-    export let modplatform = "";
-    export let modgame = "";
-    export let update = 0;
-    export let likes = 0;
-    export let comments = 0;
-    export let downloads = 0;
-    export let visible = true;
-    let authoraccountexists = true;
-    export let authorname = "";
-    export let gamedata;
-    export let moddata;
-    let downloadStatus = "Download";
-    let modNodeDiv;
-    let downloadMod;
-    $: innerWidth = 0;
-    let color = "white";
-    export let json = "";
-    let canupdate = false;
-    let downloadButton;
-    async function SetJsonData() {
-        let jsonData = await ReadJSON("games.json");
+<script lang="ts">
+  import { GetData, SetData } from "../library/datatransfer";
+  import { GetImagePath, ImageType, POST } from "../library/networking";
+  import { GameConfig, Mod } from "../library/types";
+  import User from "./User.svelte";
+  import DownloadMod from "./downloadMod.svelte";
 
-        return jsonData;
-    }
-    function ViewPage() {
-        SetData("modpage_id", modid);
-        SetData("modpage_dumploc", gamedata.path);
-        window.open("#/modpage", "_self");
-    }
+  export let gameData: GameConfig;
+  export let modData: Mod;
+  let downloadStatus = "Download";
+  export let modNodeDiv: HTMLDivElement;
+  let downloadMod: DownloadMod;
+  $: innerWidth = 0;
+  let downloadButton: HTMLButtonElement;
 
-    export async function Init() {
-        let authorinfo = await POST("getprofileinfo", { id: author });
+  let downloadButtonDisabled = false;
+  let visible = true;
+  let comments = [];
+  let likes = 0;
+  let description = "";
+  let loaded = false;
 
-        let emblem = authorinfo.emblems.sort((a, b) => {
-            return b.weight - a.weight;
-        })[0];
+  function ViewPage() {
+    SetData("modpage_id", modData.ID);
+    SetData("modpage_dumploc", gameData.path);
+    window.open("#/modpage", "_self");
+  }
 
-        color = emblem.color;
+  export async function Init() {
+    downloadMod = new DownloadMod({
+      target: modNodeDiv,
+    });
 
-        if (authorinfo.username == null) {
-            authoraccountexists = false;
-            authorname = "Unknown Account";
-        } else {
-            authorname = authorinfo.username;
-        }
+    downloadMod.Initialize(gameData, false, modData);
+    downloadMod.updatecb = () => {
+      downloadButtonDisabled = downloadMod.downloadButtonDisabled;
+      downloadStatus = downloadMod.downloadButtonStatus;
+    };
 
-        let len = 0;
+    let response = await POST("comment/count", { PageID: modData.ID }, false);
+    if (response.error) return;
+    comments = response.body;
 
-        for (let i = 0; i < innerWidth; i += 30) {
-            len += 1;
-        }
+    likes = modData.CachedLikes;
 
-        if (description.length > len) {
-            let newDesc = description.substring(0, len);
-            newDesc += "...";
-            description = newDesc;
-        }
+    let len = 0;
 
-        downloadMod = new DownloadMod({
-            target: modNodeDiv,
-        });
-
-        let gameinfo = GetData("gameinfo");
-        console.log(gameinfo)
-
-        downloadMod.Initialize(gameinfo, false, moddata);
-        downloadMod.updatecb = () => {
-            downloadButton.disabled = downloadMod.downloadButtonDisabled;
-            downloadStatus = downloadMod.downloadButtonStatus;
-        };
+    for (let i = 0; i < innerWidth; i += 30) {
+      len += 1;
     }
 
-    async function OpenProfileOfAuthor() {
-        if (!authoraccountexists) return;
-        SetData("profile_id", author);
-        window.open("#/profilepage", "_self");
+    description = modData.Description;
+
+    if (modData.Description.length > len) {
+      let newDesc = modData.Description.substring(0, len).trim();
+      newDesc += "...";
+      description = newDesc;
     }
 
-    async function Download() {
-        await downloadMod.Download();
-    }
+    loaded = true;
+  }
+
+  async function Download() {
+    await downloadMod.Download();
+  }
 </script>
 
 <svelte:window bind:innerWidth />
 {#if visible}
-    <div bind:this={modNodeDiv} class="modNodeDiv">
-        <div>
-            <span
-                class="spanHyperLink"
-                on:click={ViewPage}
-                style="font-weight:bold;text-overflow: ellipsis;"
-                >{modName}</span
-            >
-            <p>
-                <span>
-                    Author:<button
-                        style="margin-left:5px;color:{color};text-overflow: ellipsis;"
-                        on:click={OpenProfileOfAuthor}
-                        class="hyperlinkbutton">{authorname}</button
-                    >
-                </span>
-            </p>
-            <p>
-                <span style="text-overflow: ellipsis;">{description}</span>
-            </p>
-        </div>
+  <div bind:this={modNodeDiv} class="modNodeDiv">
+    {#if loaded}
+      <div>
+        <span
+          class="spanHyperLink"
+          on:click={ViewPage}
+          style="font-weight:bold;text-overflow: ellipsis;">{modData.Name}</span
+        >
 
-        <div class="imgArea">
-            <img class="modNodeImg" alt="" src={iconLink} />
-            <br />
-            <span style="font-size:8px;">Likes: {likes}</span>
-            <span style="font-size:8px;">Downloads: {downloads}</span>
-            <span style="font-size:8px;">Comments: {comments}</span>
-            <button bind:this={downloadButton} on:click={Download}
-                >{downloadStatus}</button
-            >
-            <br />
-        </div>
-    </div>
+        {#if modData.Version > 0}
+          <span
+            style="padding:1px 4px;background-color: rgba(0,0,0,0.7);margin-left:5px;border-radius:4px;font-size:12px;"
+            >v{modData.Version}</span
+          >
+        {/if}
+        <p>
+          <User ID={modData.Author} textSize={14} imageSize={15}></User>
+        </p>
+        <p>
+          <span style="text-overflow: ellipsis;">{description}</span>
+        </p>
+      </div>
+
+      <div class="imgArea">
+        <img
+          class="modNodeImg"
+          alt=""
+          src={GetImagePath(modData.ID, ImageType.Mod, false)}
+        />
+        <br />
+        <span style="font-size:8px;">Likes: {likes}</span>
+        <span style="font-size:8px;">Downloads: {modData.Downloads}</span>
+        <span style="font-size:8px;">Comments: {comments}</span>
+        <button
+          bind:this={downloadButton}
+          on:click={Download}
+          disabled={downloadButtonDisabled}>{downloadStatus}</button
+        >
+        <br />
+      </div>
+    {/if}
+  </div>
 {/if}
 
 <style>
-    .break {
-        flex-basis: 100%;
-        height: 0;
-    }
+  .modNodeDiv {
+    position: relative;
+    flex-wrap: wrap;
+    z-index: 1;
+    background-color: rgb(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 20px;
+    padding: 10px 10px;
+    width: 50%;
+    height: 100px;
+    display: flex;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 20px;
+    box-shadow: 2px 2px 10px rgb(0, 0, 0);
+    transition-duration: 0.3s;
+    opacity: 0;
+    transform: translateX(-100px);
+  }
 
-    .modNodeDiv {
-        position: relative;
-        flex-wrap: wrap;
-        z-index: 1;
-        background-color: rgb(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        border-radius: 20px;
-        padding: 10px 10px;
-        width: 50%;
-        height: 100px;
-        display: flex;
-        margin-right: auto;
-        margin-left: auto;
-        margin-bottom: 20px;
-        box-shadow: 2px 2px 10px rgb(0, 0, 0);
-        transition-duration: 0.1s;
-    }
-
-    .modNodeDiv:hover {
-        transform: scale(1.01);
-    }
-
-    .imgArea {
-        position: absolute;
-        right: 5px;
-        display: inline;
-        margin-left: auto;
-        text-align: right;
-        justify-content: right;
-    }
-    .modNodeImg {
-        width: 80px;
-        height: 80px;
-        border-radius: 10px;
-    }
+  .imgArea {
+    position: absolute;
+    right: 5px;
+    display: inline;
+    margin-left: auto;
+    text-align: right;
+    justify-content: right;
+  }
+  .modNodeImg {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+  }
 </style>

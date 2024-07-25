@@ -3,6 +3,19 @@ body{
 background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,29,29,1) 0%, rgba(62,62,62,1) 100%);
 }
 
+dialog {
+  background-color: rgb(50,50,50);
+  border:none;
+  border-radius:10px;
+  z-index:30;
+  max-width:50vw;
+  backdrop-filter: drop-shadow(1px 1px 5px black)
+}
+dialog:backdrop {
+  opacity:0.75;
+  background-color: black;
+}
+
 @font-face {
   font-family: normalfont;
   src: url(/fonts/norm.ttf);
@@ -16,7 +29,7 @@ background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,
   padding: 0px;
 }
 .hyperlinkbutton:hover{
-  cursor:pointer;
+  cursor:grab;
   background-color: transparent;
 }
 
@@ -56,7 +69,7 @@ textarea{
   transition-duration: 0.1s;
 }
 button:hover{
-  cursor:pointer;
+  cursor:grab;
   background-color: rgb(43, 43, 43);
 }
 button:hover:disabled{

@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "Epic Mickey Launcher",
-    "version": "0.4.4"
+    "version": "0.4.5"
   },
   "tauri": {
     "allowlist": {
@@ -29,8 +29,7 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true,
-        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**"] 
-        
+        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**","$LOCALDATA/com.memer.eml/**", "$HOME/**"] 
       },
       
       "dialog": {
@@ -47,18 +46,16 @@
     "bundle": {
       "active": true,
       "category": "Developer Tool",
-      "copyright": "",
+      "copyright": "Jonas Kalsvik",
       "deb": {
         "depends": []
-        
       },
       "externalBin": [],
-      
       "icon": [
         "icons/icon.ico",
         "icons/icon.png"
       ],
-      "identifier": "com.memer.eml",
+      "identifier": "com.kalsvik.eml",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

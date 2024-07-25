@@ -1,11 +1,8 @@
 <svelte:options accessors={true} />
 
-
-<script>
-    import { invoke } from "@tauri-apps/api/tauri";
-    import { appWindow, WebviewWindow } from '@tauri-apps/api/window'
-    import { onMount } from "svelte";
-    import { emit, listen } from '@tauri-apps/api/event'
+<script lang="ts">
+  import { onMount } from "svelte";
+  import { listen } from "@tauri-apps/api/event";
 
   export let modName = "";
   export let modIcon = "";
@@ -14,38 +11,61 @@
   let MBTotal = 0;
   let MBDownloaded = 0;
 
-  export let showDownloadProgression = false
+  export let showDownloadProgression = false;
 
-  function formatBytes(bytes, decimals = 2) {
-    if (!+bytes) return '0 Bytes'
+  function formatBytes(bytes: number, decimals = 2) {
+    if (!+bytes) return "0 Bytes";
 
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = [
+      "Bytes",
+      "KiB",
+      "MiB",
+      "GiB",
+      "TiB",
+      "PiB",
+      "EiB",
+      "ZiB",
+      "YiB",
+    ];
 
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
-}
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
 
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  }
 
- onMount(async () => {
+  onMount(async () => {
+    console.log("Listening for download-stat");
 
-    console.log("Listening for download-stat")
-    
-   const lis = await listen("download-stat", (event) => {
-    
-    MBTotal = event.payload.Download_Total
-    MBDownloaded = event.payload.Download_Remaining
-    if (MBTotal > 0 && MBDownloaded > 0)
-    {
-      progress = (MBDownloaded / MBTotal * 100).toString();      
-    }
+    await listen("download-action", (event: any) => {
+      action = event.payload;
+    });
 
-   })
-  
-  })
+    await listen("download-description", (event: any) => {
+      description = event.payload;
+    });
 
+    await listen("download-stat", (event: any) => {
+      MBTotal = event.payload.download_total;
+      MBDownloaded = event.payload.download_remaining;
+      if (MBTotal > 0 && MBDownloaded > 0) {
+        progress = ((MBDownloaded / MBTotal) * 100).toString();
+        showDownloadProgression = true 
+      }
+      else{
+        showDownloadProgression = false
+      }
+
+      if (event.payload.action != "") {
+        action = event.payload.action
+      }
+
+      if (event.payload.description != "") {
+        description = event.payload.description
+      }
+    });
+  });
 
   export let action = "Downloading";
   export let description =
@@ -56,19 +76,20 @@
   <div
     style="position:fixed;align-items: center; align-self: center;text-align: center;left:0; right:0; top:30%; "
   >
-  <div style="position: relative;">
-    <img
-    class="loading-spinner"
-    alt=""
-    src="/img/Loading_indicator_circle.svg"
-  />
-  <img class="installingmodlogo" alt="" src={modIcon} />
-  </div>
+    <div style="position: relative;">
+      <img
+        class="loading-spinner"
+        alt=""
+        src="/img/Loading_indicator_circle.svg"
+      />
+      <img class="installingmodlogo" alt="" src={modIcon} />
+    </div>
     <plaintext>{action} {modName}</plaintext>
     <plaintext>{description}</plaintext>
     {#if showDownloadProgression}
-    <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext>
-    <progress value={progress} max="100"></progress>  
+      <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext
+      >
+      <progress value={progress} max="100"></progress>
     {/if}
   </div>
 </div>
@@ -96,19 +117,19 @@
   .installingmodlogo {
     position: absolute;
     border-radius: 100%;
-    top:25px;
-    left: 0; 
-    right: 0; 
-    margin-left: auto; 
-    margin-right: auto; 
+    top: 25px;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
     width: 150px;
     height: 150px;
   }
 
   .loading-spinner {
     animation: rotate 1.5s linear infinite;
-margin-left: auto; 
-margin-right: auto; 
+    margin-left: auto;
+    margin-right: auto;
     width: 200px;
     height: 200px;
   }

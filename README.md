@@ -50,11 +50,12 @@ Epic Mickey Launcher is available on the [AUR](https://aur.archlinux.org/package
 - Rust
 - Git
 
-1. Clone the repository: ```git clone https://github.com/KjubDusJub/Epic-Mickey-Launcher.git```
-2. CD into the cloned repository ```cd Epic-Mickey-Launcher```
-3. Install the required NPM packages ```npm install```
-4. Begin a dev session that automatically refreshes changes ```npm run tauri dev```
-5. Build a release for the platform you're currently on ```npm run tauri dev```
+```
+git clone https://github.com/KjubDusJub/Epic-Mickey-Launcher.git
+cd Epic-Mickey-Launcher
+npm install
+npm run tauri dev
+```
 
 # Roadmap
 
