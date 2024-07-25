@@ -11,9 +11,11 @@ use std::path::PathBuf;
 use tauri::Window;
 
 #[derive(Clone, serde::Serialize)]
-struct ModDownloadStats {
-    download_remaining: String,
-    download_total: String,
+pub struct ModDownloadStats {
+    pub download_remaining: String,
+    pub download_total: String,
+    pub action: String,
+    pub description: String
 }
 
 pub async fn tool(
@@ -61,30 +63,34 @@ pub async fn zip(
                 ModDownloadStats {
                     download_total: total_size.to_string(),
                     download_remaining: "0".to_string(),
+                    action: "".to_string(),
+                    description: "".to_string()
                 },
-            )
-            .unwrap();
+            )?;
 
         buffer = reqwest::get(&url).await?.bytes_stream();
 
         let mut download_bytes_count = 0;
         let mut f = File::create(&temporary_archive_path)?;
+        let mut next_update_count = 0;
+
         while let Some(item) = buffer.next().await {
             let mut buf = &Bytes::new();
 
             let res = item.as_ref();
-
+            
             buf = match res {
                 Ok(b) => b,
                 Err(error) => {
-                    buffer = reqwest::get(&url).await?.bytes_stream();
-                    download_bytes_count = 0;
-                    fs::remove_file(&temporary_archive_path)?;
-                    f = File::create(&temporary_archive_path)?;
                     debug::log(&format!(
                         "Download error occured. Restarting Download: {}",
                         error
                     ));
+                    buffer = reqwest::get(&url).await?.bytes_stream();
+                    download_bytes_count = 0;
+                    fs::remove_file(&temporary_archive_path)?;
+                    f = File::create(&temporary_archive_path)?;
+            
                     buf
                 }
             };
@@ -95,22 +101,47 @@ pub async fn zip(
 
             download_bytes_count += buf.len();
 
-            window
+            if download_bytes_count > next_update_count {
+                window
                 .emit(
                     "download-stat",
                     ModDownloadStats {
                         download_total: total_size.to_string(),
                         download_remaining: download_bytes_count.to_string(),
+                        action: "".to_string(),
+                        description:"".to_string()
                     },
-                )
-                .unwrap();
+                )?;
+                next_update_count += (total_size / 256) as usize;
+            }
+            
 
             f.write_all(buf)?;
         }
     } else {
-        fs::copy(&url, &temporary_archive_path).expect("Failed to copy local file");
+        fs::copy(&url, &temporary_archive_path)?;
     }
+    window
+    .emit(
+        "download-stat",
+        ModDownloadStats {
+            download_total:"0".to_string(),
+            download_remaining: "0".to_string(),
+            action: "Extracting".to_string(),
+            description:"This might take a while depending on your drive speed.".to_string()
+        },
+    )?;
     archive::extract(temporary_archive_path.clone(), foldername)?;
+    window
+    .emit(
+        "download-stat",
+        ModDownloadStats {
+            download_total:"0".to_string(),
+            download_remaining: "0".to_string(),
+            action: "Cleaning up".to_string(),
+            description:"This shouldn't take too long.".to_string()
+        },
+    )?;
     fs::remove_file(temporary_archive_path)?;
     debug::log("Finished archive download");
     Ok(())

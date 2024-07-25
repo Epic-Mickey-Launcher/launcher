@@ -2,6 +2,7 @@ use crate::{debug, dolphin, download, git, helper, mod_info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::thread::sleep;
 use tauri::Window;
 use walkdir::WalkDir;
 
@@ -49,6 +50,18 @@ pub async fn add(
 
         download::zip(url, &full_path, is_local, window).await?;
         debug::log("done downloading");
+    }
+    else{
+        window
+        .emit(
+            "download-stat",
+            download::ModDownloadStats {
+                download_total: "".to_string(),
+                download_remaining: "".to_string(),
+                action: "Installing Cached Copy of".to_string(),
+                description: "EML caches previously installed mods for convenience. This shouldn't take long.".to_string()
+            },
+        )?;
     }
 
     let mut path_json = full_path.clone();
@@ -261,7 +274,9 @@ pub async fn delete(
         backup_path.push(&dumploc);
         backup_path.push("backup");
 
-        let mut files_to_remove = files.len() + texturefiles.len();
+        let total_files = files.len() + texturefiles.len();
+        let mut files_to_remove = total_files;
+        let mut next_update_count = total_files;
 
         for file in files {
             let mut source_path = PathBuf::new();
@@ -274,13 +289,16 @@ pub async fn delete(
 
             files_to_remove -= 1;
 
-            window.emit(
-                "change_description_text_delete",
-                format!(
-                    "Restoring original files... Remaining files: {}",
-                    files_to_remove
-                ),
-            )?;
+            if files_to_remove < next_update_count  {
+                next_update_count -= total_files / 5;
+                window.emit(
+                    "change_description_text_delete",
+                    format!(
+                        "Restoring original files... Remaining files: {}",
+                        files_to_remove
+                    ),
+                )?;
+            }
 
             if source_path.exists() && destination_path.exists() {
                 fs::copy(source_path, destination_path)?;
