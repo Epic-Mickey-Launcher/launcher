@@ -422,8 +422,9 @@
           class="commentBox"
           style="width:200px;height:235px; background-color: rgb(20 20 20);border-radius: 0px 0px 10px 10px;position: relative;overflow-y:scroll;top:-20px;scrollbar-width: none;"
         >
+        <div style="position:sticky;top:0px;">
           <textarea
-            style="background-color: rgb(30 30 30);position:sticky;top:0px;border: none;resize: none;border-bottom: 1px white solid;width:200px;"
+            style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:200px;"
             placeholder="Comment..."
             bind:this={commentInput}
             on:input={OnCommentInput}
@@ -437,9 +438,12 @@
             class="sendComment"
             ><img
               src="img/send.svg"
+              alt=""
               style="width:8px;margin:auto;z-index: 3;"
             /></button
           >
+        </div>
+
 
           <div>
             {#each comments as comment}
