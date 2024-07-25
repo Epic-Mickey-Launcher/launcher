@@ -39,6 +39,7 @@ export interface Mod {
 
 export interface ConfigFile {
   dolphinPath: string;
+  dolphinConfigPath: string;
   WITPath: string;
   NkitPath: string;
 }
