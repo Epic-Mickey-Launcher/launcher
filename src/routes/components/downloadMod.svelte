@@ -94,6 +94,7 @@
     modInstallElement.modName = moddata.Name;
     modInstallElement.showDownloadProgression = true;
 
+    setTimeout(async () => {
     let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
     let data = JSON.parse(datastring);
     let existingmod = data.find((r: { modid: any }) => r.modid == moddata.ID);
@@ -158,6 +159,6 @@
       );
     }
     CheckIfDownloaded();
-    downloading = false;
+    downloading = false; }, 15);
   }
 </script>
