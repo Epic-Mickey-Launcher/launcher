@@ -431,7 +431,7 @@
         >
           <div style="position:sticky;top:0px;">
             <textarea
-              style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:200px;"
+              style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:196px;"
               placeholder="Comment..."
               bind:this={commentInput}
               on:input={OnCommentInput}
