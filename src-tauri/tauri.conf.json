@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "Epic Mickey Launcher",
-    "version": "0.4.5"
+    "version": "0.5.1"
   },
   "tauri": {
     "allowlist": {
@@ -29,7 +29,7 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true,
-        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**","$LOCALDATA/com.memer.eml/**", "$HOME/**"] 
+        "scope": ["$LOCALDATA/**", "**/**", "$APPCONFIG/**","$LOCALDATA/com.kalsvik.eml/**", "$HOME/**"] 
       },
       
       "dialog": {
