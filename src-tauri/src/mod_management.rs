@@ -1,8 +1,8 @@
 use crate::{debug, dolphin, download, git, helper, mod_info};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::thread::sleep;
 use tauri::Window;
 use walkdir::WalkDir;
 
@@ -31,27 +31,41 @@ pub async fn add(
     gameid: String,
     modid: String,
     platform: String,
+    version: String,
     window: &Window,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut path = helper::get_config_path()?;
     path.push(r"cachedMods");
     let mut full_path = path.clone();
     full_path.push(&modid);
-
+    let mut version_lock_path = full_path.clone();
+    version_lock_path.push("version.lock");
     // download
 
     let mut mod_json_path_check = full_path.clone();
     mod_json_path_check.push("mod.json");
 
-    if !mod_json_path_check.exists() && !url.is_empty() {
+    let mut cached_outdated = true;
+
+    if version_lock_path.exists() {
+        let cached_version = fs::read_to_string(&version_lock_path)?;
+        if cached_version == version {
+            cached_outdated = false;
+        }
+    }
+
+    if (!mod_json_path_check.exists() && !url.is_empty()) || cached_outdated {
+        if full_path.exists() {
+            fs::remove_dir_all(&full_path)?;
+        }
+
         fs::create_dir_all(&full_path)?;
 
         let is_local = !url.starts_with("http");
 
         download::zip(url, &full_path, is_local, window).await?;
         debug::log("done downloading");
-    }
-    else{
+    } else {
         window
         .emit(
             "download-stat",
@@ -63,6 +77,13 @@ pub async fn add(
             },
         )?;
     }
+
+    if version_lock_path.exists() {
+        fs::remove_file(&version_lock_path);
+    }
+
+    let mut version_lock = std::fs::File::create(version_lock_path)?;
+    version_lock.write(version.as_bytes())?;
 
     let mut path_json = full_path.clone();
     path_json.push("mod.json");
@@ -289,7 +310,7 @@ pub async fn delete(
 
             files_to_remove -= 1;
 
-            if files_to_remove < next_update_count  {
+            if files_to_remove < next_update_count {
                 next_update_count -= total_files / 5;
                 window.emit(
                     "change_description_text_delete",
@@ -424,6 +445,7 @@ pub async fn change_status(
     modid: String,
     platform: String,
     active: bool,
+    version: String,
     window: &Window,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let active = active;
@@ -431,7 +453,16 @@ pub async fn change_status(
     if active {
         debug::log(&format!("Mod ({}) Enabled", modid));
         //todo: fix this shit
-        add("".to_string(), dumploc, gameid, modid, platform, window).await?;
+        add(
+            "".to_string(),
+            dumploc,
+            gameid,
+            modid,
+            platform,
+            version,
+            window,
+        )
+        .await?;
     } else {
         debug::log(&format!("Mod ({}) Disabled.", modid));
         delete(dumploc, gameid, platform, modid, !active, window).await?;

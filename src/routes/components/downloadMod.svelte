@@ -95,70 +95,72 @@
     modInstallElement.showDownloadProgression = true;
 
     setTimeout(async () => {
-    let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
-    let data = JSON.parse(datastring);
-    let existingmod = data.find((r: { modid: any }) => r.modid == moddata.ID);
+      let datastring = await ReadFile(gamedata.path + "/EMLMods.json");
+      let data = JSON.parse(datastring);
+      let existingmod = data.find((r: { modid: any }) => r.modid == moddata.ID);
 
-    let platform = gamedata.platform;
+      let platform = gamedata.platform;
 
-    if (canupdate) {
-      modInstallElement.action = "Updating";
-      await invoke("delete_mod", {
-        json: JSON.stringify(existingmod),
+      if (canupdate) {
+        modInstallElement.action = "Updating";
+        await invoke("delete_mod", {
+          json: JSON.stringify(existingmod),
+          dumploc: gamedata.path,
+          gameid: gameid,
+          platform: platform,
+          modid: moddata.ID,
+          active: existingmod.active,
+        });
+        let delete_index = data.indexOf(existingmod);
+        data.splice(delete_index, 1);
+        await WriteFile(JSON.stringify(data), gamedata.path + "/EMLMods.json");
+        await invoke("delete_mod_cache", { modid: moddata.ID });
+      }
+
+      if (platform == null) {
+        platform = Platform.Wii;
+      }
+      await invoke("download_mod", {
+        url: serverLink + "mod/download?id=" + moddata.ID,
+        name: moddata.Name,
         dumploc: gamedata.path,
+        modid: moddata.ID.toString(),
         gameid: gameid,
         platform: platform,
-        modid: moddata.ID,
-        active: existingmod.active,
+        version: String(moddata.Version),
       });
-      let delete_index = data.indexOf(existingmod);
-      data.splice(delete_index, 1);
-      await WriteFile(JSON.stringify(data), gamedata.path + "/EMLMods.json");
-      await invoke("delete_mod_cache", { modid: moddata.ID });
-    }
+      let json_exists = await exists(gamedata.path + "/EMLMods.json");
+      let current_mods: InstalledMod[] = [];
+      if (json_exists) {
+        current_mods = JSON.parse(
+          await ReadFile(gamedata.path + "/EMLMods.json"),
+        );
+      }
 
-    if (platform == null) {
-      platform = Platform.Wii;
-    }
-    await invoke("download_mod", {
-      url: serverLink + "mod/download?id=" + moddata.ID,
-      name: moddata.Name,
-      dumploc: gamedata.path,
-      modid: moddata.ID.toString(),
-      gameid: gameid,
-      platform: platform,
-    });
-    let json_exists = await exists(gamedata.path + "/EMLMods.json");
-    let current_mods: InstalledMod[] = [];
-    if (json_exists) {
-      current_mods = JSON.parse(
-        await ReadFile(gamedata.path + "/EMLMods.json"),
+      current_mods.push({
+        name: moddata.Name,
+        modid: moddata.ID,
+        active: true,
+        update: moddata.Version,
+      });
+
+      await WriteFile(
+        JSON.stringify(current_mods),
+        gamedata.path + "/EMLMods.json",
       );
-    }
+      modInstallElement.$destroy();
 
-    current_mods.push({
-      name: moddata.Name,
-      modid: moddata.ID,
-      active: true,
-      update: moddata.Version,
-    });
-
-    await WriteFile(
-      JSON.stringify(current_mods),
-      gamedata.path + "/EMLMods.json",
-    );
-    modInstallElement.$destroy();
-
-    if (moddata.ID.trim() != "") {
-      await POST(
-        "mod/download/increment",
-        {
-          ID: moddata.ID,
-        },
-        false,
-      );
-    }
-    CheckIfDownloaded();
-    downloading = false; }, 15);
+      if (moddata.ID.trim() != "") {
+        await POST(
+          "mod/download/increment",
+          {
+            ID: moddata.ID,
+          },
+          false,
+        );
+      }
+      CheckIfDownloaded();
+      downloading = false;
+    }, 15);
   }
 </script>

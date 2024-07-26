@@ -195,9 +195,8 @@ fn open_config_folder(window: Window) {
     open_path_in_file_manager(path.to_str().unwrap().to_owned(), window)
 }
 
-#[tauri::command] // todo: transfer this function to helper module
+#[tauri::command] // todo: brain death
 fn get_frontend_config_path(npath: String) -> String {
-    let mut path = PathBuf::from(&npath);
     npath
 }
 
@@ -210,9 +209,10 @@ async fn download_mod(
     gameid: String,
     modid: String,
     platform: String,
+    version: String,
     window: Window,
 ) {
-    mod_management::add(url, dumploc, gameid, modid, platform, &window)
+    mod_management::add(url, dumploc, gameid, modid, platform, version, &window)
         .await
         .unwrap_or_else(|error| {
             helper::handle_error(&error.to_string(), &window);
@@ -226,9 +226,10 @@ async fn change_mod_status(
     modid: String,
     platform: String,
     active: bool,
+    version: String,
     window: Window,
 ) {
-    mod_management::change_status(dumploc, gameid, modid, platform, active, &window)
+    mod_management::change_status(dumploc, gameid, modid, platform, active, version, &window)
         .await
         .unwrap_or_else(|error| {
             helper::handle_error(&error.to_string(), &window);

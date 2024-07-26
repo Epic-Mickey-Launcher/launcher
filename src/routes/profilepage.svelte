@@ -24,13 +24,6 @@
   let mods = [];
   let emblemName = "";
   let emblemColor = "";
-  let profileinfo: {
-    mods: any[];
-    username: string;
-    bio: string;
-    id: string;
-    emblems: any[];
-  };
   let joindate = "";
   let modLength = 0;
   let loaded = false;

@@ -193,6 +193,10 @@
     );
 
     if (conf) {
+      await alert(
+        "This update might take a while depending on the size of your mod. We will send you a message when it's done.",
+      );
+
       let res = await POST(
         "mod/update",
         {
@@ -425,29 +429,28 @@
           class="commentBox"
           style="width:200px;height:235px; background-color: rgb(20 20 20);border-radius: 0px 0px 10px 10px;position: relative;overflow-y:scroll;top:-20px;scrollbar-width: none;"
         >
-        <div style="position:sticky;top:0px;">
-          <textarea
-            style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:200px;"
-            placeholder="Comment..."
-            bind:this={commentInput}
-            on:input={OnCommentInput}
-            on:focusout={FocusOutCommentInput}
-          ></textarea>
-          {#if !removeCommentButton}
-          <button
-            bind:this={sendButton}
-            on:click={PostComment}
-            title="send"
-            class="sendComment"
-            ><img
-              src="img/send.svg"
-              alt=""
-              style="width:8px;margin:auto;z-index: 3;"
-            /></button
-          >
-          {/if}
-        </div>
-
+          <div style="position:sticky;top:0px;">
+            <textarea
+              style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:200px;"
+              placeholder="Comment..."
+              bind:this={commentInput}
+              on:input={OnCommentInput}
+              on:focusout={FocusOutCommentInput}
+            ></textarea>
+            {#if !removeCommentButton}
+              <button
+                bind:this={sendButton}
+                on:click={PostComment}
+                title="send"
+                class="sendComment"
+                ><img
+                  src="img/send.svg"
+                  alt=""
+                  style="width:8px;margin:auto;z-index: 3;"
+                /></button
+              >
+            {/if}
+          </div>
 
           <div>
             {#each comments as comment}
@@ -490,10 +493,12 @@
         on:click={Report}
         style="border:none;background-color:transparent"
       >
-        <img src="img/report.svg" style="width:25px;" />
+        <img src="img/report.svg" style="width:25px;" alt="" />
       </button>
       <span style="margin-right:14px;"></span>
-      <span style="background-color:black;padding:3px;border-radius:5px;"
+      <span
+        title="This value is not indicative of the actual version of the mod, but instead how many times it's been updated."
+        style="background-color:black;padding:3px;border-radius:5px;"
         >v{modInfo.Version}</span
       >
       <p>

@@ -89,6 +89,7 @@
       active: jsonToObject.active,
       modname: jsonToObject.name,
       platform: gamedata.platform,
+      version: jsonToObject.update,
     }).then(async () => {
       let datastring = await ReadFile(dumploc + "/EMLMods.json");
       let data = JSON.parse(datastring);
