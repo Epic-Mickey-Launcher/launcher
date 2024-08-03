@@ -11,6 +11,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
+use tauri::Manager;
 use tauri::Window;
 
 extern crate chrono;
@@ -30,6 +31,19 @@ fn main() {
     debug::init().expect("Failed to initialize Debug.");
 
     tauri::Builder::default()
+        .setup(|app| {
+            app.get_window("main")
+                .unwrap()
+                .set_title(
+                    format!(
+                        "Epic Mickey Launcher {}",
+                        app.package_info().version.to_string()
+                    )
+                    .as_str(),
+                )
+                .unwrap();
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             playgame,
             download_mod,
