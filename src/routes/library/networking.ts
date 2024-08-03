@@ -1,4 +1,4 @@
-export const serverLink = 'https://emlapi.kalsvik.no/';
+export let serverLink = 'https://emlapi.kalsvik.no/';
 export const statusMessageLink = 'https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus'
 export let loggedin = false;
 export let outdated = false
@@ -179,6 +179,10 @@ export async function Login(userinfo: UserInfo) {
     })
   }
 
+}
+
+export async function SetServerURL(url: string) {
+  serverLink = url;
 }
 
 export async function MultipartPOST(route: string, data: any): Promise<Response> {

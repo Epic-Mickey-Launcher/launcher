@@ -11,6 +11,15 @@
     "version": "0.5.1"
   },
   "tauri": {
+    "cli": {
+      "args": [
+        {
+          "name": "server",
+          "short": "s",
+          "takesValue": true
+        }
+      ]
+    },
     "allowlist": {
       "all": true,
       "shell": {

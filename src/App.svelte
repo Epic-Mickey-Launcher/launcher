@@ -19,11 +19,18 @@
   import ProfilePage from "./routes/profilepage.svelte";
   import modpage from "./routes/modpage.svelte";
   import accountsettings from "./routes/accountsettings.svelte";
-  import { Login, UserInfo } from "./routes/library/networking";
+  import { Login, UserInfo, SetServerURL } from "./routes/library/networking";
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
   import { invoke } from "@tauri-apps/api/tauri";
   import { exit } from "@tauri-apps/api/process";
+  import { getMatches } from "@tauri-apps/api/cli";
+
+  getMatches().then((matches) => {
+    if (matches.args["server"].value != false) {
+      SetServerURL(matches.args["server"].value);
+    }
+  });
 
   async function RouteLoaded() {
     await GetPath();
@@ -94,8 +101,8 @@
       funcKeyDown = false;
     }
 
-    if (funcKeyDown) { 
-      console.log(e.code)
+    if (funcKeyDown) {
+      console.log(e.code);
       switch (e.code) {
         case "KeyY":
         case "85":
