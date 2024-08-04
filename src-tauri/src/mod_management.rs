@@ -295,8 +295,6 @@ pub async fn delete(
         backup_path.push(&dumploc);
         backup_path.push("backup");
 
-        let total_files = files.len() + texturefiles.len();
-        let mut files_to_remove = total_files;
         window.emit(
             "change_description_text_delete",
             format!("Restoring original files..."),
@@ -324,6 +322,11 @@ pub async fn delete(
 
         let dolphin_path = dolphin::find_dir(&p);
 
+        window.emit(
+            "change_description_text_delete",
+            format!("Removing Custom Textures..."),
+        )?;
+
         for file in texturefiles {
             let mut path = PathBuf::new();
 
@@ -335,13 +338,6 @@ pub async fn delete(
             path.push(path_final);
 
             if std::path::Path::new(&path).exists() {
-                files_to_remove -= 1;
-
-                window.emit(
-                    "change_description_text_delete",
-                    format!("Deleting Textures... Remaining files: {}", files_to_remove),
-                )?;
-
                 fs::remove_file(&path)?;
             }
         }
