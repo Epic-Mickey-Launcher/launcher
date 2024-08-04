@@ -297,8 +297,10 @@ pub async fn delete(
 
         let total_files = files.len() + texturefiles.len();
         let mut files_to_remove = total_files;
-        let mut next_update_count = total_files;
-
+        window.emit(
+            "change_description_text_delete",
+            format!("Restoring original files..."),
+        )?;
         for file in files {
             let mut source_path = PathBuf::new();
             source_path.push(&backup_path);
@@ -307,19 +309,6 @@ pub async fn delete(
             let mut destination_path = PathBuf::new();
             destination_path.push(&datafiles_path);
             destination_path.push(&file);
-
-            files_to_remove -= 1;
-
-            if files_to_remove < next_update_count {
-                next_update_count -= total_files / 5;
-                window.emit(
-                    "change_description_text_delete",
-                    format!(
-                        "Restoring original files... Remaining files: {}",
-                        files_to_remove
-                    ),
-                )?;
-            }
 
             if source_path.exists() && destination_path.exists() {
                 fs::copy(source_path, destination_path)?;
