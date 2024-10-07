@@ -2,21 +2,32 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 
+const TEXTURE_MODE: i8 = 0;
+const FILE_MODE: i8 = 1;
+const SCRIPT_MODE: i8 = 2;
+
 pub struct ModFilesInfo {
     pub files: Vec<String>,
     pub textures: Vec<String>,
+    pub scripts: Vec<String>,
 }
 
 impl ModFilesInfo {
     pub fn empty() -> ModFilesInfo {
         ModFilesInfo {
+            scripts: Vec::new(),
             files: Vec::new(),
             textures: Vec::new(),
         }
     }
 }
 
-pub fn write(path: String, files: Vec<String>, textures: Vec<String>) -> std::io::Result<()> {
+pub fn write(
+    path: String,
+    files: Vec<String>,
+    textures: Vec<String>,
+    scripts: Vec<String>,
+) -> std::io::Result<()> {
     let mut file = File::create(path)?;
 
     if files.len() > 0 {
@@ -36,6 +47,15 @@ pub fn write(path: String, files: Vec<String>, textures: Vec<String>) -> std::io
         file.write(file_path.as_bytes())?;
         file.write(b"\n")?;
     }
+
+    if scripts.len() > 0 {
+        file.write(b"[Scripts]\n")?;
+    }
+
+    for file_path in scripts {
+        file.write(file_path.as_bytes())?;
+        file.write(b"\n")?;
+    }
     Ok(())
 }
 
@@ -48,25 +68,35 @@ pub fn read(path: &String) -> std::io::Result<ModFilesInfo> {
 
     let mut files = Vec::new();
     let mut textures = Vec::new();
-    let mut texture_mode = false;
+    let mut scripts = Vec::new();
+    let mut mode = -1;
 
     for line in lines {
         if line == "[Textures]" {
-            texture_mode = true;
+            mode = TEXTURE_MODE;
             continue;
         } else if line == "[Files]" {
-            texture_mode = false;
+            mode = FILE_MODE;
+            continue;
+        } else if line == "[Scripts]" {
+            mode = SCRIPT_MODE;
             continue;
         } else if line == "" {
             continue;
         }
 
-        if texture_mode {
+        if mode == TEXTURE_MODE {
             textures.push(line.to_string());
-        } else {
+        } else if mode == FILE_MODE {
             files.push(line.to_string());
+        } else if mode == SCRIPT_MODE {
+            scripts.push(line.to_string());
         }
     }
 
-    Ok(ModFilesInfo { files, textures })
+    Ok(ModFilesInfo {
+        files,
+        textures,
+        scripts,
+    })
 }

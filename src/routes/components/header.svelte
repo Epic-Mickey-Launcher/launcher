@@ -18,7 +18,7 @@
     statusMessageLink,
   } from "../library/networking";
   import { Subscribe } from "../library/callback.js";
-  import { invoke } from "@tauri-apps/api/tauri";
+  import { invoke } from "@tauri-apps/api/core";
   import { SetData } from "../library/datatransfer";
   import { to_number } from "svelte/internal";
   import Loading from "./loading.svelte";
@@ -300,6 +300,10 @@
         on:click={() => OpenPage("modmarket")}
         class="headerButton startheaderbuttons">Mod Market</button
       >
+
+      <button on:click={() => OpenPage("modpublisher")} class="headerButton"
+        >Mod Publisher</button
+      >
       <button on:click={() => OpenPage("games")} class="headerButton"
         >Games</button
       >
@@ -447,7 +451,7 @@
     pointer-events: none;
     overflow-y: scroll;
     transform-origin: top right;
-    scrollbar-width:none;
+    scrollbar-width: none;
   }
   .pfpbutton {
     margin: auto;

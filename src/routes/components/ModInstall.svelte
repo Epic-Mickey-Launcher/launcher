@@ -51,18 +51,17 @@
       MBDownloaded = event.payload.download_remaining;
       if (MBTotal > 0 && MBDownloaded > 0) {
         progress = ((MBDownloaded / MBTotal) * 100).toString();
-        showDownloadProgression = true 
-      }
-      else{
-        showDownloadProgression = false
+        showDownloadProgression = true;
+      } else {
+        showDownloadProgression = false;
       }
 
       if (event.payload.action != "") {
-        action = event.payload.action
+        action = event.payload.action;
       }
 
       if (event.payload.description != "") {
-        description = event.payload.description
+        description = event.payload.description;
       }
     });
   });

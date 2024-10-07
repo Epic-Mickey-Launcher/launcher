@@ -4,8 +4,6 @@
   import { Subscribe } from "./library/callback";
   import { POST, Register, SignIn, UserInfo } from "./library/networking";
   import { GetBackgroundLogin } from "./library/background";
-  import Loading from "./components/loading.svelte";
-  import { invoke } from "@tauri-apps/api";
 
   let user: any;
   let pass: any;
@@ -38,17 +36,22 @@
 
     try {
       if (type == 1) {
-       //login
+        //login
         await SignIn(userInfo);
       } else {
         //register
-       await Register(userInfo);
+        if (user.includes("@")) {
+          await alert(
+            "You can only log in with an E-Mail. Please enter a username instead and then bind your E-Mail later when you've registered.",
+          );
+          return;
+        }
+        await Register(userInfo);
       }
-    }
-    catch {
+    } catch {
       loadingDialog.close();
     }
-    
+
     loadingDialog.close();
   }
 </script>

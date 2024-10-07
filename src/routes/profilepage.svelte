@@ -12,7 +12,6 @@
   import { GetData, SetData } from "./library/datatransfer";
   import { Subscribe } from "./library/callback";
   import Loading from "./components/loading.svelte";
-
   let profileDiv: HTMLElement;
   let isownerofprofile: boolean;
   let modNodeGroup: HTMLDivElement;
@@ -22,8 +21,6 @@
   let profilepage: HTMLDivElement;
   let err: HTMLDivElement;
   let mods = [];
-  let emblemName = "";
-  let emblemColor = "";
   let joindate = "";
   let modLength = 0;
   let loaded = false;
@@ -104,16 +101,26 @@
     <span style="font-size:30px;">{username}</span>
     <br />
     <span style="font-size:10px;">EML Member since {joindate}</span>
+    <div style="display:flex;justify-content: center;">
+      <div
+        style="position:relative; display:flex;justify-content: center;"
+        class="emblem"
+      >
+        <div style="">
+          <img src="img/emblem/linux.svg" style="width:30px;z-index: 3;" />
+        </div>
+
+        <span
+          style="position: absolute; padding:5px; border-radius:5px; z-index: 120; font-size:10px; text-align: center;text-wrap: nowrap;top:40px;"
+          >Linux User <br />
+          <span style="font-size: 5px;">Purveyor of Linux.</span>
+        </span>
+      </div>
+    </div>
+    <div></div>
     <p>
       <span>{bio}</span>
     </p>
-    {#if emblemName != ""}
-      <div
-        style="border: 2px solid {emblemColor};width:120px;margin:auto;border-radius:30px;"
-      >
-        <p style="color:{emblemColor};">{emblemName}</p>
-      </div>
-    {/if}
     <p />
 
     {#if modLength > 0}
@@ -140,16 +147,40 @@
         >
       {/if}
     </p>
-  </div>
 
-  <div bind:this={err} style="display:none;">
-    <h2>You do not have an account.</h2>
+    <div bind:this={err} style="display:none;">
+      <h2>You do not have an account.</h2>
+    </div>
   </div>
 </main>
 
 <style>
   * {
     transition-duration: 0.3s;
+  }
+
+  .emblem {
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    border-radius: 100%;
+  }
+  .emblem:hover span {
+    background-color: black;
+    color: white;
+  }
+  .emblem span {
+    background-color: transparent;
+    color: transparent;
+  }
+  .emblem:hover {
+    background: rgb(0, 0, 0);
+    background: radial-gradient(
+      circle,
+      rgba(0, 0, 0, 1) 30%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    transform: scale(3);
   }
 
   .pfp {

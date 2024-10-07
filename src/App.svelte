@@ -7,9 +7,9 @@
     ReadToken,
     GetPath,
   } from "./routes/library/configfiles";
+  import { Game, GameConfig, Mod, Platform } from "./routes/library/types";
   import Router from "svelte-spa-router";
   import Games from "./routes/games.svelte";
-  import AddGame from "./routes/addgame.svelte";
   import QuickStart from "./routes/quickstart.svelte";
   import Register from "./routes/register.svelte";
   import Settings from "./routes/settings.svelte";
@@ -22,12 +22,111 @@
   import { Login, UserInfo, SetServerURL } from "./routes/library/networking";
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
-  import { invoke } from "@tauri-apps/api/tauri";
-  import { exit } from "@tauri-apps/api/process";
-  import { getMatches } from "@tauri-apps/api/cli";
+  import { invoke } from "@tauri-apps/api/core";
+  import { exit } from "@tauri-apps/plugin-process";
+  import { getMatches } from "@tauri-apps/plugin-cli";
+  import Modpublisher from "./routes/modpublisher.svelte";
+  import {
+    onOpenUrl,
+    register,
+    getCurrent,
+  } from "@tauri-apps/plugin-deep-link";
+  import { onMount } from "svelte";
+  import { LoadConfig, SaveConfig } from "./routes/library/config";
+  import DownloadMod from "./routes/components/downloadMod.svelte";
+  import ModInstall from "./routes/components/ModInstall.svelte";
+  import SelectGameForMod from "./routes/components/SelectGameForMod.svelte";
+  import { LocalModToUnifiedMod } from "./routes/library/gameid";
 
-  getMatches().then((matches) => {
-    if (matches.args["server"].value != false) {
+  let selectGame: SelectGameForMod;
+  let installingMod: boolean;
+  let downloadMod: DownloadMod;
+
+  register("eml");
+  onOpenUrl(async (urls) => {
+    let url = new URL(urls[0]);
+    console.log(url.hostname);
+    switch (url.hostname) {
+      case "github":
+        let auth = url.searchParams.get("auth");
+        let config = await LoadConfig();
+        config.gitHubSecret = auth;
+        await SaveConfig(config);
+        break;
+      case "gb":
+        console.log("money");
+        let gbURL = url.pathname.substring(1, url.pathname.length);
+        let conf = await confirm(
+          "This mod is external and is not verified by EML. Are you sure you want to install this mod? (" +
+            gbURL +
+            ")",
+        );
+        if (conf) {
+          let downloadURL = gbURL.split(",")[0];
+          let id = gbURL.split(",")[2];
+
+          installingMod = true;
+          let installMod = new ModInstall({
+            target: document.body,
+          });
+          installMod.action = "Downloading and Validating";
+          installMod.modName = "External Mod";
+          installMod.description =
+            "This might take a while depending on your internet speed.";
+          let validationInfo: any = await invoke("validate_mod", {
+            url: downloadURL,
+            destination: ".extern",
+            mode: "extern",
+          });
+
+          console.log(validationInfo);
+          if (validationInfo.validated) {
+            installMod.$destroy();
+            console.log(
+              ((validationInfo.data.game.toUpperCase() as Game) +
+                " " +
+                validationInfo.data.platform.toUpperCase()) as Platform,
+            );
+            selectGame.GetValidGame(
+              validationInfo.data.game.toUpperCase() as Game,
+              validationInfo.data.platform.toUpperCase() as Platform,
+              id,
+              0,
+              async (game: GameConfig) => {
+                console.log(game);
+                if (game != null) {
+                  let unifiedMod = LocalModToUnifiedMod(validationInfo.data);
+                  console.log(unifiedMod);
+                  unifiedMod.version = 0;
+                  unifiedMod.id = id;
+
+                  downloadMod.Initialize(
+                    game,
+                    true,
+                    unifiedMod,
+                    ".extern",
+                    validationInfo.modicon,
+                    true,
+                  );
+
+                  await downloadMod.Download();
+                }
+              },
+            );
+          } else {
+            console.log("two style");
+            //await invoke("clean_temp_install_directory", {
+            //  destination: ".extern",
+            //});
+          }
+        }
+    }
+  });
+
+  onMount(async () => {});
+
+  getMatches().then(async (matches) => {
+    if (matches.args["server"].value != null) {
       SetServerURL(matches.args["server"].value);
     }
   });
@@ -75,7 +174,6 @@
     "/": Games,
     "/levelloader": LevelLoader,
     "/modmarket": ModMarket,
-    "/addgame": AddGame,
     "/uploadmod": uploadmod,
     "/settings": Settings,
     "/quickstart": QuickStart,
@@ -83,6 +181,7 @@
     "/modpage": modpage,
     "/profilepage": ProfilePage,
     "/accountsettings": accountsettings,
+    "/modpublisher": Modpublisher,
     "/*": Games,
   };
 
@@ -118,6 +217,9 @@
     }
   }
 </script>
+
+<SelectGameForMod bind:this={selectGame}></SelectGameForMod>
+<DownloadMod bind:this={downloadMod}></DownloadMod>
 
 <main>
   <Header bind:this={header} />

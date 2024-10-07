@@ -1,12 +1,14 @@
 <script lang="ts">
   import OneTimeNotice from "./components/OneTimeNotice.svelte";
   import GameNode from "./components/GameNode.svelte";
-  import { exists, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
+  import { exists, writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
   import { appLocalDataDir } from "@tauri-apps/api/path";
   import { onMount } from "svelte";
-  import { FileExists, InitConfFiles } from "./library/configfiles.js";
+  import { FileExists, GetPath, InitConfFiles } from "./library/configfiles.js";
   import { Game, GameConfig } from "./library/types";
-
+  import Addgame from "./components/addgame.svelte";
+  let addgameComponent: Addgame;
+  let addGameButton: HTMLButtonElement;
   let gameNodeDiv: HTMLDivElement;
   let blackoutDiv: HTMLDivElement;
   let bannerDiv: HTMLDivElement;
@@ -14,19 +16,18 @@
   let nodes = [];
 
   onMount(async () => {
-    const appLocalDataDirPath = await appLocalDataDir();
-    let confExists = await FileExists(appLocalDataDirPath + "conf.json");
+    addGameButton.classList.toggle("expandgamebutton");
+
+    let path = await GetPath();
+    let confExists = await FileExists(path + "conf.json");
     if (!confExists) {
       InitConfFiles();
     }
-    let jsonExists = await exists(appLocalDataDirPath + "games.json");
+    let jsonExists = await exists(path + "games.json");
     if (!jsonExists) {
-      await writeTextFile({
-        path: appLocalDataDirPath + "games.json",
-        contents: "[]",
-      });
+      await writeTextFile(path + "games.json", "[]");
     }
-    let t = await readTextFile(appLocalDataDirPath + "games.json");
+    let t = await readTextFile(path + "games.json");
     let jsonData: GameConfig[] = JSON.parse(t);
     jsonData.forEach((dat: GameConfig) => {
       CreateNode(dat);
@@ -41,9 +42,27 @@
     });
   });
 
-  function AddGame() {
-    window.open("#/addgame", "_self");
+  function DefaultAddGameButton() {
+    if (!addGameButton.disabled) return;
+    addGameButton.classList.toggle("expandgamebutton");
+    addGameButton.disabled = false;
   }
+  async function AddGameButton() {
+    addGameButton.classList.toggle("expandgamebutton");
+    addGameButton.disabled = true;
+  }
+
+  async function AddGame(isImage: boolean) {
+    let config = await addgameComponent.AddGame(isImage);
+    DefaultAddGameButton();
+    if (config == null) return;
+    let card = CreateNode(config);
+
+    setTimeout(() => {
+      card.node.style.opacity = "1";
+    }, 0.1);
+  }
+
   //todo: remove useless variables game, directory, platform
   function CreateNode(dat: GameConfig) {
     var element = new GameNode({
@@ -66,13 +85,19 @@
     if (dat.game == Game.EM1.toString()) {
       element.imgLogoURL = "/img/emlogo.png";
       element.imgBackgroundURL = "/img/em1banner.png";
-    } else {
+    } else if (dat.game == Game.EM2) {
       element.imgLogoURL = "/img/em2logo.png";
       element.imgBackgroundURL = "/img/em2banner.png";
+    } else if (dat.game == Game.EMR) {
+      element.imgLogoURL = "/img/emrlogo.png";
+      element.imgBackgroundURL = "/img/emrbanner.png";
     }
+
+    return element;
   }
 </script>
 
+<Addgame bind:this={addgameComponent}></Addgame>
 <div bind:this={blackoutDiv} class="blackout"></div>
 <div class="gamebanner" bind:this={bannerDiv}>
   <img
@@ -88,10 +113,22 @@
 <div style="display:flex;justify-content:center">
   <div bind:this={gameNodeDiv} class="gamegrid" />
 </div>
-<p style="margin-bottom:50px;" />
-<button on:click={AddGame} class="addgamebutton"
-  ><span style="position:relative;bottom:8px;">+</span></button
->
+<p style="margin-bottom:50px;display:flex;justify-content: center;">
+  <button
+    on:click={AddGameButton}
+    on:pointerleave={DefaultAddGameButton}
+    bind:this={addGameButton}
+    class="addgamebutton expandgamebutton"
+  >
+    <span style="position: absolute;">+</span>
+    <button on:click={() => AddGame(true)} class="addgamesubbutton"
+      >Add Game via Image</button
+    >
+    <button on:click={() => AddGame(false)} class="addgamesubbutton"
+      >Add Game via Files</button
+    >
+  </button>
+</p>
 
 <OneTimeNotice
   id="dolphinconfig"
@@ -100,24 +137,59 @@
 
 <style>
   .addgamebutton {
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
+    overflow: hidden;
     text-align: center;
     font-size: 20px;
     border-radius: 10px;
     width: 100px;
     height: 30px;
     border: 1px solid;
-    padding: 10px 0px;
     border-color: rgb(138, 138, 138);
     background-color: rgb(82, 82, 82);
     transition-duration: 0.1s;
-    margin-bottom: 30px;
+    align-items: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
   }
 
   .addgamebutton:hover {
-    background-color: rgb(43, 43, 43);
+    background-color: rgb(20 20 20);
+  }
+
+  .expandgamebutton {
+    width: 150px;
+    height: 60px;
+    pointer-events: none;
+  }
+
+  .expandgamebutton:hover {
+    background-color: rgb(82, 82, 82);
+  }
+
+  .expandgamebutton span {
+    color: transparent;
+  }
+
+  .expandgamebutton .addgamesubbutton {
+    color: white;
+    display: block;
+    pointer-events: all;
+    background-color: rgb(55 55 56);
+  }
+
+  .addgamesubbutton {
+    width: 150px;
+    height: 50%;
+    font-size: 12px;
+    background-color: transparent;
+    border: none;
+    color: transparent;
+    display: none;
+  }
+
+  .addgamesubbutton:hover {
+    background-color: rgb(20 20 20);
   }
 
   .gamegrid {

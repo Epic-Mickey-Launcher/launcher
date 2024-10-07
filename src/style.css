@@ -42,9 +42,18 @@ dialog:backdrop {
   font-family: normalfont;
   color:gray;
 }
-.dropdown{
-background-color: black;
-}
+  .dropdown select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: black;
+    padding: 10px;
+  }
+
+  .dropdown {
+    position: relative;
+    margin-right: 30px;
+    color: black;
+  }
 
 button{
   border: 1px solid;

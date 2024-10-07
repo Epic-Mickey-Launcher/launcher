@@ -2,13 +2,14 @@
   import { GetToken, POST } from "./library/networking";
   import { onMount } from "svelte";
   import ModNode from "./components/ModNode.svelte";
-  import { GetFullName, ReadJSON } from "./library/configfiles";
+  import { ReadJSON } from "./library/configfiles";
   import { SetData } from "./library/datatransfer.js";
   import Loading from "./components/loading.svelte";
   import Dialog from "./components/dialog.svelte";
   import { GetBackgroundModMarket } from "./library/background";
-  import { invoke } from "@tauri-apps/api";
+  import { invoke } from "@tauri-apps/api/core";
   import { Mod } from "./library/types";
+  import { GetGameIdentity } from "./library/gameid";
   let load = true;
   let jsonData: any[];
 
@@ -105,9 +106,12 @@
       modNode.modData = e;
       modNode.gameData = jsonData.find(
         (r: { game: any; platform: any }) =>
-          r.game == currentSelectedGame.game &&
-          r.platform == currentSelectedGame.platform,
+          r.game.toUpperCase() == currentSelectedGame.game.toUpperCase() &&
+          r.platform.toUpperCase() ==
+            currentSelectedGame.platform.toUpperCase(),
       );
+      e.Platform = e.Platform.toUpperCase();
+      e.Game = e.Game.toUpperCase();
       modNode.Init();
 
       allspawnednodes.push(modNode);
@@ -175,7 +179,7 @@
         {:then data}
           {#each data as gamebuild}
             <option value={gamebuild}>
-              {GetFullName(gamebuild.game) +
+              {GetGameIdentity(gamebuild.game).name +
                 " (" +
                 gamebuild.platform.toUpperCase() +
                 ", " +

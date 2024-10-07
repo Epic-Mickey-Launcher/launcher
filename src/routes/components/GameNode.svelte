@@ -2,13 +2,21 @@
 
 <script lang="ts">
   import { SetData } from "../library/datatransfer";
-  import { invoke } from "@tauri-apps/api/tauri";
+  import { invoke } from "@tauri-apps/api/core";
   import { ReadFile, ReadJSON } from "../library/configfiles";
   import { onMount } from "svelte";
-  import { exists } from "@tauri-apps/api/fs";
+  import { exists } from "@tauri-apps/plugin-fs";
   import { POST } from "../library/networking";
   import DownloadMod from "./downloadMod.svelte";
-  import { Game, GameConfig, Mod, Platform, Region } from "../library/types";
+  import {
+    Game,
+    GameConfig,
+    GameIdentity,
+    Mod,
+    Platform,
+    Region,
+  } from "../library/types";
+  import { GetGameIdentity, GetGameWiiID } from "../library/gameid";
   export let imgBackgroundURL = undefined;
   export let imgLogoURL = undefined;
   export let errorMSG = "";
@@ -27,10 +35,12 @@
         let jsonData: any = JSON.parse(dataStr);
 
         jsonData.forEach(async (r: any) => {
-          let latestUpdate = await POST("mod/get", { ID: r.modid });
-          if (r.update != latestUpdate.body.Version) {
-            updateAvailable = true;
-            mods.push(latestUpdate.body);
+          if (r.modid != "" && !r.local) {
+            let latestUpdate = await POST("mod/get", { ID: r.modid });
+            if (r.update != latestUpdate.body.Version) {
+              updateAvailable = true;
+              mods.push(latestUpdate.body);
+            }
           }
         });
       }
@@ -44,6 +54,7 @@
   function Unhover() {
     mainDiv.style.transform = "";
     mainDiv.style.transitionDuration = "1s";
+    mainDiv.style.filter = "brightness(100%)";
     node.style.transform = "";
     playButton.style.opacity = "0";
   }
@@ -57,13 +68,21 @@
     let centerX = rect.left + GAME_NODE_X / 2;
     let centerY = rect.top + GAME_NODE_Y / 2;
 
-    const MAX_ROTATION = 15;
+    const MAX_ROTATION = 20;
 
     let rawX = e.x - centerX;
     let rawY = e.y - centerY;
 
     let x = (rawX / GAME_NODE_X) * MAX_ROTATION * 2;
     let y = (rawY / GAME_NODE_Y) * MAX_ROTATION * 2;
+
+    console.log();
+    let percentage = Math.min(
+      Math.max((1 - rawY / GAME_NODE_Y) * 100, 70),
+      105,
+    );
+
+    mainDiv.style.filter = `brightness(${percentage}%)`;
 
     playButton.style.opacity = "1";
     mainDiv.style.transitionDuration = "";
@@ -72,6 +91,7 @@
   }
 
   async function OpenGame() {
+    console.log("poopha");
     let d = await ReadJSON("conf.json");
 
     if (d.dolphinPath == "") {
@@ -79,11 +99,13 @@
       return;
     }
 
-    if (data.platform == Platform.Wii) {
+    if (data.platform.toUpperCase() == Platform.Wii) {
+      let id = GetGameWiiID(data);
+      console.log(id);
       invoke("playgame", {
         dolphin: d.dolphinPath,
         exe: data.path + "/sys/main.dol",
-        id: data.id,
+        id: id,
       }).then((res) => {
         if (res == 1) {
           alert(
@@ -91,10 +113,14 @@
           );
         }
       });
-    } else {
-      invoke("get_os").then((_os) => {
+    } else if (data.platform == Platform.PC) {
+      invoke("get_os").then(async (_os) => {
         if (_os == "linux") {
-          invoke("start_em2_steam", {});
+          let gameIdentity: GameIdentity = GetGameIdentity(data.game);
+          if (data.steamVersion) {
+            let steamID = gameIdentity.steamID;
+            invoke("play_steam_game", { id: steamID });
+          }
         } else if (_os == "windows") {
           invoke("playgame", {
             dolphin: data.path + "/DEM2.exe",
@@ -105,6 +131,8 @@
               alert("Game failed to open.");
             }
           });
+        } else {
+          await alert("Playing Windows games is not supported on this OS yet.");
         }
       });
     }
@@ -139,7 +167,11 @@
         platformlogo.src = "img/Wii.svg";
         break;
       case Platform.PC:
-        platformlogo.src = "img/windows.svg";
+        if (data.steamVersion) {
+          platformlogo.src = "img/steam.svg";
+        } else {
+          platformlogo.src = "img/windows.svg";
+        }
         break;
     }
 
@@ -187,12 +219,25 @@
 
     regionTitle = data.region.toString();
     platformTitle = data.platform.toString();
-
+    if (data.steamVersion) {
+      platformTitle = "Steam";
+    }
     await CheckForUpdate();
   }
 
   let regionPath = "";
-  onMount(async () => {});
+
+  let linuxUnsupported = false;
+  onMount(async () => {
+    let os = await invoke("get_os");
+    //band-aid patch for 0.5.1. i don't have time to make a mini-lutris im already way over schedule
+    if (os == "linux" && data.game == Game.EMR) {
+      linuxUnsupported = true;
+      playButton.disabled = true;
+      playButton.title =
+        "Starting this game from Linux is not supported yet. Please use solutions like Lutris or Steam.";
+    }
+  });
 
   function OpenLevelLoader() {
     SetData("levelloaderdata", data);
@@ -237,7 +282,13 @@
             class="gamesettings"
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
-        
+
+          <button
+            title="Open Game in Explorer"
+            on:click={OpenDirectory}
+            class="gamesettings"
+            ><img src="img/changelevel.svg" style="width:16px;" /></button
+          >
           <button
             title="Open Game in Explorer"
             on:click={OpenDirectory}
@@ -259,12 +310,14 @@
             src="img/Wii.svg"
           />
           <br />
-          <img
-            style="height:10px;display:inline;;padding-top:5px;padding-right:2px;"
-            src={regionPath}
-            title={regionTitle}
-            alt=""
-          />
+          {#if regionPath != ""}
+            <img
+              style="height:10px;display:inline;;padding-top:5px;padding-right:2px;"
+              src={regionPath}
+              title={regionTitle}
+              alt=""
+            />
+          {/if}
         </div>
 
         {#if updateAvailable}
@@ -355,6 +408,7 @@
     justify-content: center;
     border-right: 1px white;
     text-align: center;
+    margin-top: 3px;
   }
   .gamesettings:hover {
     transform: translateY(-3px);

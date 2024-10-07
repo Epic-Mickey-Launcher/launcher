@@ -1,8 +1,9 @@
-use crate::{debug, dolphin, download, git, helper, mod_info};
+use crate::{archive, debug, dolphin, download, git, helper, mod_info};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::Write;
+use std::io::{Error, Write};
 use std::path::{Path, PathBuf};
+use tauri::Emitter;
 use tauri::Window;
 use walkdir::WalkDir;
 
@@ -12,17 +13,7 @@ pub struct ValidationInfo {
     pub modicon: String,
     pub result: String,
     pub validated: bool,
-}
-
-#[derive(Serialize, Deserialize)]
-struct ModInfo {
-    name: String,
-    game: String,
-    description: String,
-    dependencies: Vec<String>,
-    custom_textures_path: String,
-    custom_game_files_path: String,
-    icon_path: String,
+    pub data: eml_validate::ModInfo,
 }
 
 pub async fn add(
@@ -34,6 +25,7 @@ pub async fn add(
     version: String,
     window: &Window,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    debug::log("Begin Adding Mod");
     let mut path = helper::get_config_path()?;
     path.push(r"cachedMods");
     let mut full_path = path.clone();
@@ -46,6 +38,7 @@ pub async fn add(
     mod_json_path_check.push("mod.json");
 
     let mut cached_outdated = true;
+    let mut delete_after = false;
 
     if version_lock_path.exists() {
         let cached_version = fs::read_to_string(&version_lock_path)?;
@@ -55,15 +48,36 @@ pub async fn add(
     }
 
     if (!mod_json_path_check.exists() && !url.is_empty()) || cached_outdated {
-        if full_path.exists() {
-            fs::remove_dir_all(&full_path)?;
-        }
-
-        fs::create_dir_all(&full_path)?;
-
         let is_local = !url.starts_with("http");
 
-        download::zip(url, &full_path, is_local, window).await?;
+        if !is_local {
+            if full_path.exists() {
+                fs::remove_dir_all(&full_path)?;
+            }
+
+            fs::create_dir_all(&full_path)?;
+        }
+
+        let mut path = PathBuf::from(&url);
+        if path.is_relative() {
+            let config_path = helper::get_config_path()?;
+            path = PathBuf::from(config_path);
+            path.push(url);
+        }
+
+        let path_stringed = path.to_str().unwrap();
+        println!("{}", path_stringed);
+        if path.is_dir() {
+            full_path = path;
+            version_lock_path = full_path.clone();
+            version_lock_path.push("version.lock");
+            delete_after = true;
+            mod_json_path_check = full_path.clone();
+            mod_json_path_check.push("mod.json");
+        } else {
+            download::zip(path_stringed.to_string(), &full_path, is_local, window).await?;
+        }
+
         debug::log("done downloading");
     } else {
         window
@@ -79,31 +93,32 @@ pub async fn add(
     }
 
     if version_lock_path.exists() {
-        fs::remove_file(&version_lock_path);
+        fs::remove_file(&version_lock_path)?;
     }
 
     let mut version_lock = std::fs::File::create(version_lock_path)?;
     version_lock.write(version.as_bytes())?;
 
-    let mut path_json = full_path.clone();
-    path_json.push("mod.json");
-
-    let json_string = fs::read_to_string(path_json)?;
-
-    let json_data: ModInfo = serde_json::from_str(&json_string)?;
+    let json_data: eml_validate::ModInfo = eml_validate::validate(&full_path)?;
 
     //inject files
 
     let mut path_textures = full_path.clone();
     let mut path_datafiles = full_path.clone();
-
+    let mut path_scripts = full_path.clone();
+    path_scripts.push(&json_data.scripts_path);
     path_textures.push(&json_data.custom_textures_path);
     path_datafiles.push(&json_data.custom_game_files_path);
 
+    let textures_exist = &json_data.custom_textures_path != "";
+    let datafiles_exist = &json_data.custom_game_files_path != "";
+    let scripts_exist = &json_data.scripts_path != "";
+
     let mut files_to_restore: Vec<String> = Vec::new();
 
+    println!("i get this far");
     //inject DATA files into current dump
-    if Path::new(&path_datafiles).exists() {
+    if Path::new(&path_datafiles).exists() && datafiles_exist {
         let mut path_final_location = PathBuf::new();
 
         let dumploc_clone = dumploc.clone();
@@ -112,6 +127,8 @@ pub async fn add(
 
         if platform.to_lowercase() == "wii" {
             path_final_location.push("files");
+        } else if platform.to_lowercase() == "pc" && json_data.game.to_lowercase() == "emr" {
+            path_final_location.push("recolored/Content");
         }
 
         //backup files
@@ -217,6 +234,26 @@ pub async fn add(
         helper::inject_files(&path_datafiles, &path_final_location)?;
     }
 
+    let mut scriptfolders: Vec<String> = Vec::new();
+    if Path::new(&path_scripts).exists() && scripts_exist {
+        debug::log(&format!("Injecting Scripts"));
+        let mut path = PathBuf::from(dumploc.clone());
+        path.push("recolored/Binaries/Win64/Mods");
+        helper::inject_files(&path_scripts, &path)?;
+
+        let path_scripts_str = &path_scripts.clone().into_os_string().into_string().unwrap();
+
+        for entry in WalkDir::new(&path_scripts) {
+            let p = entry.unwrap();
+
+            if p.path().is_dir() {
+                let p_str = p.path().to_str().expect("Couldn't convert path to string.");
+                let p_str_final = &p_str.replace(path_scripts_str, "");
+                scriptfolders.push(p_str_final.to_string());
+            }
+        }
+    }
+
     let mut texturefiles: Vec<String> = Vec::new();
 
     let mut p = PathBuf::from("Load/Textures/");
@@ -226,7 +263,7 @@ pub async fn add(
 
     fs::create_dir_all(&dolphin_path).expect("Failed to create dolphin folder.");
 
-    if Path::new(&path_textures).exists() {
+    if Path::new(&path_textures).exists() && textures_exist {
         let path_textures_str = &path_textures
             .clone()
             .into_os_string()
@@ -257,7 +294,12 @@ pub async fn add(
         format!("{}/{}", dumploc, modid),
         files_to_restore,
         texturefiles,
+        scriptfolders,
     )?;
+
+    if delete_after {
+        fs::remove_dir_all(full_path)?;
+    }
 
     debug::log("Process ended successfully");
 
@@ -281,14 +323,21 @@ pub async fn delete(
 
     let data = mod_info::read(&p.to_str().unwrap().to_string())?;
 
+    fs::remove_file(p)?;
+
     let files = data.files;
     let texturefiles = data.textures;
+    let scriptfolders = data.scripts;
 
     if active {
         let mut datafiles_path = PathBuf::new();
         datafiles_path.push(&dumploc);
         if platform.to_lowercase() == "wii" {
             datafiles_path.push("files");
+        } else if platform.to_lowercase() == "pc" {
+            //todo: this fucks em2 pc support replace this
+            //immediately
+            datafiles_path.push("recolored/Content")
         }
 
         let mut backup_path = PathBuf::new();
@@ -341,6 +390,21 @@ pub async fn delete(
                 fs::remove_file(&path)?;
             }
         }
+
+        for folder in scriptfolders {
+            let mut path = PathBuf::from(&dumploc);
+
+            path.push("recolored/Binaries/Win64/Mods");
+
+            let path_final =
+                helper::remove_first(&folder).expect("couldn't remove slash from string");
+
+            path.push(path_final);
+
+            if std::path::Path::new(&path).exists() {
+                fs::remove_dir_all(&path)?;
+            }
+        }
         debug::log("Removed texture files.");
     }
     debug::log("Process ended.");
@@ -369,23 +433,55 @@ pub fn delete_cache_all() -> std::io::Result<()> {
     Ok(())
 }
 
+pub fn clean_temp_install_directory(destination: PathBuf) -> std::io::Result<()> {
+    let mut path = helper::get_config_path()?;
+    if destination.as_os_str().is_empty() {
+        return Err(Error::new(
+            std::io::ErrorKind::PermissionDenied,
+            "cleaning directory would cause config to get removed.",
+        ));
+    }
+    path.push(destination);
+    fs::remove_dir_all(path)?;
+    Ok(())
+}
+
 pub async fn validate_mod(
     url: String,
-    local: bool,
+    destination: PathBuf,
+    validate_type: String,
     window: &Window,
 ) -> Result<ValidationInfo, Box<dyn std::error::Error>> {
     debug::log("Validating mod");
 
-    let mut path = helper::get_config_path()?;
-    path.push(".tempverify");
-    fs::create_dir_all(&path)?;
-    git::clone(&url, &path)?;
+    let mut path = PathBuf::new();
+
+    if validate_type == "git" {
+        path = helper::get_config_path()?;
+        path.push(".tempverify");
+        fs::create_dir_all(&path)?;
+        git::clone(&url, &path)?;
+    } else if validate_type == "extern" {
+        if url.starts_with("http") {
+            path = helper::get_config_path()?;
+            path.push(destination);
+            download::zip(url, &path, false, window).await?;
+        }
+    } else if validate_type == "local" {
+        if !path.is_dir() {
+            path = helper::get_config_path()?;
+            path.push("localmod");
+            println!("{} {}", &url, &path.display());
+            archive::extract(url, &path)?;
+        }
+    }
 
     let mut validation = ValidationInfo {
         modname: "".to_string(),
         validated: true,
         modicon: "".to_string(),
         result: "No Issues.".to_string(),
+        data: eml_validate::ModInfo::new(),
     };
 
     let config = match eml_validate::validate(&path) {
@@ -393,35 +489,36 @@ pub async fn validate_mod(
         Err(e) => {
             validation.result = e.to_string();
             validation.validated = false;
-            //this is a violation of all things holy
-            eml_validate::ModInfo {
-                name: "".to_string(),
-                game: "".to_string(),
-                platform: "".to_string(),
-                custom_game_files_path: "".to_string(),
-                custom_textures_path: "".to_string(),
-                description: "".to_string(),
-                dependencies: Vec::new(),
-                icon_path: "".to_string(),
-            }
+            eml_validate::ModInfo::new()
         }
     };
 
-    validation.modname = config.name;
+    validation.modname = config.name.clone();
 
     if validation.validated {
         let mut mod_icon_path = path.clone();
-        mod_icon_path.push(config.icon_path);
+        mod_icon_path.push(config.icon_path.clone());
         let image_buffer = std::fs::read(mod_icon_path)?;
         let mut data_url = dataurl::DataUrl::new();
         data_url.set_data(&image_buffer);
         data_url.set_media_type("image/png".to_string().into());
         validation.modicon = data_url.to_string();
+        validation.data = config;
     }
 
-    fs::remove_dir_all(path)?;
+    if validate_type == "git" {
+        fs::remove_dir_all(path)?;
+    }
     debug::log("Finished Validating mod");
     Ok(validation)
+}
+
+pub async fn generate_mod_template(
+    game: String,
+    platform: String,
+    path: String,
+) -> std::io::Result<()> {
+    eml_validate::generate_project(game, platform, path)
 }
 
 pub async fn change_status(

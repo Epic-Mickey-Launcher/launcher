@@ -12,14 +12,15 @@
   import { GameConfig, Mod, Platform } from "./library/types";
   import { ReadFile, ReadJSON, WriteFile } from "./library/configfiles";
   import CommentNode from "./components/CommentNode.svelte";
-  import { exists } from "@tauri-apps/api/fs";
+  import { exists } from "@tauri-apps/plugin-fs";
   import Loading from "./components/loading.svelte";
   import DownloadMod from "./components/downloadMod.svelte";
   import { parse } from "marked";
   import DOMPurify from "dompurify";
   import User from "./components/User.svelte";
-  import { invoke } from "@tauri-apps/api";
+  import { invoke } from "@tauri-apps/api/core";
   import Commit from "./components/Commit.svelte";
+  import { InternetModToUnifiedMod } from "./library/gameid";
   let commentInput: HTMLTextAreaElement;
   let update = false;
   let downloadButton: HTMLButtonElement;
@@ -110,7 +111,6 @@
     }
 
     if (modInfo.Video != null && modInfo.Video != "") {
-      youtubevideoembed.style.display = "block";
       youtubelink = "https://www.youtube.com/embed/" + modInfo.Video;
     }
 
@@ -271,7 +271,7 @@
       id = regionoverride.id;
     }
 
-    downloadMod.Initialize(gameInfo, false, modInfo);
+    downloadMod.Initialize(gameInfo, false, InternetModToUnifiedMod(modInfo));
     downloadMod.Download();
     downloadMod.updatecb = () => {
       CheckIfDownloaded();
@@ -344,8 +344,6 @@
         r.platform.toLowerCase() == platform.toLowerCase() &&
         r.game.toLowerCase() == modInfo.Game.toLowerCase(),
     );
-
-    console.log(allRegions.length);
 
     if (allRegions.length == 1) {
       gameInfo = allRegions[0];
@@ -531,15 +529,16 @@
       </p>
       <p></p>
       <p>
-        <iframe
-          style="display:none;"
-          title="YouTube Video"
-          width="320"
-          height="180"
-          allow="fullscreen;"
-          bind:this={youtubevideoembed}
-          src={youtubelink}
-        />
+        {#if youtubelink != null}
+          <iframe
+            title="YouTube Video"
+            width="320"
+            height="180"
+            allow="fullscreen;"
+            bind:this={youtubevideoembed}
+            src={youtubelink}
+          />
+        {/if}
       </p>
       <p>
         <button bind:this={downloadButton} on:click={OnPressDownload}
@@ -565,7 +564,7 @@
       {/if}
       <p></p>
       <div
-        style="max-width:750px; word-wrap: break-word;padding:10px;border-radius:5px;background-color:rgb(20, 20, 20)"
+        style="max-width:750px; word-wrap: break-word;padding:10px;border-radius:5px;background-color:rgb(20, 20, 20);overflow-y:scroll;max-height: 600px;position:relative;"
       >
         <span style="max-width:300px;"
           >{@html DOMPurify.sanitize(parse(modInfo.Description))}</span

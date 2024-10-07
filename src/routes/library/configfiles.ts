@@ -2,20 +2,19 @@ import {
   exists,
   writeTextFile,
   readTextFile,
-  createDir,
-  removeFile,
-  removeDir
-} from "@tauri-apps/api/fs"
+  mkdir,
+  remove
+} from "@tauri-apps/plugin-fs"
 import {
   appLocalDataDir
 } from '@tauri-apps/api/path';
-import { invoke } from "@tauri-apps/api/tauri";
-import app from "src/main";
+import { invoke } from "@tauri-apps/api/core";
 
-let configPath: string;
+export let configPath: string;
 
-export async function GetPath() {
+export async function GetPath(): Promise<string> {
   configPath = await invoke("get_frontend_config_path", { npath: await appLocalDataDir() })
+  return configPath
 }
 
 //todo: what kind of fuckin name is this? fix!
@@ -24,8 +23,9 @@ async function DataFolderExists() {
   let path = configPath;
   let pathExists = await exists(path);
   if (!pathExists) {
-    await createDir(path)
+    await mkdir(path)
   }
+
 }
 
 export async function ReadOneTimeNoticeBlacklist(): Promise<string> {
@@ -48,10 +48,10 @@ export async function WriteOneTimeNoticeBlacklist(id: string) {
 export async function WriteToJSON(content: string, file: string) {
   await DataFolderExists()
   let path = configPath
-  await writeTextFile({
-    path: path + file,
-    contents: content
-  })
+  await writeTextFile(
+    path + file,
+    content
+  )
 }
 
 export async function ReadJSON(file: string): Promise<any> {
@@ -62,10 +62,10 @@ export async function ReadJSON(file: string): Promise<any> {
 }
 
 export async function WriteFile(content: any, file: string) {
-  await writeTextFile({
-    path: file,
-    contents: content
-  })
+  await writeTextFile(
+    file,
+    content
+  )
 }
 
 export async function ReadFile(file: string) {
@@ -75,16 +75,6 @@ export async function ReadFile(file: string) {
 
 export async function FileExists(path: string) {
   return await exists(path)
-}
-
-export function GetFullName(name: string) {
-  switch (name) {
-    case "EM1":
-      return "Epic Mickey 1";
-
-    case "EM2":
-      return "Epic Mickey 2";
-  }
 }
 
 export async function WriteToken(token: string) {
@@ -106,7 +96,7 @@ export async function ReadToken(): Promise<string> {
 export async function DeleteAllConfigFiles() {
   await DataFolderExists()
   let appdir = configPath;
-  removeDir(appdir, {
+  remove(appdir, {
     recursive: true
   })
 }

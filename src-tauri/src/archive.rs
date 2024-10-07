@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
-use std::process::Command;
 
 #[derive(Serialize, Deserialize)]
 pub struct SmallArchiveValidationInfo {
@@ -29,35 +28,9 @@ pub fn extract(
 ) -> Result<(), Box<dyn std::error::Error>> {
     debug::log(&format!("Extracting Archive {}", input_path));
 
-    #[cfg(target_os = "windows")]
-    let mut result = Command::new("tar")
-        .arg("-xf")
-        .arg(&input_path)
-        .arg("-C")
-        .arg(&output_path)
-        .spawn()?;
+    let file = File::open(input_path)?;
 
-    #[cfg(target_os = "linux")]
-    let mut result = Command::new("tar")
-        .arg("-xf")
-        .arg(&input_path)
-        .arg("-C")
-        .arg(&output_path)
-        .spawn()?;
-
-    #[cfg(target_os = "macos")]
-    let mut result = Command::new("tar")
-        .arg("-xf")
-        .arg(&input_path)
-        .arg("-C")
-        .arg(&output_path)
-        .spawn()?;
-
-    let error = result.wait()?;
-
-    if error.code().unwrap() != 0 {
-        return Err("Archive did not extract successfully".into());
-    }
+    compress_tools::uncompress_archive(file, output_path, compress_tools::Ownership::Preserve)?;
 
     Ok(())
 }

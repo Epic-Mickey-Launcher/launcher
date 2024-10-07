@@ -1,18 +1,7 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/tauri";
-  import {
-    GetId,
-    GetToken,
-    POST,
-    UploadMod,
-    outdated,
-  } from "./library/networking";
-  import { open } from "@tauri-apps/api/dialog";
-  import ModInstall from "./components/ModInstall.svelte";
+  import { invoke } from "@tauri-apps/api/core";
+  import { GetToken, POST } from "./library/networking";
   import { onMount } from "svelte";
-  import { GetData, SetData } from "./library/datatransfer";
-  import { readBinaryFile } from "@tauri-apps/api/fs";
-  import { Invoke, Subscribe } from "./library/callback";
   import Loading from "./components/loading.svelte";
 
   let gitRepositoryURL: string;
@@ -60,7 +49,8 @@
   async function VerifyMod() {
     let validationInfo: any = await invoke("validate_mod", {
       url: gitVerifiedRepositoryURL,
-      local: false,
+      destination: "",
+      mode: "git",
     });
     modVerified = validationInfo.validated;
     modIconData = validationInfo.modicon;

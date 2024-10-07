@@ -10,9 +10,11 @@
   export let active = false;
   export let gamedata;
   let node;
-  import { invoke } from "@tauri-apps/api/tauri";
+  import { invoke } from "@tauri-apps/api/core";
   import { ReadFile, WriteFile } from "../library/configfiles";
   import { listen } from "@tauri-apps/api/event";
+  import { GetGameWiiID } from "../library/gameid";
+  import { Platform } from "../library/types";
   let checkBox;
 
   onMount(async () => {});
@@ -37,7 +39,9 @@
       },
     );
 
-    let gameid = gamedata.id;
+    console.log(gamedata);
+    let gameid = gamedata.platform == Platform.PC ? "" : GetGameWiiID(gamedata);
+    console.log(gameid);
 
     invoke("delete_mod", {
       dumploc: dumploc,

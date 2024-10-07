@@ -1,4 +1,4 @@
-export let serverLink = 'https://emlapi.kalsvik.no/';
+export let serverLink = 'http://localhost:8574/' //'https://emlapi.kalsvik.no/';
 export const statusMessageLink = 'https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus'
 export let loggedin = false;
 export let outdated = false
@@ -208,8 +208,8 @@ export async function MultipartPOST(route: string, data: any): Promise<Response>
   return response
 }
 
-export async function POST(route: string, data: any, toJson = true, suppressError = false): Promise<Response> {
-  const res = await fetch(serverLink + route, {
+export async function POST(route: string, data: any, toJson = true, suppressError = false, external = false): Promise<Response> {
+  const res = await fetch(external ? "" : serverLink + route, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',

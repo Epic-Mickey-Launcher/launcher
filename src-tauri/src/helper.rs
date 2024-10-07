@@ -2,6 +2,7 @@ use crate::debug;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use tauri::Emitter;
 use tauri::Window;
 use walkdir::WalkDir;
 

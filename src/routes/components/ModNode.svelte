@@ -2,6 +2,7 @@
 
 <script lang="ts">
   import { GetData, SetData } from "../library/datatransfer";
+  import { InternetModToUnifiedMod } from "../library/gameid";
   import { GetImagePath, ImageType, POST } from "../library/networking";
   import { GameConfig, Mod } from "../library/types";
   import User from "./User.svelte";
@@ -33,7 +34,7 @@
       target: modNodeDiv,
     });
 
-    downloadMod.Initialize(gameData, false, modData);
+    downloadMod.Initialize(gameData, false, InternetModToUnifiedMod(modData));
     downloadMod.updatecb = () => {
       downloadButtonDisabled = downloadMod.downloadButtonDisabled;
       downloadStatus = downloadMod.downloadButtonStatus;

@@ -10,10 +10,14 @@
     WriteToJSON,
   } from "./library/configfiles";
   import { GetData } from "./library/datatransfer.js";
-  import { invoke } from "@tauri-apps/api/tauri";
-  import { open } from "@tauri-apps/api/dialog";
+  import { invoke } from "@tauri-apps/api/core";
+  import { open } from "@tauri-apps/plugin-dialog";
   import ModInstall from "./components/ModInstall.svelte";
-  import { exists } from "@tauri-apps/api/fs";
+  import { exists } from "@tauri-apps/plugin-fs";
+  import DownloadMod from "./components/downloadMod.svelte";
+  import { UnifiedMod } from "./library/types";
+  import { LocalModToUnifiedMod } from "./library/gameid";
+  import SettingsModNode from "./components/SettingsModNode.svelte";
   let data: { path: string; game: string; platform: string; id: any };
   let mainSettings: HTMLDivElement;
   let levelLoader: HTMLDivElement;
@@ -149,6 +153,7 @@
     modNode.dumploc = data.path;
     modNode.active = element.active;
     modNode.setChecked(element.active);
+    modNodes.push(modNode);
   }
 
   let cmdline = "";
@@ -157,9 +162,14 @@
 
   let levelEndIndex: number;
 
+  let modNodes: SettingsModNode[] = [];
+
   data = GetData("levelloaderdata");
 
-  if (data.game.toLowerCase() == "em2" && data.platform.toLowerCase() == "wii") {
+  if (
+    data.game.toLowerCase() == "em2" &&
+    data.platform.toLowerCase() == "wii"
+  ) {
     currentLevelJSON = levelsDataEM2;
   } else if (data.game.toLocaleLowerCase() == "em1") {
     currentLevelJSON = levelsData;
@@ -167,7 +177,11 @@
     currentLevelJSON = [];
   }
 
-  onMount(async () => {
+  async function RefreshMods() {
+    modNodes.forEach((r) => {
+      r.$destroy();
+    });
+
     let ModsData = await ReadFile(data.path + "/EMLMods.json");
 
     let ModsDataObject = JSON.parse(ModsData);
@@ -176,7 +190,10 @@
       let i = ModsDataObject.indexOf(element);
       CreateModNode(element, i);
     });
+  }
 
+  onMount(async () => {
+    await RefreshMods();
     let cmdlineexists = await exists(data.path + "/files/cmdline.txt");
 
     if (cmdlineexists) {
@@ -203,8 +220,6 @@
     });
     let filename = selectedPath.toString().split("\\").pop().split("/").pop();
 
-    let gameid = data.id;
-
     let modInstallElement = new ModInstall({
       target: document.body,
     });
@@ -214,39 +229,32 @@
     modInstallElement.description =
       "This might take a while depending on your storage device's speed.";
 
-    let id = Date.now().toString();
-
-    invoke("download_mod", {
-      url: selectedPath,
-      name: filename,
-      modid: id,
-      dumploc: data.path,
-      gameid: gameid,
-      platform: data.platform,
-    }).then(async () => {
-      let json_exists = await exists(data.path + "/EMLMods.json");
-      let current_mods = [];
-      if (json_exists) {
-        current_mods = JSON.parse(await ReadFile(data.path + "/EMLMods.json"));
-      }
-
-      let mod = {
-        name: filename,
-        modid: id,
-        active: true,
-        update: 0,
-      };
-
-      current_mods.push(mod);
-
-      await WriteFile(
-        JSON.stringify(current_mods),
-        data.path + "/EMLMods.json",
-      );
-      modInstallElement.$destroy();
-
-      CreateModNode(mod, current_mods.length);
+    let downloadMod = new DownloadMod({
+      target: document.body,
     });
+
+    let validationInfo: any = await invoke("validate_mod", {
+      url: selectedPath,
+      destination: "",
+      mode: "local",
+    });
+
+    let unified = LocalModToUnifiedMod(validationInfo.data);
+
+    modInstallElement.$destroy();
+    downloadMod.Initialize(
+      data,
+      true,
+      unified,
+      "localmod",
+      validationInfo.modicon,
+      true,
+    );
+    await downloadMod.Download();
+
+    setTimeout(async () => {
+      await RefreshMods();
+    }, 120);
   }
 
   function SetLevel(lvl: any) {
@@ -334,8 +342,9 @@
     <hr />
     <p />
     <div bind:this={modNodeGrid} />
-
-    <button on:click={InstallLocalMod}>Install Local Mod</button>
+    <p>
+      <button on:click={InstallLocalMod}>Install Local Mod</button>
+    </p>
   </div>
 
   <div bind:this={levelLoader} style="display:none;">
@@ -395,7 +404,11 @@
         style="        border-radius: 0px 10px 10px 0px;"
         on:click={() => ExitLevelLoader(1)}>Save Level and Return</button
       >
-      <span><s>stolen</s> borrowed from RampantLeaf & SlayCap</span>
+    </p>
+    <p>
+      <span
+        >Level Loader Data <s>stolen</s> borrowed from RampantLeaf & SlayCap</span
+      >
     </p>
   </div>
 

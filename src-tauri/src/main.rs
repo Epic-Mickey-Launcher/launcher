@@ -11,10 +11,12 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
+use tauri::AppHandle;
 use tauri::Manager;
 use tauri::Window;
 
 extern crate chrono;
+extern crate tauri_plugin_deep_link;
 
 pub mod archive;
 pub mod debug;
@@ -31,8 +33,18 @@ fn main() {
     debug::init().expect("Failed to initialize Debug.");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            let _ = show_window(app);
+        }))
+        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_cli::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            app.get_window("main")
+            app.get_webview_window("main")
                 .unwrap()
                 .set_title(
                     format!(
@@ -47,13 +59,14 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             playgame,
             download_mod,
-            start_em2_steam,
+            play_steam_game,
             change_mod_status,
             delete_mod,
             validate_mod,
             get_os,
             extract_iso,
             delete_mod_cache,
+            clean_temp_install_directory,
             get_bootbin_id,
             check_iso,
             open_dolphin,
@@ -68,16 +81,26 @@ fn main() {
             create_portable,
             open_path_in_file_manager,
             open_config_folder,
-            get_frontend_config_path
+            get_frontend_config_path,
+            generate_mod_project,
+            init_repository
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
+fn show_window(app: &AppHandle) {
+    let windows = app.webview_windows();
+    windows
+        .values()
+        .next()
+        .expect("primary window not found")
+        .set_focus()
+        .expect("can't focus primary window");
+}
 #[tauri::command]
-fn start_em2_steam() {
+fn play_steam_game(id: String) {
     Command::new("steam")
-        .arg("steam://rungameid/245300")
+        .arg(format!("steam://rungameid/{}", id))
         .spawn()
         .unwrap();
 }
@@ -127,8 +150,14 @@ fn get_bootbin_id(path: String) -> String {
 }
 
 #[tauri::command]
-fn write_mod_info(path: String, files: Vec<String>, textures: Vec<String>, window: Window) {
-    mod_info::write(path, files, textures).unwrap_or_else(|error| {
+fn write_mod_info(
+    path: String,
+    files: Vec<String>,
+    textures: Vec<String>,
+    scripts: Vec<String>,
+    window: Window,
+) {
+    mod_info::write(path, files, textures, scripts).unwrap_or_else(|error| {
         helper::handle_error(&error.to_string(), &window);
     })
 }
@@ -204,6 +233,13 @@ fn set_dolphin_emulator_override(_path: String, window: Window) {
 }
 
 #[tauri::command]
+fn clean_temp_install_directory(destination: PathBuf, window: Window) {
+    mod_management::clean_temp_install_directory(destination).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    })
+}
+
+#[tauri::command]
 fn open_config_folder(window: Window) {
     let path = helper::get_config_path().unwrap();
     open_path_in_file_manager(path.to_str().unwrap().to_owned(), window)
@@ -211,7 +247,7 @@ fn open_config_folder(window: Window) {
 
 #[tauri::command] // todo: brain death
 fn get_frontend_config_path(npath: String) -> String {
-    npath
+    npath + "/"
 }
 
 // Mod Commands
@@ -274,8 +310,22 @@ fn delete_mod_cache(modid: String, window: Window) {
 }
 
 #[tauri::command]
-async fn validate_mod(url: String, local: bool, window: Window) -> mod_management::ValidationInfo {
-    mod_management::validate_mod(url, local, &window)
+async fn generate_mod_project(game: String, platform: String, path: String, window: Window) {
+    mod_management::generate_mod_template(game, platform, path)
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(&error.to_string(), &window);
+        })
+}
+
+#[tauri::command]
+async fn validate_mod(
+    url: String,
+    destination: String,
+    mode: String,
+    window: Window,
+) -> mod_management::ValidationInfo {
+    mod_management::validate_mod(url, PathBuf::from(destination), mode, &window)
         .await
         .unwrap_or_else(|error| {
             helper::handle_error(&error.to_string(), &window);
@@ -284,6 +334,14 @@ async fn validate_mod(url: String, local: bool, window: Window) -> mod_managemen
                 modname: "".to_string(),
                 result: error.to_string(),
                 validated: false,
+                data: eml_validate::ModInfo::new(),
             }
         })
+}
+
+#[tauri::command]
+fn init_repository(path: String, window: Window) {
+    git::init_repository(&path).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
 }

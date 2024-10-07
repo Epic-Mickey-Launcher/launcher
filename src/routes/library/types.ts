@@ -19,6 +19,15 @@ export interface InstalledMod {
   modid: string,
   active: boolean,
   update: number,
+  local: boolean
+}
+
+export interface UnifiedMod {
+  id: string,
+  game: Game,
+  platform: Platform,
+  name: string,
+  version: number
 }
 
 export interface Mod {
@@ -37,11 +46,40 @@ export interface Mod {
   CachedLikes: number
 }
 
+export enum PublisherRemoteType {
+  GitHub = "github",
+  Git = "git",
+  None = "none"
+}
+
+export interface PublisherModData {
+  projectPath: string,
+  sshKey: string,
+  remoteType: PublisherRemoteType
+}
+
+export interface PublisherMod {
+  name: string
+  description: string
+  game: string
+  platform: string
+  icon_path: string
+  video: string
+  downloads: number
+  dependencies: string[]
+  short_description: string,
+  custom_textures_path: string,
+  custom_game_files_path: string,
+  scripts_path: string
+}
+
 export interface ConfigFile {
   dolphinPath: string;
   dolphinConfigPath: string;
   WITPath: string;
   NkitPath: string;
+  developerMode: boolean;
+  gitHubSecret: string;
 }
 
 export interface Comment {
@@ -78,12 +116,44 @@ export interface GameConfig {
   path: string,
   game: Game,
   platform: Platform,
-  id: string,
   region: Region,
+  uniqueID: string,
+  steamVersion: boolean
 }
 
-export enum Game { EM1 = "EM1", EM2 = "EM2", None = "NONE" }
-export enum Platform { Wii = "Wii", PC = "PC", None = "NONE" }
+export interface GameIdentity {
+  name: string;
+  steamID: string;
+  id: Platform;
+  releases: any[];
+  resources: any;
+}
+
+export interface IdentifyGameResult {
+  game: Game;
+  platform: Platform;
+  region: Region;
+  identifier: string;
+}
+
+export interface IdentifyInfo {
+  path: string;
+  id: string;
+}
+
+export interface GameIdentityRelease {
+  identifier: string;
+  platform: Platform;
+  regions: GameIdentityRegion[];
+}
+
+export interface GameIdentityRegion {
+  region: Region,
+  id: string
+}
+
+export enum Game { EM1 = "EM1", EM2 = "EM2", EMR = "EMR", None = "NONE" }
+export enum Platform { Wii = "WII", PC = "PC", None = "NONE" }
 export enum Region {
   NTSC_U = "NTSC-U",
   NTSC_J = "NTSC-J",

@@ -1,0 +1,51 @@
+[[permission]]
+identifier = "default-perms"
+description = ""
+
+permissions = [
+"fs:write_all",
+"fs:read_all",
+"cli:default",
+"deep-link:default",
+"core:webview:allow-internal-toggle-devtools",
+"allow-default"
+]
+
+commands.allow = [
+ "init_repository",
+ "clean_temp_install_directory",   
+            "generate_mod_project",
+            "playgame",
+            "download_mod",
+            "play_steam_game",
+            "change_mod_status",
+            "delete_mod",
+            "validate_mod",
+            "get_os",
+            "extract_iso",
+            "delete_mod_cache",
+            "get_bootbin_id",
+            "check_iso",
+            "open_dolphin",
+            "open_link",
+            "download_tool",
+            "validate_archive",
+            "set_dolphin_emulator_override",
+            "delete_docs_folder",
+            "write_mod_info",
+            "open_process",
+            "delete_mod_cache_all",
+            "create_portable",
+            "open_path_in_file_manager",
+            "open_config_folder",
+            "get_frontend_config_path"
+]
+
+[[scope.allow]]
+path = "$HOME/**"
+[[scope.allow]]
+path = "$LOCALDATA/**"
+[[scope.allow]]
+path = "**/**"
+[[scope.allow]]
+path = "$APPCONFIG/**"

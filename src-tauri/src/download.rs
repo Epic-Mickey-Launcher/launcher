@@ -8,6 +8,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use tauri::Emitter;
 use tauri::Window;
 
 #[derive(Clone, serde::Serialize)]
@@ -15,7 +16,7 @@ pub struct ModDownloadStats {
     pub download_remaining: String,
     pub download_total: String,
     pub action: String,
-    pub description: String
+    pub description: String,
 }
 
 pub async fn tool(
@@ -57,16 +58,15 @@ pub async fn zip(
             .ok_or(format!("Failed to get content length from '{}'", &url))
             .unwrap();
 
-        window
-            .emit(
-                "download-stat",
-                ModDownloadStats {
-                    download_total: total_size.to_string(),
-                    download_remaining: "0".to_string(),
-                    action: "".to_string(),
-                    description: "".to_string()
-                },
-            )?;
+        window.emit(
+            "download-stat",
+            ModDownloadStats {
+                download_total: total_size.to_string(),
+                download_remaining: "0".to_string(),
+                action: "".to_string(),
+                description: "".to_string(),
+            },
+        )?;
 
         buffer = reqwest::get(&url).await?.bytes_stream();
 
@@ -78,7 +78,7 @@ pub async fn zip(
             let mut buf = &Bytes::new();
 
             let res = item.as_ref();
-            
+
             buf = match res {
                 Ok(b) => b,
                 Err(error) => {
@@ -90,7 +90,7 @@ pub async fn zip(
                     download_bytes_count = 0;
                     fs::remove_file(&temporary_archive_path)?;
                     f = File::create(&temporary_archive_path)?;
-            
+
                     buf
                 }
             };
@@ -102,44 +102,40 @@ pub async fn zip(
             download_bytes_count += buf.len();
 
             if download_bytes_count > next_update_count {
-                window
-                .emit(
+                window.emit(
                     "download-stat",
                     ModDownloadStats {
                         download_total: total_size.to_string(),
                         download_remaining: download_bytes_count.to_string(),
                         action: "".to_string(),
-                        description:"".to_string()
+                        description: "".to_string(),
                     },
                 )?;
                 next_update_count += (total_size / 256) as usize;
             }
-            
 
             f.write_all(buf)?;
         }
     } else {
         fs::copy(&url, &temporary_archive_path)?;
     }
-    window
-    .emit(
+    window.emit(
         "download-stat",
         ModDownloadStats {
-            download_total:"0".to_string(),
+            download_total: "0".to_string(),
             download_remaining: "0".to_string(),
             action: "Extracting".to_string(),
-            description:"This might take a while depending on your drive speed.".to_string()
+            description: "This might take a while depending on your drive speed.".to_string(),
         },
     )?;
     archive::extract(temporary_archive_path.clone(), foldername)?;
-    window
-    .emit(
+    window.emit(
         "download-stat",
         ModDownloadStats {
-            download_total:"0".to_string(),
+            download_total: "0".to_string(),
             download_remaining: "0".to_string(),
             action: "Cleaning up".to_string(),
-            description:"This shouldn't take too long.".to_string()
+            description: "This shouldn't take too long.".to_string(),
         },
     )?;
     fs::remove_file(temporary_archive_path)?;

@@ -35,14 +35,13 @@ pub async fn extract(
         fs::remove_dir_all(&destination)?;
     }
 
-     Command::new(dolphin_tool)
+    Command::new(dolphin_tool)
         .arg("extract")
         .arg("-i")
         .arg(isopath)
         .arg("-o")
         .arg(&destination)
         .output()?;
- 
 
     let output = destination.to_str().unwrap();
 

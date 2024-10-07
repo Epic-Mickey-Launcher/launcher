@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="5.8543019mm"
+   height="5.8542938mm"
+   viewBox="0 0 5.8543019 5.8542938"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-102.07286,-145.57289)">
+    <path
+       id="path2"
+       style="fill:none;stroke:#ffffff;stroke-width:0.297;paint-order:stroke markers fill"
+       d="m 107.77865,148.5 c 0,1.18044 -0.73608,2.18895 -1.77429,2.59158 -0.18034,0.0699 -0.3698,0.1216 -0.56609,0.1527 -0.14277,0.0226 -0.28915,0.0344 -0.43827,0.0344 -1.53461,0 -2.77865,-1.24404 -2.77865,-2.77865 0,-1.53461 1.24404,-2.77865 2.77865,-2.77865 1.53461,0 2.77865,1.24404 2.77865,2.77865 z" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.77914px;font-family:'URW Bookman';-inkscape-font-specification:'URW Bookman';letter-spacing:0.254887px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.898633;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       x="106.52795"
+       y="146.17841"
+       id="text3"
+       transform="scale(0.97213691,1.0286617)"><tspan
+         id="tspan3"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Monospace;-inkscape-font-specification:Monospace;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.898633;stroke-dasharray:none"
+         x="106.52795"
+         y="146.17841">i</tspan></text>
+  </g>
+</svg>

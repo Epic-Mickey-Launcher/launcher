@@ -1,799 +1,1087 @@
-[{
+[
+  {
     "categoryname": "Miscellaneous",
-    "levels": [{
+    "levels": [
+      {
         "name": "Start Screen",
         "path": "mainmenu.start"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Yen Sid's Lab",
-    "levels": [{
+    "levels": [
+      {
         "name": "House Start",
         "path": "YensidsLab.HouseStart"
-    }, {
+      },
+      {
         "name": "Map Room",
         "path": "YensidsLab.MapRoom"
-    }, {
+      },
+      {
         "name": "Brush Room",
         "path": "YensidsLab.BrushRoom"
-    }, {
+      },
+      {
         "name": "Observatory",
         "path": "YensidsLab.Observatory"
-    }, {
+      },
+      {
         "name": "Map Outro",
         "path": "YensidsLab.MapOutro"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Dark Beauty Castle",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "DarkBeautyCastle_V1.Stream_1"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Mean Street",
-    "levels": [{
+    "levels": [
+      {
         "name": "South Visit 1",
         "path": "MeanStreet_South.Visit1"
-    }, {
+      },
+      {
         "name": "South Visit 2",
         "path": "MeanStreet_South.Visit2"
-    }, {
+      },
+      {
         "name": "Utilidors Visit 1",
         "path": "MeanStreetsUtilidors.TransitionEp1"
-    }, {
+      },
+      {
         "name": "Utilidors Vault Room",
         "path": "MeanStreetsUtilidors.Vault_Hardload"
-    }, {
+      },
+      {
         "name": "Utilidors Rotating Bridges Room",
         "path": "MeanStreetsUtilidors.RotateBridges_Hardload"
-    }, {
+      },
+      {
         "name": "Utilidors Widget Room",
         "path": "MeanStreetsUtilidors.PropellerBox_Hardload"
-    }, {
+      },
+      {
         "name": "North Visit 1",
         "path": "MeanStreet_North.Visit_1"
-    }, {
+      },
+      {
         "name": "North Visit 2",
         "path": "MeanStreet_North.HardLoadUndermill"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "OsTown",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "OST_Center.Main_Visit1"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "OST_Center.Main_Visit2"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Rainbow Caverns",
-    "levels": [{
+    "levels": [
+      {
         "name": "Falls Visit 1",
         "path": "RBC_falls.EntranceV1"
-    }, {
+      },
+      {
         "name": "Falls Visit 2",
         "path": "RBC_falls.EntranceV2"
-    }, {
+      },
+      {
         "name": "Angel Visit 1",
         "path": "RBC_falls.Caverns_Angel_v1"
-    }, {
+      },
+      {
         "name": "Angel Visit 2",
         "path": "RBC_falls.Caverns_Angel_v2"
-    }, {
+      },
+      {
         "name": "Devil Visit 1",
         "path": "RBC_falls.Caverns_Devil_v1"
-    }, {
+      },
+      {
         "name": "Devil Visit 2",
         "path": "RBC_falls.Caverns_Devil_v2"
-    }, {
+      },
+      {
         "name": "Devil (with Blotworx Rocker)",
         "path": "RainbowCaverns.RainbowCavernsDevilFallsBlotworxR"
-    }, {
+      },
+      {
         "name": "Devil (with Blotworx Shocker)",
         "path": "RainbowCaverns.RainbowCavernsDevilFallsBlotworxB"
-    }, {
+      },
+      {
         "name": "Devil Audio",
         "path": "levels/RBC_Angel.state0"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Disney Gulch",
-    "levels": [{
+    "levels": [
+      {
         "name": "Canyon Visit 1",
         "path": "FTL_Gulch.Canyon_v1"
-    }, {
+      },
+      {
         "name": "Lab Visit 1",
         "path": "FTL_Gulch.Lab_v1"
-    }, {
+      },
+      {
         "name": "Canyon Visit 2",
         "path": "FTL_Gulch.Canyon_v2"
-    }, {
+      },
+      {
         "name": "Lab Visit 2",
         "path": "FTL_Gulch.Lab_v2"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Bog Easy",
-    "levels": [{
+    "levels": [
+      {
         "name": "Shanty Town Visit 1",
         "path": "NOS_BogEasy.ShantyTown_V1"
-    }, {
+      },
+      {
         "name": "Shanty Town Visit 2",
         "path": "NOS_BogEasy.ShantyTown_V2"
-    }, {
+      },
+      {
         "name": "Blot Alley Visit 1",
         "path": "NOS_BlotAlley_Main.Section1_Visit1"
-    }, {
+      },
+      {
         "name": "Blot Alley Visit 2 (with Ian)",
         "path": "NOS_BlotAlley_Main.Section1_Visit2_Ian"
-    }, {
+      },
+      {
         "name": "Blot Alley Visit 2 (No Ian)",
         "path": "NOS_BlotAlley_Main.Section1_Visit2_NoIan"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Train Tunnels",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "TRT_TrainTunnels.ClockV1"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "TRT_TrainTunnels.ClockV2"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Fort Wasteland",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "FTL_fort01a.V1_Docks_ALTrees"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "FTL_fort01a.V2_Docks_ALTrees"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Floatyard",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "FTL_FloatGraveyard.Visit_1"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "FTL_FloatGraveyard.Visit_2"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Ventureland",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "VTL_Oasis.Main_MainStoryLoadIn"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "VTL_Oasis.Main_EpilogueLoadIn"
-    }, {
+      },
+      {
         "name": "Visit 2 (Fixed Lift and Crane)",
         "path": "VTL_Oasis.Launcher_FixLiftCrane"
-    }, {
+      },
+      {
         "name": "Visit 2 (Fixed Lift and Broken Crane)",
         "path": "VTL_Oasis.Launcher_FixLiftBreakCrane"
-    }, {
+      },
+      {
         "name": "Visit 2 (Broken Lift and Fixed Crane)",
         "path": "VTL_Oasis.Launcher_BreakLiftFixCrane"
-    }, {
+      },
+      {
         "name": "Visit 2 (Broken Lift and Crane)",
         "path": "VTL_Oasis.Launcher_BreakLiftCrane"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Autotopia",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "TCY_autotopia_visit1.SectionA_Menu"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "TCY_autotopia_visit1.Main_v2_Menu"
-    }, {
+      },
+      {
         "name": "Demolition Derby",
         "path": "TCY_autotopia_visit1.Visit2_DerbyActive"
-    }, {
+      },
+      {
         "name": "Time Trial",
         "path": "TCY_autotopia_visit1.Visit2_TrialActive"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Mad Doctor's Attic",
-    "levels": [{
+    "levels": [
+      {
         "name": "Visit 1",
         "path": "LMR_MadDoctorAttic.Visit_1"
-    }, {
+      },
+      {
         "name": "Visit 2",
         "path": "LMR_MadDoctorAttic.Visit_2"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Projector Levels",
-    "levels": [{
+    "levels": [
+      {
         "name": "Band Concert 1",
         "path": "MeanStreet_North.BandConcert2D"
-    }, {
+      },
+      {
         "name": "Band Concert 2",
         "path": "FTL_FloatGraveyard.Paint_2D"
-    }, {
+      },
+      {
         "name": "Building a Building 1",
         "path": "RBC_falls.FallsToCaverns_Angel"
-    }, {
+      },
+      {
         "name": "Building a Building 2",
         "path": "FTL_Fort01a.TRAN_FloatShort"
-    }, {
+      },
+      {
         "name": "Night on Bald Mountain 1",
         "path": "RBC_falls.TRAN_2DGulchAngel"
-    }, {
+      },
+      {
         "name": "Night on Bald Mountain 2",
         "path": "LMR_MadDoctorAttic.NewRide2D"
-    }, {
+      },
+      {
         "name": "The Old Mill 1",
         "path": "FTL_Gulch.TRAN_OldMill"
-    }, {
+      },
+      {
         "name": "The Old Mill 2",
         "path": "FTL_Gulch.TRAN_OldMill2"
-    }, {
+      },
+      {
         "name": "The Old Mill 3",
         "path": "FTL_FloatGraveyard.Thinner_2D"
-    }, {
+      },
+      {
         "name": "Skeleton Dance 1",
         "path": "MeanStreet_North.Skeleton2D"
-    }, {
+      },
+      {
         "name": "Skeleton Dance 2",
         "path": "NOS_BogEasy.Film_ToBlotAlley"
-    }, {
+      },
+      {
         "name": "Music Land 1",
         "path": "NOS_BlotAlley_Main.Film_TrainTunnels"
-    }, {
+      },
+      {
         "name": "Music Land 2",
         "path": "TRT_TrainTunnels.Transition2D"
-    }, {
+      },
+      {
         "name": "Dumbo 1",
         "path": "Dumbo_01a.Dumbo_01a"
-    }, {
+      },
+      {
         "name": "Dumbo 2",
         "path": "Dumbo_02a.Dumbo_02a"
-    }, {
+      },
+      {
         "name": "Service Station 1",
         "path": "MeanStreet_North.ServiceStation2D"
-    }, {
+      },
+      {
         "name": "Service Station 2",
         "path": "VTL_Oasis.Transition2D"
-    }, {
+      },
+      {
         "name": "Wonderful World of Evil",
         "path": "TCY_autotopia_visit1.TRAN_2DAttic"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "DEC Levels",
-    "levels": [{
+    "levels": [
+      {
         "name": "Transition 1",
         "path": "Transition_01.state0"
-    }, {
+      },
+      {
         "name": "Transition 2",
         "path": "Transition_02.state0"
-    }, {
+      },
+      {
         "name": "Transition 3",
         "path": "Transition_03.state0"
-    }, {
+      },
+      {
         "name": "Transition 4",
         "path": "Transition_04.state0"
-    }, {
+      },
+      {
         "name": "Transition 5",
         "path": "Transition_05.state0"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Interiors",
-    "levels": [{
+    "levels": [
+      {
         "name": "OST Gag Factory",
         "path": "INT_gagfactory.INT_GagFactory"
-    }, {
+      },
+      {
         "name": "MSN Camera Shop",
         "path": "INT_cameraShop.INT_cameraShop"
-    }, {
+      },
+      {
         "name": "MSS Detective Agency",
         "path": "INT_detectiveAgency.INT_detectiveAgency"
-    }, {
+      },
+      {
         "name": "VTL Tiki Hut",
         "path": "INT_tikiHut.INT_tikiHut"
-    }, {
+      },
+      {
         "name": "MSS Mad Hatter Shop",
         "path": "INT_madHatterShop.INT_madHatterShop"
-    }, {
+      },
+      {
         "name": "MSN Cinema",
         "path": "INT_cinema.INT_cinema"
-    }, {
+      },
+      {
         "name": "MSN Arcade",
         "path": "INT_arcade.INT_arcade"
-    }, {
+      },
+      {
         "name": "MSN Pin Trader Shop",
         "path": "INT_pinTraderShop.INT_pinTraderShop"
-    }, {
+      },
+      {
         "name": "BOG Louis Shack",
         "path": "INT_louisShack.INT_louisShack"
-    }, {
+      },
+      {
         "name": "MSS Observatory",
         "path": "INT_observatory.INT_observatory"
-    }, {
+      },
+      {
         "name": "BOG Ferry Boat",
         "path": "INT_markTwainShip.INT_markTwainShip"
-    }, {
+      },
+      {
         "name": "BOG LeBaten Shop",
         "path": "INT_leBatenShop.INT_leBatenShop"
-    }, {
+      },
+      {
         "name": "OST Mickey House",
         "path": "INT_mickeyHouse.INT_mickeyHouse"
-    }, {
+      },
+      {
         "name": "MSS Town Hall",
         "path": "INT_townHall.INT_townHall"
-    }, {
+      },
+      {
         "name": "FWL Tree Tunnel",
         "path": "INT_TreeTunnel.INT_TreeTunnel"
-    }, {
+      },
+      {
         "name": "VTL Daisy House",
         "path": "INT_daisyHouse.INT_daisyHouse"
-    }, {
+      },
+      {
         "name": "VTL Hook Library",
         "path": "INT_hookLibrary.INT_hookLibrary"
-    }, {
+      },
+      {
         "name": "VTL Spatter Hut",
         "path": "INT_spatterHut.INT_spatterHut"
-    }, {
+      },
+      {
         "name": "OST Clarabelle House",
         "path": "INT_clarabelleHouse.INT_clarabelleHouse"
-    }, {
+      },
+      {
         "name": "MSS Walt Apartment",
         "path": "INT_waltApartment.INT_waltApartment"
-    }, {
+      },
+      {
         "name": "OST Ortensia House",
         "path": "INT_ortensiaHouse.INT_ortensiaHouse"
-    }, {
+      },
+      {
         "name": "BOG Gremlin Forge",
         "path": "INT_gremlinForge.INT_gremlinForge"
-    }, {
+      },
+      {
         "name": "MSS Museum",
         "path": "INT_museum.INT_museum"
-    }, {
+      },
+      {
         "name": "MSS Emporium",
         "path": "INT_emporium.INT_emporium"
-    }, {
+      },
+      {
         "name": "Generic",
         "path": "INT_generic.INT_generic"
-    }, {
+      },
+      {
         "name": "VTL Swiss Family",
         "path": "INT_swissFamily.INT_swissFamily"
-    }, {
+      },
+      {
         "name": "VTL Captain Quarters",
         "path": "INT_captainQuarters.INT_captainQuarters"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Boss Fights",
-    "levels": [{
+    "levels": [
+      {
         "name": "Blotworx Dragon Visit 1",
         "path": "FTL_BlotworxDragon.Main"
-    }, {
+      },
+      {
         "name": "Blotworx Dragon Visit 2",
         "path": "FTL_BlotworxDragon.SecondVisit"
-    }, {
+      },
+      {
         "name": "Blotworx Dragon Arcade",
         "path": "FTL_BlotworxDragon.Arcade"
-    }, {
+      },
+      {
         "name": "Prescott's Arena (Paint)",
         "path": "FTL_PrescottsArena.Paint"
-    }, {
+      },
+      {
         "name": "Prescott's Arena (Thinner)",
         "path": "FTL_PrescottsArena.Thinner"
-    }, {
+      },
+      {
         "name": "Prescott's Arena Visit 2 (From Floatyard)",
         "path": "FTL_PrescottsArena.OutsideV2"
-    }, {
+      },
+      {
         "name": "Prescott's Arena Visit 2 (From OsTown)",
         "path": "FTL_PrescottsArena.OutsideV2Ostown"
-    }, {
+      },
+      {
         "name": "Prescott's Arena Arcade",
         "path": "FTL_PrescottsArena.ArcadeStart"
-    }, {
+      },
+      {
         "name": "Mad Doctor's New Ride",
         "path": "MST_NewRide.upper"
-    }, {
+      },
+      {
         "name": "Mad Doctor's New Ride Arcade",
         "path": "MST_NewRide.ArcadeUpper"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Test Maps",
-    "levels": [{
+    "levels": [
+      {
         "name": "AI Test Map (Blotlings, Bunny Children)",
         "path": "ai_test.start"
-    }, {
+      },
+      {
         "name": "AI Test Map (Blotworx, Beetleworx)",
         "path": "AI_Test_BW.start"
-    }, {
+      },
+      {
         "name": "AI Test Map (Beetleworx Variations)",
         "path": "AI_Test_BWvar.start"
-    }, {
+      },
+      {
         "name": "AI Test Map (Old)",
         "path": "Levels/AI_Test.level"
-    }, {
+      },
+      {
         "name": "NPC Test Map",
         "path": "NPC_Test.start"
-    }, {
+      },
+      {
         "name": "NPC Test Map 2",
         "path": "NPC_Test_2.start"
-    }, {
+      },
+      {
         "name": "NPC Test Map (Old)",
         "path": "Levels/NPC_Test.level"
-    }, {
+      },
+      {
         "name": "NPC Test Map 2 (Old)",
         "path": "Levels/NPC_Test_2.level"
-    }, {
+      },
+      {
         "name": "Coop AI Tuning",
         "path": "test.Coop_Tuning"
-    }, {
+      },
+      {
         "name": "Coop AI Tuning (Old)",
         "path": "Levels/Coop_Tuning.level"
-    }, {
+      },
+      {
         "name": "Coop Quests Test",
         "path": "Co-opQuestsTest.Co-opQuestsTest"
-    }, {
+      },
+      {
         "name": "Coop Quests Test (Old)",
         "path": "Levels/Co-opQuestsTest.level"
-    }, {
+      },
+      {
         "name": "Building Standards",
         "path": "BuildingStandards.start"
-    }, {
+      },
+      {
         "name": "Building Standards 2",
         "path": "BSTEST.HotStream"
-    }, {
+      },
+      {
         "name": "Building Standards (Old)",
         "path": "Levels/BuildingStandards.level"
-    }, {
+      },
+      {
         "name": "Two Player Obstacle Course",
         "path": "Levels/Two_Player_Obstacle_Course.level"
-    }, {
+      },
+      {
         "name": "Jason's Toon Test",
         "path": "JasonTest.Jason_ToonTest"
-    }, {
+      },
+      {
         "name": "Jason's Toon Test (Old)",
         "path": "Levels/Jason_ToonTest.level"
-    }, {
+      },
+      {
         "name": "SH Lighting Test",
         "path": "test.SHLighting_Test"
-    }, {
+      },
+      {
         "name": "SH Lighting Test (Old)",
         "path": "Levels/test_SHLighting.Level"
-    }, {
+      },
+      {
         "name": "QA Test Basics",
         "path": "Environments/_Test/tmp_qabvt_03_12_12.bin"
-    }, {
+      },
+      {
         "name": "Walmart White Room 1",
         "path": "wm_whiteroom.Start_NPC1"
-    }, {
+      },
+      {
         "name": "Walmart White Room 2",
         "path": "wm_whiteroom.Start_NPC2"
-    }, {
+      },
+      {
         "name": "Walmart White Room 3",
         "path": "wm_whiteroom.Start_NPC3"
-    }, {
+      },
+      {
         "name": "Walmart White Room 4",
         "path": "wm_whiteroom.Start_NPC4"
-    }, {
+      },
+      {
         "name": "Props Test",
         "path": "Props_Test.startState"
-    }, {
+      },
+      {
         "name": "Gabe's Test",
         "path": "GABETEST.start"
-    }, {
+      },
+      {
         "name": "Conversation Test",
         "path": "Conversation_Test.state0"
-    }, {
+      },
+      {
         "name": "Ye Olden Days Test",
         "path": "DBC_2DYeOlden_Test.state0"
-    }, {
+      },
+      {
         "name": "Jump Wait Volumes Test",
         "path": "tmp_GBL_01a_jumpWaitVolumes.state0"
-    }, {
+      },
+      {
         "name": "2D ZT Test Map",
         "path": "tmp_GBL_01a_virtuos2D_ZT.state0"
-    }, {
+      },
+      {
         "name": "2D Multi Track",
         "path": "tmp_GBL_01a_multiTrack2D.state0"
-    }, {
+      },
+      {
         "name": "2D Multi Track Multi Height",
         "path": "tmp_GBL_01a_multiTrack2D_multiHeight.state1"
-    }, {
+      },
+      {
         "name": "2D Multi Track Multi Height PRE",
         "path": "tmp_GBL_01a_multiTrack2D_MH_Pre.state0"
-    }, {
+      },
+      {
         "name": "Zoo Particle Character",
         "path": "zoo.Zoo_Particle_Character"
-    }, {
+      },
+      {
         "name": "Zoo Particle Environment",
         "path": "zoo.Zoo_Particle_Enviroment"
-    }, {
+      },
+      {
         "name": "Zoo Particle Character (Old)",
         "path": "Levels/Zoo_Particle_Character.Level"
-    }, {
+      },
+      {
         "name": "Zoo Particle Environment (Old)",
         "path": "Levels/Zoo_Particle_Enviroment.Level"
-    }, {
+      },
+      {
         "name": "Zoo Lighting",
         "path": "zoo_lighting.state0"
-    }, {
+      },
+      {
         "name": "Save Property Test",
         "path": "tmp_GBL_01a_saveProperty.state0"
-    }, {
+      },
+      {
         "name": "UI Test Map",
         "path": "UI_TestMap.start"
-    }, {
+      },
+      {
         "name": "IGC Test",
         "path": "test_igc_sandbox.start"
-    }, {
+      },
+      {
         "name": "Prescott's Arena Test",
         "path": "TEST_tmp_GBL_prescottsArena.state2"
-    }, {
+      },
+      {
         "name": "Map System Test Level",
         "path": "tmp_GBL_01a_mapSystem.state0"
-    }, {
+      },
+      {
         "name": "Localization Test Harness",
         "path": "tmp_LocalizationTestHarness.start"
-    }, {
+      },
+      {
         "name": "Streaming Test",
         "path": "tmp_GBL_01a_stream1.stream1"
-    }, {
+      },
+      {
         "name": "Mickey/Oswald Test Map (GEN3 ONLY)",
         "path": "NPC_Test_gen3.start"
-    }, {
+      },
+      {
         "name": "Virtuos Test",
         "path": "Virtuos_RZJ_01.level"
-    }, {
+      },
+      {
         "name": "Shader Preview",
         "path": "test_ShaderPreview.state0"
-    }, {
+      },
+      {
         "name": "Export Pipeline",
         "path": "exportPipeline.level"
-    }, {
+      },
+      {
         "name": "Liquid Shader Preview",
         "path": "test_LiquidShaderPreview.state0"
-    }, {
+      },
+      {
         "name": "Character Preview",
         "path": "test_CharacterPreview.state0"
-    }, {
+      },
+      {
         "name": "Liquid Interaction Test",
         "path": "test_LiquidInteraction.state0"
-    }, {
+      },
+      {
         "name": "Fog and Light Test",
         "path": "test_FogAndLightTest.state0"
-    }, {
+      },
+      {
         "name": "Test Realm",
         "path": "test_realm.start"
-    }, {
+      },
+      {
         "name": "Test Realm (Old)",
         "path": "Levels/test_Realm.Level"
-    }, {
+      },
+      {
         "name": "Rebecca Zoo",
         "path": "zoo_Rebecca.start"
-    }, {
+      },
+      {
         "name": "Rebecca Zoo (Old)",
         "path": "Levels/rebecca_Test.Level"
-    }, {
+      },
+      {
         "name": "Eve Test",
         "path": "eve_Test.EveTest"
-    }, {
+      },
+      {
         "name": "Eve Test (Old)",
         "path": "Levels/eve_Test.Level"
-    }, {
+      },
+      {
         "name": "Eve Cooking Test",
         "path": "test.eve_Test"
-    }, {
+      },
+      {
         "name": "Wendy Test",
         "path": "test.WXY_test"
-    }, {
+      },
+      {
         "name": "Wendy Test (Old)",
         "path": "Levels/test_wxy.level"
-    }, {
+      },
+      {
         "name": "JJ Test",
         "path": "test.JJ_test"
-    }, {
+      },
+      {
         "name": "JJ Test (Old)",
         "path": "Levels/test_jj.level"
-    }, {
+      },
+      {
         "name": "LPX Test",
         "path": "test_LPX.state0"
-    }, {
+      },
+      {
         "name": "LPX Test (Old)",
         "path": "Levels/test_lpx.level"
-    }, {
+      },
+      {
         "name": "J Grills Test",
         "path": "test_jgrills.start"
-    }, {
+      },
+      {
         "name": "J Grills Test (Old)",
         "path": "test_jgrills.level"
-    }, {
+      },
+      {
         "name": "J Grills Test Tobias Bug",
         "path": "jgrills_tobiasbug.state0"
-    }, {
+      },
+      {
         "name": "J Grills Test Tobias Bug (Old)",
         "path": "jgrills_tobiasbug.level"
-    }, {
+      },
+      {
         "name": "Shuai Breakable Dynamic Test",
         "path": "Environments/_Test/sliu_test/tmp_sliu_BreakablesDynamic.gsa"
-    }, {
+      },
+      {
         "name": "Shuai Breakable Generic Test",
         "path": "Environments/_Test/sliu_test/tmp_sliu_BreakablesGeneric.gsa"
-    }, {
+      },
+      {
         "name": "Shuai Save Test",
         "path": "Sliu_Test_Save.state0"
-    }, {
+      },
+      {
         "name": "JW Test Level",
         "path": "Levels/JW_TestLevel.Level"
-    }, {
+      },
+      {
         "name": "MS Rube Goldberg Machine",
         "path": "RubeGoldberg.rg_test"
-    }, {
+      },
+      {
         "name": "MS Rube Goldberg Machine (Old)",
         "path": "levels/RG_Transition_Test.level"
-    }, {
+      },
+      {
         "name": "MS Burger Shop Game",
         "path": "levels/test_BurgerShop.Level"
-    }, {
+      },
+      {
         "name": "MS Ice Cream Shop Game",
         "path": "levels/test_IceCreamShop.Level"
-    }, {
+      },
+      {
         "name": "Arena Mini Game",
         "path": "levels/test_Arena.Level"
-    }, {
+      },
+      {
         "name": "MS Magic Shop Maze Game",
         "path": "levels/test_MagicShopMaze.Level"
-    }, {
+      },
+      {
         "name": "MS Music Shop Game",
         "path": "levels/test_MusicShow.Level"
-    }, {
+      },
+      {
         "name": "Autotopia Raceway Game",
         "path": "levels/test_AutopiaRaceway.Level"
-    }, {
+      },
+      {
         "name": "Beetleworx Arena Game",
         "path": "levels/test_Arena_Bwrx.Level"
-    }, {
+      },
+      {
         "name": "Flowers vs Spatters",
         "path": "MiniGames.FvS"
-    }, {
+      },
+      {
         "name": "Flowers vs Spatters (Old)",
         "path": "levels/MiniGame_FvS.Level"
-    }, {
+      },
+      {
         "name": "Pinball",
         "path": "levels/test_Pinball.Level"
-    }, {
+      },
+      {
         "name": "Bog Easy DEBUG",
         "path": "levels/NOS_BogEasy_Debug.In"
-    }, {
+      },
+      {
         "name": "Blot Alley Test",
         "path": "NOS_BlotAlley_Main.Test"
-    }, {
+      },
+      {
         "name": "Seb Test",
         "path": "levels/seb_test.level"
-    }, {
+      },
+      {
         "name": "Focus Test Demo",
         "path": "levels/FocusTestDemo.level"
-    }, {
+      },
+      {
         "name": "DEC Catapult Transition Test",
         "path": "Environments/TransitionTest/TransitionTest.gsa"
-    }, {
+      },
+      {
         "name": "DEC Catapult Transition Test (Old)",
         "path": "Levels/TransitionTest.Level"
-    }, {
+      },
+      {
         "name": "Srays Test",
         "path": "Levels/srays_Test.level"
-    }, {
+      },
+      {
         "name": "Vita White Box Room",
         "path": "Vita_White_Box_Test.start"
-    }, {
+      },
+      {
         "name": "DBCT Lego Test Map",
         "path": "DBCT_Lego_TestMap.DBCT_Lego01"
-    }, {
+      },
+      {
         "name": "DBCT Lego Test Map (Old)",
         "path": "Levels/dbct_lego_testmap.level"
-    }, {
+      },
+      {
         "name": "Clarabelle House Test",
         "path": "test.ClarabelleHouse_test"
-    }, {
+      },
+      {
         "name": "Walt Apartment Test",
         "path": "test.WaltApartment_test"
-    }, {
+      },
+      {
         "name": "Mickey House Test",
         "path": "test.MickeyHouse_test"
-    }, {
+      },
+      {
         "name": "Town Hall Test",
         "path": "test.Townhall_test"
-    }, {
+      },
+      {
         "name": "Ice Cream Test",
         "path": "test.IceCream_test"
-    }]
-}, {
+      }
+    ]
+  },
+  {
     "categoryname": "Old Demo Maps",
-    "levels": [{
+    "levels": [
+      {
         "name": "Disney Gulch Guardian Pool Demo",
         "path": "demo.gp_demo_coop"
-    }, {
+      },
+      {
         "name": "Disney Gulch Guardian Pool Demo UNLIT",
         "path": "AO.gp_demo_coop_AO"
-    }, {
+      },
+      {
         "name": "Disney Gulch Guardian Pool Demo More AI",
         "path": "demo.gp_demo_coop_MoreAI"
-    }, {
+      },
+      {
         "name": "Disney Gulch Guardian Pool Demo (Old)",
         "path": "levels/gp_demo_coop.level"
-    }, {
+      },
+      {
         "name": "Disney Gulch Guardian Pool Demo UNLIT (Old)",
         "path": "levels/gp_demo_coop_AO.level"
-    }, {
+      },
+      {
         "name": "Disney Gulch Guardian Pool Demo More AI (Old)",
         "path": "levels/gp_demo_coop_MoreAI.level"
-    }, {
+      },
+      {
         "name": "Mean Street Main (Old)",
         "path": "levels/MeanStreet_Main.level"
-    }, {
+      },
+      {
         "name": "Mean Street South (Old)",
         "path": "levels/MeanStreet_South.level"
-    }, {
+      },
+      {
         "name": "Mean Street North (Old)",
         "path": "levels/MeanStreet_North.level"
-    }, {
+      },
+      {
         "name": "OsTown (Old)",
         "path": "levels/OST_Center.level"
-    }, {
+      },
+      {
         "name": "OsTown Visit 1 (Old)",
         "path": "levels/OST_Center_Visit1.level"
-    }, {
+      },
+      {
         "name": "OsTown Visit 2 (Old)",
         "path": "levels/OST_Center_Visit2.level"
-    }, {
+      },
+      {
         "name": "Rainbow Caverns (Old)",
         "path": "levels/RainbowCaverns.level"
-    }, {
+      },
+      {
         "name": "RBC Angel and Devil Falls",
         "path": "levels/RainbowCavernsAngelDevilFalls.level"
-    }, {
+      },
+      {
         "name": "RBC Angel and Devil Falls UNLIT",
         "path": "levels/RainbowCavernsAngelDevilFalls_NOLITE.level"
-    }, {
+      },
+      {
         "name": "RBC Angel and Devil Falls SinglePlayer",
         "path": "levels/RainbowCavernsAngelDevilFallsSinglePlayer.level"
-    }, {
+      },
+      {
         "name": "RBC Angel and Devil Falls SinglePlayer UNLIT",
         "path": "levels/RainbowCavernsAngelDevilFallsSinglePlayer_NOLITE.level"
-    }, {
+      },
+      {
         "name": "Bog Easy Visit 1 (Old)",
         "path": "levels/NOS_BogEasy_Visit_1.level"
-    }, {
+      },
+      {
         "name": "Bog Easy Visit 2 (Old)",
         "path": "levels/NOS_BogEasy_ReturnVisit.level"
-    }, {
+      },
+      {
         "name": "Ventureland (Old)",
         "path": "levels/VTL_oasis_01a.level"
-    }, {
+      },
+      {
         "name": "Yen Sid's Lab (Old)",
         "path": "levels/YensidsLab.level"
-    }, {
+      },
+      {
         "name": "DEC Transition 1 (Old)",
         "path": "Levels/transition_01.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 2 (Old)",
         "path": "Levels/transition_02.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 3 (Old)",
         "path": "Levels/transition_03.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 4 (Old)",
         "path": "Levels/transition_04.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 5 (Old)",
         "path": "Levels/transition_05.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 6 (Old)",
         "path": "Levels/transition_06.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 7 (Old)",
         "path": "Levels/transition_07.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 8 (Old)",
         "path": "Levels/transition_08.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition 9 (Old)",
         "path": "Levels/transition_09.Level"
-    }, {
+      },
+      {
         "name": "DEC Transition Art Level",
         "path": "Levels/transition_Gen.Level"
-    }]
-}]
+      }
+    ]
+  }
+]
+

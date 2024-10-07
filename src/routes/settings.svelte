@@ -5,13 +5,15 @@
     FileExists,
     ReadJSON,
     WriteToJSON,
-    ConfigFile,
   } from "./library/configfiles.js";
-  import { open } from "@tauri-apps/api/dialog";
-  import { invoke } from "@tauri-apps/api/tauri";
+  import { open } from "@tauri-apps/plugin-dialog";
+  import { invoke } from "@tauri-apps/api/core";
   import ModInstall from "./components/ModInstall.svelte";
-  import { removeFile } from "@tauri-apps/api/fs";
+  import { remove } from "@tauri-apps/plugin-fs";
   import { getTauriVersion } from "@tauri-apps/api/app";
+  import Question from "./components/Question.svelte";
+  import { ConfigFile } from "./library/types.js";
+  import { LoadConfig, SaveConfig } from "./library/config.js";
 
   async function SetDolphinPath() {
     const selectedPath = await open({
@@ -25,23 +27,22 @@
       selectedPath.includes("Dolphin.app") ||
       selectedPath.includes("dolphin-emu")
     ) {
-      let dat = await ReadJSON("conf.json");
-      dat.dolphinPath = selectedPath;
-      await WriteToJSON(JSON.stringify(dat), "conf.json");
-      SetCurrentPaths();
+      config.dolphinPath = selectedPath;
+      SaveConfig(config);
     }
   }
 
-  let currentDolphinPath = "";
-  let currentWITPath = "";
-  let currentNkitPath = "";
+  let config: ConfigFile;
   let os = "";
   let dolphin_button: HTMLButtonElement;
   let version = "";
+  let tempRevokeLabel = false;
 
-  const DOLPHIN_LINK_WINDOWS = "https://kalsvik.no/res/dolphin_windows64.tar.gz";
+  const GITHUB_CLIENT_ID = "Ov23liwSwM9SY1O7uD9q";
+  const DOLPHIN_LINK_WINDOWS =
+    "https://kalsvik.no/res/dolphin_windows64.tar.gz";
   const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin_linux.tar.gz";
-  const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin_mac.zip";
+  const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin_mac.tar.gz";
 
   async function DownloadDolphin() {
     let modInstallElement = new ModInstall({
@@ -56,15 +57,11 @@
     else if (os == "linux") url = DOLPHIN_LINK_LINUX;
     invoke("download_tool", { url: url, foldername: "Dolphin" }).then(
       async (path) => {
-        let dat = await ReadJSON("conf.json");
+        if (os == "windows") config.dolphinPath = path + "/Dolphin.exe";
+        else if (os == "macos") config.dolphinPath = path + "/Dolphin.app";
+        else if (os == "linux") config.dolphinPath = path + "/dolphin-emu";
 
-        if (os == "windows") dat.dolphinPath = path + "/Dolphin.exe";
-        else if (os == "macos") dat.dolphinPath = path + "/Dolphin.app";
-        else if (os == "linux") dat.dolphinPath = path + "/dolphin-emu";
-
-        await invoke("create_portable", { dolphinpath: dat.dolphinPath });
-        await WriteToJSON(JSON.stringify(dat), "conf.json");
-        SetCurrentPaths();
+        await invoke("create_portable", { dolphinpath: config.dolphinPath });
         modInstallElement.$destroy();
       },
     );
@@ -77,14 +74,25 @@
   });
 
   async function SetCurrentPaths() {
-    let config: ConfigFile = await ReadJSON("conf.json");
-    currentDolphinPath = config.dolphinPath;
-    currentWITPath = config.WITPath;
-    currentNkitPath = config.NkitPath;
+    config = await LoadConfig();
   }
 
   async function DeleteModCache() {
     await invoke("delete_mod_cache_all");
+  }
+
+  async function RevokeGitHub() {
+    config.gitHubSecret = "";
+    SaveConfig(config);
+  }
+  async function ConnectGitHub() {
+    await invoke("open_link", {
+      url:
+        "https://github.com/login/oauth/authorize?client_id=" +
+        GITHUB_CLIENT_ID +
+        "&scope=repo",
+    });
+    tempRevokeLabel = true;
   }
 
   async function RemoveAllConfFiles() {
@@ -101,7 +109,7 @@
         let path = d.path + "/EMLMods.json";
         let fileExists = await FileExists(path);
         if (fileExists) {
-          await removeFile(path);
+          await remove(path);
         }
       });
       await DeleteAllConfigFiles();
@@ -110,19 +118,38 @@
   }
 </script>
 
-<h1>Settings</h1>
-<hr />
-<p />
-<button on:click={SetDolphinPath}>Assign Dolphin Path</button>
-<span style="display:inline"><em>{currentDolphinPath}</em></span>
-<p></p>
-<h2>Automatically Download & Assign</h2>
-<button bind:this={dolphin_button} on:click={DownloadDolphin}
-  >Download Dolphin</button
->
-<h2>Factory Reset</h2>
-<button on:click={RemoveAllConfFiles}>Remove all config files</button>
-<br />
-<button on:click={DeleteModCache}>Delete mod cache</button>
-<p></p>
+{#if config != null}
+  <h1>Settings</h1>
+  <hr />
+  <p />
+  <h2>Client Settings</h2>
+  <span>Enable Developer Mode</span>
+  <input type="checkbox" bind:value={config.developerMode} />
+  <Question
+    content="This enables the Mod Publisher tool which allows you to make/publish/update mods."
+  ></Question>
+  <h2>Developer Settings</h2>
+  {#if config.gitHubSecret === "" && !tempRevokeLabel}
+    <button on:click={ConnectGitHub}>Connect GitHub Account</button>
+  {:else}
+    <button on:click={RevokeGitHub}>Revoke GitHub Connection</button>
+  {/if}
+  <h2>Dolphin Settings</h2>
+  <button bind:this={dolphin_button} on:click={DownloadDolphin}
+    >Download Dolphin</button
+  >
+  {#if config.dolphinPath != ""}<span style="font-size:7px;color:lime;"
+      >*Downloaded</span
+    >{/if}
+  <br />
+  <button on:click={SetDolphinPath}>Set Dolphin Config Path</button>
+  <Question
+    content="You can use this to either move the config to another place, or link a pre-existing dolphin config."
+  ></Question>
+  <h2>Factory Reset</h2>
+  <button on:click={RemoveAllConfFiles}>Remove all config files</button>
+  <br />
+  <button on:click={DeleteModCache}>Delete mod cache</button>
+  <p></p>
+{/if}
 <span>© 2024 Jonas Kalsvik</span>
