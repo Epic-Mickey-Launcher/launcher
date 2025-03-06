@@ -1,7 +1,32 @@
-use std::path::PathBuf;
-
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+};
+extern crate openssl;
+extern crate ssh_key;
 pub fn clone(url: &String, destination: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     git2::Repository::clone_recurse(url, destination)?;
+    Ok(())
+}
+
+pub fn generate_ssh_key_pair(path: &String) -> Result<(), Box<dyn std::error::Error>> {
+    let key = openssl::rsa::Rsa::generate(4096)?;
+    let public_key = key.public_key_to_pem()?;
+    let private_key = key.private_key_to_pem()?;
+
+    let mut private_key_path = PathBuf::from(path);
+    let mut public_key_path = PathBuf::from(path);
+
+    private_key_path.push("private.ssh");
+    public_key_path.push("public.ssh");
+
+    let mut private_key_file = File::create(private_key_path)?;
+    let mut public_key_file = File::create(public_key_path)?;
+
+    private_key_file.write_all(&private_key)?;
+    public_key_file.write_all(&public_key)?;
+
     Ok(())
 }
 

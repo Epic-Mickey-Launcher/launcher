@@ -66,7 +66,6 @@ pub async fn add(
         }
 
         let path_stringed = path.to_str().unwrap();
-        println!("{}", path_stringed);
         if path.is_dir() {
             full_path = path;
             version_lock_path = full_path.clone();
@@ -116,7 +115,6 @@ pub async fn add(
 
     let mut files_to_restore: Vec<String> = Vec::new();
 
-    println!("i get this far");
     //inject DATA files into current dump
     if Path::new(&path_datafiles).exists() && datafiles_exist {
         let mut path_final_location = PathBuf::new();
@@ -357,6 +355,8 @@ pub async fn delete(
             destination_path.push(&datafiles_path);
             destination_path.push(&file);
 
+            println!("{}", destination_path.display());
+
             if source_path.exists() && destination_path.exists() {
                 fs::copy(source_path, destination_path)?;
             } else if destination_path.exists() {
@@ -471,7 +471,11 @@ pub async fn validate_mod(
         if !path.is_dir() {
             path = helper::get_config_path()?;
             path.push("localmod");
-            println!("{} {}", &url, &path.display());
+
+            if (fs::exists(&path))? {
+                fs::remove_dir_all(&path)?;
+            }
+
             archive::extract(url, &path)?;
         }
     }

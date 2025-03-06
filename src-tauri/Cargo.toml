@@ -32,7 +32,7 @@ registry = "1.2.3"
 shutil = "0.1.2"
 fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs" }
 chrono = "0.4.31"
-eml-validate = {version = "0.1.0", path="/home/jonas/eml-validate/"}
+eml-validate = {version = "0.1.0", path="/home/jonas/EML/eml-validate/"}
 dataurl = "0.1.2"
 git2 = "0.19.0"
 tauri = { version = "2.0.0-rc.10", features = [] }
@@ -41,6 +41,8 @@ tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-wo
 tauri-plugin-deep-link = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
 compress-tools = "0.15.1"
 tauri-plugin-os = "2.0.0-rc"
+ssh-key = "0.6.7"
+openssl = "0.10.68"
 [features]
 default = ["custom-protocol"]
 custom-protocol = []

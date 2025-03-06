@@ -92,6 +92,7 @@
         GITHUB_CLIENT_ID +
         "&scope=repo",
     });
+
     tempRevokeLabel = true;
   }
 

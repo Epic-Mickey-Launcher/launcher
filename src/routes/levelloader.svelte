@@ -239,9 +239,15 @@
       mode: "local",
     });
 
+    modInstallElement.$destroy();
+
+    if (!validationInfo.validated) {
+      await alert(validationInfo.result);
+      return;
+    }
+
     let unified = LocalModToUnifiedMod(validationInfo.data);
 
-    modInstallElement.$destroy();
     downloadMod.Initialize(
       data,
       true,

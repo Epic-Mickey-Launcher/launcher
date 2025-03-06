@@ -83,7 +83,9 @@ fn main() {
             open_config_folder,
             get_frontend_config_path,
             generate_mod_project,
-            init_repository
+            init_repository,
+            update_repository,
+            generate_ssh_key_pair
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -147,6 +149,13 @@ fn get_bootbin_id(path: String) -> String {
     f.read_exact(&mut id_bytes).unwrap();
     let id = std::str::from_utf8(&id_bytes[0..6]).unwrap().to_uppercase();
     return id;
+}
+
+#[tauri::command]
+fn generate_ssh_key_pair(path: String, window: Window) {
+    git::generate_ssh_key_pair(&path).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    })
 }
 
 #[tauri::command]
@@ -342,6 +351,12 @@ async fn validate_mod(
 #[tauri::command]
 fn init_repository(path: String, window: Window) {
     git::init_repository(&path).unwrap_or_else(|error| {
+        helper::handle_error(&error.to_string(), &window);
+    });
+}
+#[tauri::command]
+fn update_repository(path: String, window: Window) {
+    git::update_mod(&path).unwrap_or_else(|error| {
         helper::handle_error(&error.to_string(), &window);
     });
 }

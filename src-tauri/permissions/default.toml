@@ -13,7 +13,8 @@ permissions = [
 
 commands.allow = [
  "init_repository",
- "clean_temp_install_directory",   
+ "clean_temp_install_directory",
+ "generate_ssh_key_pair",
             "generate_mod_project",
             "playgame",
             "download_mod",

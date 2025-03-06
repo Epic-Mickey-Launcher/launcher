@@ -1,6 +1,7 @@
-import { ReadJSON, WriteFile, WriteToJSON } from "./configfiles";
-import { ConfigFile, Game, GameConfig } from "./types";
+import { ConfigFileExists, FileExists, ReadJSON, WriteFile, WriteToJSON } from "./configfiles";
+import { ConfigFile, Game, GameConfig, PublisherModData } from "./types";
 
+const MODPUBLISHERCONFNAME = "modpublisherconf.json"
 export async function LoadGamesConfig(): Promise<GameConfig[]> {
   let jsonData: GameConfig[] = await ReadJSON("games.json");
   return jsonData;
@@ -19,4 +20,22 @@ export async function LoadConfig(): Promise<ConfigFile> {
 export async function SaveConfig(config: ConfigFile) {
   let processed = JSON.stringify(config)
   await WriteToJSON(processed, "conf.json")
+}
+
+export async function LoadModPublisherConfig(): Promise<PublisherModData[]> {
+  let jsonData: PublisherModData[];
+
+  console.log("ass")
+  if (!ConfigFileExists(MODPUBLISHERCONFNAME)) {
+    console.log("butt")
+    jsonData = await ReadJSON(MODPUBLISHERCONFNAME);
+  }
+  else {
+    jsonData = [];
+  }
+  return jsonData;
+}
+export async function SaveModPublisherConfig(config: PublisherModData[]) {
+  let processed = JSON.stringify(config)
+  await WriteToJSON(processed, MODPUBLISHERCONFNAME)
 }

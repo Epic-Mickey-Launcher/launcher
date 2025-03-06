@@ -94,12 +94,12 @@
     console.log("poopha");
     let d = await ReadJSON("conf.json");
 
-    if (d.dolphinPath == "") {
-      await alert("Dolphin is required for this game to work!");
-      return;
-    }
 
     if (data.platform.toUpperCase() == Platform.Wii) {
+    if (d.dolphinPath == "") {
+      alert("Dolphin is required for this game to work!");
+      return;
+    }
       let id = GetGameWiiID(data);
       console.log(id);
       invoke("playgame", {
@@ -116,6 +116,7 @@
     } else if (data.platform == Platform.PC) {
       invoke("get_os").then(async (_os) => {
         if (_os == "linux") {
+          
           let gameIdentity: GameIdentity = GetGameIdentity(data.game);
           if (data.steamVersion) {
             let steamID = gameIdentity.steamID;
@@ -132,7 +133,7 @@
             }
           });
         } else {
-          await alert("Playing Windows games is not supported on this OS yet.");
+          alert("Playing Windows games is not supported on this OS yet.");
         }
       });
     }
@@ -231,11 +232,11 @@
   onMount(async () => {
     let os = await invoke("get_os");
     //band-aid patch for 0.5.1. i don't have time to make a mini-lutris im already way over schedule
-    if (os == "linux" && data.game == Game.EMR) {
+    if (os == "linux" && data.game == Game.EMR && !data.steamVersion) {
       linuxUnsupported = true;
       playButton.disabled = true;
       playButton.title =
-        "Starting this game from Linux is not supported yet. Please use solutions like Lutris or Steam.";
+        "Starting this game from Linux without Steam is not supported yet. Please use solutions like Lutris or Steam.";
     }
   });
 
