@@ -1,15 +1,16 @@
 use crate::debug;
+use anyhow::Error;
+use anyhow::Result;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use tauri::Emitter;
 use tauri::Window;
 use walkdir::WalkDir;
-
 const CONFIG_NAME: &str = "com.kalsvik.eml";
 const CONFIG_NAME_LEG: &str = "com.memer.eml";
 
-pub fn open_path_in_file_manager(path: String) -> std::io::Result<()> {
+pub fn open_path_in_file_manager(path: String) -> Result<()> {
     #[cfg(target_os = "windows")]
     Command::new("explorer.exe").arg(path).spawn()?;
 
@@ -25,7 +26,7 @@ pub fn check_old_config_path() -> bool {
     PathBuf::from(CONFIG_NAME_LEG).exists()
 }
 
-pub fn migrate_old_config() -> std::io::Result<()> {
+pub fn migrate_old_config() -> Result<()> {
     let new_config = PathBuf::from(CONFIG_NAME);
     let old_config = PathBuf::from(CONFIG_NAME_LEG);
     if !old_config.exists() {
@@ -38,7 +39,7 @@ pub fn migrate_old_config() -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn get_config_path() -> std::io::Result<PathBuf> {
+pub fn get_config_path() -> Result<PathBuf> {
     let config_path = dirs_next::config_dir().expect("could not get config dir");
 
     let mut path = config_path.clone();
@@ -47,14 +48,19 @@ pub fn get_config_path() -> std::io::Result<PathBuf> {
     Ok(path)
 }
 
-pub fn handle_error(error: &str, window: &Window) {
-    debug::log(&format!("Error: {}", error));
-    window.emit("on_rust_error", error).unwrap()
+pub fn handle_error(error: Error, window: &Window) {
+    let backtrace = error.backtrace().to_string();
+    debug::log(&format!(
+        "Error: {}\nBacktrace: {}",
+        error.to_string(),
+        backtrace
+    ));
+    window.emit("on_rust_error", error.to_string()).unwrap();
 }
 
-pub fn inject_files(source: &PathBuf, _destination: &PathBuf) -> std::io::Result<()> {
+pub fn inject_files(source: &PathBuf, _destination: &PathBuf) -> Result<()> {
     for entry in WalkDir::new(&source) {
-        let p = PathBuf::from(entry.unwrap().path());
+        let p = PathBuf::from(entry?.path());
 
         if p.is_file() {
             let non_abs = remove_absolute_path(&p, &source);
@@ -68,11 +74,15 @@ pub fn inject_files(source: &PathBuf, _destination: &PathBuf) -> std::io::Result
             if !destination_folder.exists() {
                 fs::create_dir_all(&destination_folder)?;
             }
-
             if p.exists() {
                 if destination.exists() {
                     fs::remove_file(&destination)?;
                 }
+                debug::log(&format!(
+                    "Injecting {} to {}",
+                    &p.display(),
+                    &destination.display()
+                ));
 
                 fs::copy(p, destination)?;
             }

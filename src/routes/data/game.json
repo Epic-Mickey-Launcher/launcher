@@ -10,7 +10,9 @@
       }
     ],
     "resources": {
-      "cardImageUrl": "img/emr.png"
+      "cardImageUrl": "img/emrbanner.png",
+      "logoImageUrl": "img/emrlogo.png",
+      "iconImageUrl": "img/emricon.png"
     }
   },
   {
@@ -54,7 +56,9 @@
       }
     ],
     "resources": {
-      "cardImageUrl": "img/em2.png"
+      "iconImageUrl": "img/em2icon.png",
+      "cardImageUrl": "img/em2banner.png",
+      "logoImageUrl": "img/em2logo.png"
     }
   },
   {
@@ -93,7 +97,9 @@
       }
     ],
     "resources": {
-      "cardImageUrl": "img/em1.png"
+      "iconImageUrl": "img/emicon.png",
+      "cardImageUrl": "img/em1banner.png",
+      "logoImageUrl": "img/emlogo.png"
     }
   }
 ]

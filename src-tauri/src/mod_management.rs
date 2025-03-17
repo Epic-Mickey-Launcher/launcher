@@ -1,7 +1,10 @@
-use crate::{archive, debug, dolphin, download, git, helper, mod_info};
+use crate::{archive, debug, dolphin, download, helper, mod_info};
+use anyhow::Result;
+use anyhow::{anyhow, Error};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::{Error, Write};
+use std::fs::File;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use tauri::Emitter;
 use tauri::Window;
@@ -24,7 +27,7 @@ pub async fn add(
     platform: String,
     version: String,
     window: &Window,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Error> {
     debug::log("Begin Adding Mod");
     let mut path = helper::get_config_path()?;
     path.push(r"cachedMods");
@@ -59,7 +62,7 @@ pub async fn add(
         }
 
         let mut path = PathBuf::from(&url);
-        if path.is_relative() {
+        if path.is_relative() && is_local {
             let config_path = helper::get_config_path()?;
             path = PathBuf::from(config_path);
             path.push(url);
@@ -67,6 +70,7 @@ pub async fn add(
 
         let path_stringed = path.to_str().unwrap();
         if path.is_dir() {
+            println!("mod is directory");
             full_path = path;
             version_lock_path = full_path.clone();
             version_lock_path.push("version.lock");
@@ -98,7 +102,7 @@ pub async fn add(
     let mut version_lock = std::fs::File::create(version_lock_path)?;
     version_lock.write(version.as_bytes())?;
 
-    let json_data: eml_validate::ModInfo = eml_validate::validate(&full_path)?;
+    let json_data: eml_validate::ModInfo = eml_validate::validate(&full_path, false)?;
 
     //inject files
 
@@ -154,7 +158,7 @@ pub async fn add(
         //we're copying the folders too since you never know if the mod put in an extra
 
         for entry in WalkDir::new(&path_search_clone) {
-            let p = entry.unwrap();
+            let p = entry?;
 
             if !p.path().is_file() {
                 let p_str = helper::correct_all_slashes(p.path().to_str().unwrap().to_string());
@@ -189,7 +193,7 @@ pub async fn add(
         //backup files
 
         for entry in WalkDir::new(&path_search_clone) {
-            let p = entry.unwrap();
+            let p = entry?;
 
             if p.path().is_file() {
                 let p_str = helper::correct_all_slashes(p.path().to_str().unwrap().to_string());
@@ -203,11 +207,7 @@ pub async fn add(
         }
 
         for file in &files {
-            let mut source = PathBuf::new();
-            source.push(&dumploc);
-            if platform.to_lowercase() == "wii" {
-                source.push("files");
-            }
+            let mut source = path_final_location.clone();
             source.push(file);
 
             let mut destination = PathBuf::new();
@@ -229,25 +229,53 @@ pub async fn add(
             &path_final_location.display()
         ));
 
+        println!("{}", &path_datafiles.display());
+
         helper::inject_files(&path_datafiles, &path_final_location)?;
     }
 
     let mut scriptfolders: Vec<String> = Vec::new();
     if Path::new(&path_scripts).exists() && scripts_exist {
-        debug::log(&format!("Injecting Scripts"));
         let mut path = PathBuf::from(dumploc.clone());
         path.push("recolored/Binaries/Win64/Mods");
+        debug::log(&format!("Injecting Scripts into: {}", &path.display()));
+
+        let path_to_mods_list = path.clone().join("mods.txt");
+        if !path_to_mods_list.exists() {
+            debug::log(&"!WARNING! UE4SS 'mods.txt' does not exist. this indicates that UE4SS was not installed correctly.".to_string());
+            File::create(&path_to_mods_list)?;
+        }
+
+        debug::log(&format!(
+            "Script Mods List: {}",
+            &path_to_mods_list.display()
+        ));
+        let mut script_mods_list = File::options()
+            .read(true)
+            .append(true)
+            .write(true)
+            .open(path_to_mods_list)?;
+
+        //todo: this will append the mod to the bottom of the list, making it first priority over the 'Keybinds' mod. fix
+
         helper::inject_files(&path_scripts, &path)?;
 
         let path_scripts_str = &path_scripts.clone().into_os_string().into_string().unwrap();
 
-        for entry in WalkDir::new(&path_scripts) {
-            let p = entry.unwrap();
+        for entry in WalkDir::new(&path_scripts)
+            .contents_first(true)
+            .max_depth(1)
+            .min_depth(1)
+        {
+            let p = entry?;
 
             if p.path().is_dir() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
                 let p_str_final = &p_str.replace(path_scripts_str, "");
-                scriptfolders.push(p_str_final.to_string());
+                scriptfolders.push(helper::remove_first(p_str_final).unwrap().to_string());
+                script_mods_list.write(
+                    format!("\n{} : 1\n", helper::remove_first(p_str_final).unwrap()).as_bytes(),
+                )?;
             }
         }
     }
@@ -269,7 +297,7 @@ pub async fn add(
             .unwrap();
 
         for entry in WalkDir::new(&path_textures) {
-            let p = entry.unwrap();
+            let p = entry?;
 
             if p.path().is_file() {
                 let p_str = p.path().to_str().expect("Couldn't convert path to string.");
@@ -311,12 +339,12 @@ pub async fn delete(
     modid: String,
     active: bool,
     window: &Window,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Error> {
     debug::log(&format!("Attempting to delete mod ({}).", modid));
     let p = PathBuf::from(format!("{}/{}", dumploc, modid));
 
     if !p.exists() {
-        return Err("Mod does not exist in game.".into());
+        return Err(anyhow!("Mod does not exist in game."));
     }
 
     let data = mod_info::read(&p.to_str().unwrap().to_string())?;
@@ -342,6 +370,8 @@ pub async fn delete(
         backup_path.push(&dumploc);
         backup_path.push("backup");
 
+        File::create(backup_path.clone().join("EML_DontDeleteThisFolder"))?; //create pathetic warning file to try to keep people from deleting the backup restore folder.
+
         window.emit(
             "change_description_text_delete",
             format!("Restoring original files..."),
@@ -358,8 +388,17 @@ pub async fn delete(
             println!("{}", destination_path.display());
 
             if source_path.exists() && destination_path.exists() {
+                debug::log(&format!(
+                    "Restoring Backup of: ({}) from: ({})",
+                    destination_path.display(),
+                    source_path.display()
+                ));
                 fs::copy(source_path, destination_path)?;
             } else if destination_path.exists() {
+                debug::log(&format!(
+                    "File does not have a backup. Deleting: {}",
+                    destination_path.display()
+                ));
                 fs::remove_file(destination_path)?;
             }
         }
@@ -391,28 +430,40 @@ pub async fn delete(
             }
         }
 
-        for folder in scriptfolders {
-            let mut path = PathBuf::from(&dumploc);
-
-            path.push("recolored/Binaries/Win64/Mods");
-
-            let path_final =
-                helper::remove_first(&folder).expect("couldn't remove slash from string");
-
-            path.push(path_final);
-
-            if std::path::Path::new(&path).exists() {
-                fs::remove_dir_all(&path)?;
-            }
-        }
         debug::log("Removed texture files.");
+
+        let mut path = PathBuf::from(&dumploc);
+        path.push("recolored/Binaries/Win64/Mods");
+        if path.exists() {
+            let mut script_mod_list = File::open(path.clone().join("mods.txt"))?;
+            let mut script_mod_list_buffer = Vec::new();
+            script_mod_list.read_to_end(&mut script_mod_list_buffer)?;
+            let mut script_mod_list_string_buffer = String::from_utf8(script_mod_list_buffer)?;
+
+            script_mod_list = File::create(path.clone().join("mods.txt"))?; //truncate file
+
+            for folder in scriptfolders {
+                let mut folder_path = path.clone();
+                folder_path.push(&folder);
+
+                if Path::new(&folder_path).exists() {
+                    fs::remove_dir_all(&folder_path)?;
+                    script_mod_list_string_buffer = script_mod_list_string_buffer
+                        .replace(format!("{} : 1\n", folder).as_str(), ""); //todo: make a formatter for this file to prevent too many newlines from piling up
+                                                                            // remove script mod from list
+                }
+            }
+            script_mod_list.write_all(script_mod_list_string_buffer.as_bytes())?;
+
+            debug::log("Removed script files.");
+        }
     }
     debug::log("Process ended.");
 
     Ok(())
 }
 
-pub fn delete_cache(modid: String) -> std::io::Result<()> {
+pub fn delete_cache(modid: String) -> Result<()> {
     let mut path = helper::get_config_path()?;
     path.push(r"cachedMods");
     path.push(modid);
@@ -422,7 +473,7 @@ pub fn delete_cache(modid: String) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn delete_cache_all() -> std::io::Result<()> {
+pub fn delete_cache_all() -> Result<()> {
     let mut path = helper::get_config_path()?;
     path.push("cachedMods");
     if path.exists() {
@@ -433,12 +484,11 @@ pub fn delete_cache_all() -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn clean_temp_install_directory(destination: PathBuf) -> std::io::Result<()> {
+pub fn clean_temp_install_directory(destination: PathBuf) -> Result<()> {
     let mut path = helper::get_config_path()?;
     if destination.as_os_str().is_empty() {
-        return Err(Error::new(
-            std::io::ErrorKind::PermissionDenied,
-            "cleaning directory would cause config to get removed.",
+        return Err(anyhow!(
+            "cleaning directory would cause config to get removed."
         ));
     }
     path.push(destination);
@@ -446,29 +496,39 @@ pub fn clean_temp_install_directory(destination: PathBuf) -> std::io::Result<()>
     Ok(())
 }
 
+pub fn package_mod_for_publishing() -> Result<String> {
+    let mut path = helper::get_config_path()?;
+    path.push("localmod");
+
+    if !path.exists() {
+        return Err(anyhow!("no localmod folder found."));
+    }
+
+    let output_path = helper::get_config_path()?.join("publish.tar.gz");
+    archive::compress(&path, &output_path)?;
+    fs::remove_dir_all(path)?;
+    Ok(output_path.to_string_lossy().to_string())
+}
+
 pub async fn validate_mod(
     url: String,
     destination: PathBuf,
     validate_type: String,
     window: &Window,
-) -> Result<ValidationInfo, Box<dyn std::error::Error>> {
+) -> Result<ValidationInfo, Error> {
     debug::log("Validating mod");
 
     let mut path = PathBuf::new();
 
-    if validate_type == "git" {
-        path = helper::get_config_path()?;
-        path.push(".tempverify");
-        fs::create_dir_all(&path)?;
-        git::clone(&url, &path)?;
-    } else if validate_type == "extern" {
+    if validate_type == "extern" {
         if url.starts_with("http") {
             path = helper::get_config_path()?;
             path.push(destination);
             download::zip(url, &path, false, window).await?;
         }
     } else if validate_type == "local" {
-        if !path.is_dir() {
+        let path_to_mod = PathBuf::from(url);
+        if !path_to_mod.is_dir() {
             path = helper::get_config_path()?;
             path.push("localmod");
 
@@ -476,7 +536,7 @@ pub async fn validate_mod(
                 fs::remove_dir_all(&path)?;
             }
 
-            archive::extract(url, &path)?;
+            archive::extract(path_to_mod.to_str().unwrap().to_string(), &path)?;
         }
     }
 
@@ -488,7 +548,7 @@ pub async fn validate_mod(
         data: eml_validate::ModInfo::new(),
     };
 
-    let config = match eml_validate::validate(&path) {
+    let config = match eml_validate::validate(&path, false) {
         Ok(config) => config,
         Err(e) => {
             validation.result = e.to_string();
@@ -502,26 +562,24 @@ pub async fn validate_mod(
     if validation.validated {
         let mut mod_icon_path = path.clone();
         mod_icon_path.push(config.icon_path.clone());
-        let image_buffer = std::fs::read(mod_icon_path)?;
-        let mut data_url = dataurl::DataUrl::new();
-        data_url.set_data(&image_buffer);
-        data_url.set_media_type("image/png".to_string().into());
+        let data_url = get_installed_mod_icon(&mod_icon_path)?;
         validation.modicon = data_url.to_string();
         validation.data = config;
     }
 
-    if validate_type == "git" {
-        fs::remove_dir_all(path)?;
-    }
     debug::log("Finished Validating mod");
     Ok(validation)
 }
 
-pub async fn generate_mod_template(
-    game: String,
-    platform: String,
-    path: String,
-) -> std::io::Result<()> {
+pub fn get_installed_mod_icon(path: &PathBuf) -> Result<String, Error> {
+    let image_buffer = fs::read(path)?;
+    let mut data_url = dataurl::DataUrl::new();
+    data_url.set_data(&image_buffer);
+    data_url.set_media_type("image/png".to_string().into());
+    Ok(data_url.to_string())
+}
+
+pub async fn generate_mod_template(game: String, platform: String, path: String) -> Result<()> {
     eml_validate::generate_project(game, platform, path)
 }
 
@@ -533,7 +591,7 @@ pub async fn change_status(
     active: bool,
     version: String,
     window: &Window,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Error> {
     let active = active;
 
     if active {

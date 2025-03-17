@@ -3,7 +3,7 @@
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "esnext",
-    "moduleResolution":"Node",
+    "moduleResolution": "Node",
     "baseUrl": ".",
     /**
      * Typecheck JS in `.svelte` and `.js` files by default.
@@ -12,12 +12,19 @@
      * of JS in `.svelte` files.
      */
     "allowSyntheticDefaultImports": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": true,
-    "types":[
+    "types": [
       "svelte",
       "vite/client"
     ]
   },
-  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte"
+  ]
 }

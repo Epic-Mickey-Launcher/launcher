@@ -1,15 +1,12 @@
+use crate::debug;
+use crate::helper;
+use anyhow::Result;
+use anyhow::{anyhow, Error};
 use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-use crate::debug;
-use crate::helper;
-
-pub async fn extract(
-    isopath: String,
-    gamename: String,
-    dolphin: String,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn extract(isopath: String, gamename: String, dolphin: String) -> Result<String, Error> {
     debug::log("beginning ISO extraction");
     let mut destination = helper::get_config_path()?;
     destination.push("Games");
@@ -28,7 +25,7 @@ pub async fn extract(
     fs::create_dir_all(&destination)?;
 
     if !dolphin_tool.exists() {
-        return Err("dolphin tool does not exist".into());
+        return Err(anyhow!("dolphin tool does not exist"));
     }
 
     if destination.exists() {
@@ -48,7 +45,7 @@ pub async fn extract(
     Ok(output.to_string())
 }
 
-pub fn check(path: String, dolphin: String) -> Result<String, Box<dyn std::error::Error>> {
+pub fn check(path: String, dolphin: String) -> Result<String, Error> {
     debug::log("Checking Game ID");
 
     let mut dolphin_tool = PathBuf::from(dolphin);
@@ -69,8 +66,10 @@ pub fn check(path: String, dolphin: String) -> Result<String, Box<dyn std::error
     let stdout = String::from_utf8(dolphin.stdout)?;
     let mut s = stdout.split("\n");
 
+    println!("{}", stdout);
+
     if !stdout.contains("Game ID:") {
-        return Err("Dolphin Tool Failed to get Game ID from ROM.".into());
+        return Err(anyhow!("Dolphin Tool Failed to get Game ID from ROM."));
     }
 
     let mut id_parse = String::new();

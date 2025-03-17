@@ -1,16 +1,17 @@
+extern crate openssl;
+extern crate ssh_key;
+use anyhow::Result;
 use std::{
-    fs::{self, File},
+    fs::File,
     io::Write,
     path::PathBuf,
 };
-extern crate openssl;
-extern crate ssh_key;
-pub fn clone(url: &String, destination: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+pub fn clone(url: &String, destination: &PathBuf) -> Result<()> {
     git2::Repository::clone_recurse(url, destination)?;
     Ok(())
 }
 
-pub fn generate_ssh_key_pair(path: &String) -> Result<(), Box<dyn std::error::Error>> {
+pub fn generate_ssh_key_pair(path: &String) -> Result<()> {
     let key = openssl::rsa::Rsa::generate(4096)?;
     let public_key = key.public_key_to_pem()?;
     let private_key = key.private_key_to_pem()?;
@@ -30,7 +31,7 @@ pub fn generate_ssh_key_pair(path: &String) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-pub fn init_repository(path: &String) -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_repository(path: &String) -> Result<()> {
     let repo = git2::Repository::init(path)?;
     let seconds_since_epoch = chrono::Local::now().to_utc().timestamp();
     let time = git2::Time::new(seconds_since_epoch, 0);
@@ -43,7 +44,7 @@ pub fn init_repository(path: &String) -> Result<(), Box<dyn std::error::Error>> 
     Ok(())
 }
 
-pub fn update_mod(path: &String) -> Result<(), Box<dyn std::error::Error>> {
+pub fn update_mod(path: &String) -> Result<()> {
     let repo = git2::Repository::open(path)?;
     let seconds_since_epoch = chrono::Local::now().to_utc().timestamp();
     let time = git2::Time::new(seconds_since_epoch, 0);

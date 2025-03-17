@@ -1,37 +1,37 @@
 <script lang="ts">
     import OneTimeNotice from "./components/OneTimeNotice.svelte";
     import GameNode from "./components/GameNode.svelte";
-    import {exists} from "@tauri-apps/plugin-fs";
-    import {onMount} from "svelte";
-    import {FileExists, GetPath, InitConfFiles, ReadFile, WriteFile} from "./library/configfiles.js";
-    import {Game, GameConfig} from "./library/types";
-    import Addgame from "./components/addgame.svelte";
+    import {mount, onMount, unmount} from "svelte";
+    import {GetGameIdentity} from "./library/gameid";
+    import AddGameC from "./components/addgame.svelte";
+    import {GameInstance} from "./library/instance.svelte";
+    import {AddTrackedGame, GetLoadedGameInstances} from "./library/config";
+    import {GetPath} from "./library/configfiles";
+    import {open} from '@tauri-apps/plugin-dialog';
+    import {ExtractISO} from "./library/isoextract";
+    import type {IdentifyGameResult} from "./library/types";
+    import ModInstall from "./components/ModInstall.svelte";
+    import Dialog from "./components/dialog.svelte";
 
-    let addgameComponent: Addgame;
-    let addGameButton: HTMLDivElement;
-    let gameNodeDiv: HTMLDivElement;
-    let blackoutDiv: HTMLDivElement;
-    let bannerDiv: HTMLDivElement;
-    let hoveredGame = "EM1";
+    let AddGameComponent;
+    let addGameButton: HTMLDivElement = $state();
+    let gameNodeDiv: HTMLDivElement = $state();
+    let blackoutDiv: HTMLDivElement = $state();
+    let bannerDiv: HTMLDivElement = $state();
+    let hoveredGame = $state("EM1");
     let nodes = [];
-
     let addGameButtonDisabled = false;
+    let noGamesNotice = $state(false)
+    let OneTimeNoticeComponent = $state(OneTimeNotice)
 
     onMount(async () => {
         addGameButton.classList.toggle("expandgamebutton");
-
-        let path = await GetPath();
-        let confExists = await FileExists(path + "conf.json");
-        if (!confExists) {
-            InitConfFiles();
+        await GetPath();
+        let gameInstances = GetLoadedGameInstances()
+        if (gameInstances.length == 0) {
+            noGamesNotice = true
         }
-        let jsonExists = await exists(path + "games.json");
-        if (!jsonExists) {
-            await WriteFile(path + "games.json", "[]");
-        }
-        let t = await ReadFile(path + "games.json");
-        let jsonData: GameConfig[] = JSON.parse(t);
-        jsonData.forEach((dat: GameConfig) => {
+        gameInstances.forEach((dat: GameInstance) => {
             CreateNode(dat);
         });
 
@@ -57,52 +57,65 @@
     }
 
     async function AddGame(isImage: boolean) {
-        let config = await addgameComponent.AddGame(isImage);
-        DefaultAddGameButton();
-        if (config == null) return;
-        let card = CreateNode(config);
+        const selected = await open({
+            multiple: false,
+            filters: [{
+                name: 'Image',
+                extensions: ['rvz', 'iso', 'wbfs']
+            }],
+            directory: !isImage
+        });
+
+        let path = selected;
+
+        if (path == null) return
+
+        let modInstallElement = mount(ModInstall, {
+            target: document.body,
+            props: {
+                modIcon: isImage ? "img/dolphin.png" : "img/emicon.png",
+                action: isImage ? "Extracting your game with Dolphin..." : "Adding your game...",
+                modName: "",
+                description: "This won't take long!"
+            }
+        });
+
+        if (isImage) {
+
+            path = await ExtractISO(selected, (identifiedGame: IdentifyGameResult) => {
+                let gameIdentity = GetGameIdentity(identifiedGame.game)
+
+                modInstallElement.action = "Adding"
+                modInstallElement.modName = gameIdentity.name
+                modInstallElement.modIcon = gameIdentity.resources.iconImageUrl
+            })
+        }
+
+        let card = await CreateNode(await AddTrackedGame(path))
+
+        await unmount(modInstallElement)
 
         setTimeout(() => {
-            card.node.style.opacity = "1";
-        }, 0.1);
+            card.node.style.opacity = 1;
+        }, 100);
     }
 
     //todo: remove useless variables game, directory, platform
-    function CreateNode(dat: GameConfig) {
-        var element = new GameNode({
+    async function CreateNode(instance: GameInstance) {
+        let release = GetGameIdentity(instance.gameConfig.game)
+        const element = mount(GameNode, {
             target: gameNodeDiv,
+            props: {
+                imgBackgroundURL: release.resources.cardImageUrl,
+                imgLogoURL: release.resources.logoImageUrl,
+                gameInstance: instance
+            }
         });
-
         nodes.push(element);
-        element.data = dat;
-        element.mouseEnterCB = (g: string) => {
-            console.log(g)
-            hoveredGame = g;
-            blackoutDiv.style.opacity = "0.9";
-            bannerDiv.style.opacity = "1";
-        };
-        element.mouseExitCB = () => {
-            blackoutDiv.style.opacity = "0";
-            bannerDiv.style.opacity = "0";
-        };
-        element.Init();
-
-        if (dat.game == Game.EM1.toString()) {
-            element.imgLogoURL = "/img/emlogo.png";
-            element.imgBackgroundURL = "/img/em1banner.png";
-        } else if (dat.game == Game.EM2) {
-            element.imgLogoURL = "/img/em2logo.png";
-            element.imgBackgroundURL = "/img/em2banner.png";
-        } else if (dat.game == Game.EMR) {
-            element.imgLogoURL = "/img/emrlogo.png";
-            element.imgBackgroundURL = "/img/emrbanner.png";
-        }
-
         return element;
     }
 </script>
-
-<Addgame bind:this={addgameComponent}></Addgame>
+<AddGameC bind:this={AddGameComponent}/>
 <div bind:this={blackoutDiv} class="blackout"></div>
 <div bind:this={bannerDiv} class="gamebanner">
     <img
@@ -118,31 +131,41 @@
 <div style="display:flex;justify-content:center">
     <div bind:this={gameNodeDiv} class="gamegrid"></div>
 </div>
-<p style="margin-bottom:50px;display:flex;justify-content: center;">
-<div
-        bind:this={addGameButton}
-        class="addgamebutton expandgamebutton"
-        on:click={AddGameButton}
-        on:keydown={() => {}}
-        on:pointerleave={DefaultAddGameButton}
-        role="button"
-        tabindex=0
->
-    <span style="position: absolute;">+</span>
-    <button class="addgamesubbutton" on:click={() => AddGame(true)}
-    >Add Game via Image
-    </button
+<p style="margin-bottom:50px;display:flex;">
+<div style="display:flex;justify-content: center;">
+    <div
+            bind:this={addGameButton}
+            class="addgamebutton expandgamebutton"
+            onclick={AddGameButton}
+            onkeydown={() => {}}
+            onpointerleave={DefaultAddGameButton}
+            role="button"
+            tabindex=0
     >
-    <button class="addgamesubbutton" on:click={() => AddGame(false)}
-    >Add Game via Files
-    </button
-    >
+        <span style="position: absolute;top:3px;">+</span>
+        <button class="addgamesubbutton" onclick={() => AddGame(true)}
+        >Add Game via Image
+        </button
+        >
+        <button class="addgamesubbutton" onclick={() => AddGame(false)}
+        >Add Game via Files
+        </button
+        >
+    </div>
 </div>
-
-<OneTimeNotice
+{#if noGamesNotice}
+    <p></p>
+    <Dialog
+            content={[
+          "Quite lonely around here...<br/>Press the + Button to add a game!"
+        ]}
+    ></Dialog>
+{/if}
+<p></p>
+<OneTimeNoticeComponent
         content="EML uses a Dolphin Config separate from your global one. To apply any changes, you must open Dolphin in EML config mode. You can do so by pressing CTRL + D now."
         id="dolphinconfig"
-></OneTimeNotice>
+/>
 
 <style>
     .addgamebutton {

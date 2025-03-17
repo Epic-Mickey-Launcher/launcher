@@ -1,6 +1,8 @@
 import {exists, mkdir, readFile, remove, writeFile} from "@tauri-apps/plugin-fs"
 import {appLocalDataDir} from '@tauri-apps/api/path';
 import {invoke} from "@tauri-apps/api/core";
+import {SaveConfig, SaveGamesConfig} from "./config";
+import {RetrieveFileByAlias} from "./filealias";
 
 export let configPath: string;
 
@@ -22,8 +24,8 @@ async function DataFolderExists() {
 
 export async function ReadOneTimeNoticeBlacklist(): Promise<string> {
     await DataFolderExists();
-    let appdir = configPath
-    return await FileExists(appdir + "otn") ? await ReadFile(appdir + "otn") : ""
+    let path = await RetrieveFileByAlias("eml-one-time-notices", configPath)
+    return await FileExists(path) ? await ReadFile(path) : ""
 }
 
 export async function CheckOneTimeNoticeBlacklist(id: string): Promise<boolean> {
@@ -33,10 +35,9 @@ export async function CheckOneTimeNoticeBlacklist(id: string): Promise<boolean> 
 
 export async function WriteOneTimeNoticeBlacklist(id: string) {
     await DataFolderExists();
-    let appdir = configPath
     let buffer = await ReadOneTimeNoticeBlacklist()
     buffer += id + ","
-    await WriteFile(appdir + "otn", buffer)
+    await WriteFile(buffer, await RetrieveFileByAlias("eml-one-time-notices", configPath))
 }
 
 export async function WriteToJSON(content: string, file: string) {
@@ -75,7 +76,6 @@ export async function FileExists(path: string) {
 }
 
 export async function WriteToken(token: string) {
-    console.log("sm")
     await WriteFile(token, configPath + "TOKEN")
 }
 
@@ -85,7 +85,6 @@ export async function ReadToken(): Promise<string> {
 
     if (await FileExists(appDir + "TOKEN")) {
         let token = await ReadFile(appDir + "TOKEN")
-        console.log(token)
         return token
     } else {
         return ""
@@ -101,17 +100,24 @@ export async function DeleteAllConfigFiles() {
 
 export async function InitConfFiles() {
     await DataFolderExists()
-    let path = configPath
-    let gamesJsonExists = await exists(path + "games.json");
-    let confJsonExists = await exists(path + "conf.json");
+
+    console.log(configPath)
+
+    let gamesJsonExists = await exists(await RetrieveFileByAlias("eml-tracked-games", configPath));
+    let confJsonExists = await exists(await RetrieveFileByAlias("eml-config", configPath));
 
     if (!gamesJsonExists) {
-        await WriteToJSON("[]", "games.json")
+        await SaveGamesConfig([]);
     }
 
     if (!confJsonExists) {
-        await WriteToJSON(JSON.stringify({
-            dolphinPath: "", WITPath: "", NkitPath: ""
-        }), "conf.json")
+        await SaveConfig(
+            {
+                dolphinPath: "",
+                dolphinConfigPath: "",
+                developerMode: false,
+                gitHubSecret: ""
+            }
+        )
     }
 }

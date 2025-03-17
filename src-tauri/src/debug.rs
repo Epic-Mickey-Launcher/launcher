@@ -1,3 +1,4 @@
+use anyhow::Result;
 use chrono::{Datelike, Local, Timelike};
 use std::fs;
 use std::fs::File;
@@ -7,7 +8,7 @@ use std::path::Path;
 
 use crate::helper;
 
-pub fn init() -> std::io::Result<()> {
+pub fn init() -> Result<()> {
     let mut path = helper::get_config_path().expect("could not get config dir");
     fs::create_dir_all(&path)?;
     path.push("Log.txt");

@@ -1,8 +1,7 @@
 <script lang="ts">
-    let header: any;
+    import SelectGameForMod from "./routes/components/SelectGameForMod.svelte";
     import Header from "./routes/components/header.svelte";
-    import {configPath, GetPath, InitConfFiles, ReadJSON, ReadToken,} from "./routes/library/configfiles";
-    import {Game, GameConfig, Platform} from "./routes/library/types";
+    import {GetPath, InitConfFiles, ReadToken,} from "./routes/library/configfiles";
     import Router from "svelte-spa-router";
     import Games from "./routes/games.svelte";
     import QuickStart from "./routes/quickstart.svelte";
@@ -14,128 +13,64 @@
     import ProfilePage from "./routes/profilepage.svelte";
     import modpage from "./routes/modpage.svelte";
     import accountsettings from "./routes/accountsettings.svelte";
-    import {Login, SetServerURL, UserInfo} from "./routes/library/networking";
+    import {Login, SetServerURL, type UserInfo} from "./routes/library/networking";
     import {Invoke} from "./routes/library/callback";
     import {listen} from "@tauri-apps/api/event";
     import {invoke} from "@tauri-apps/api/core";
     import {exit} from "@tauri-apps/plugin-process";
     import {getMatches} from "@tauri-apps/plugin-cli";
-    import Modpublisher from "./routes/modpublisher.svelte";
     import {onOpenUrl, register} from "@tauri-apps/plugin-deep-link";
     import {onMount} from "svelte";
-    import {LoadConfig, SaveConfig} from "./routes/library/config";
     import DownloadMod from "./routes/components/downloadMod.svelte";
-    import ModInstall from "./routes/components/ModInstall.svelte";
-    import {LocalModToUnifiedMod} from "./routes/library/gameid";
-    import {Octokit} from "octokit";
+    import {ConvertGamesConfigToTrackedGames} from "./routes/library/legacy";
+    import {LoadConfig, LoadGameInstancesFromTrackingFile, SetHeader} from "./routes/library/config";
 
-    let installingMod: boolean;
-    let downloadMod: DownloadMod;
+    let header: any = $state();
+    let DownloadModComponent = $state(DownloadMod);
+    let SelectGameForModComponent = $state(SelectGameForMod)
+    let HeaderComponent = $state(Header)
+    let RouterComponent = $state(Router)
+    let initialConfigLoaded = $state(false)
+
+    ErrorCatcher();
+    ListenLoop();
 
     register("eml");
 
+    onMount(async () => {
+
+        await GetPath()
+        let config = await LoadConfig();
+
+        await InitConfFiles();
+        await ConvertGamesConfigToTrackedGames();
+        await LoadGameInstancesFromTrackingFile();
+
+        if (config == null) {
+            window.open("#/quickstart", "_self")
+        }
+
+        initialConfigLoaded = true
+    })
+
     onOpenUrl(async (urls) => {
-        await alert(urls[0]);
+        alert(urls[0]);
         console.log("catched url call");
         let url = new URL(urls[0]);
         console.log(url.hostname);
         switch (url.hostname) {
-            case "github":
-                let auth = url.searchParams.get("auth");
-
-                let confirmationPrompt = await confirm(
-                    "We will now create an SSH key pair so that we can update your EML-created repositories.",
-                );
-
-                if (!confirmationPrompt) {
-                    await alert("GitHub account linking cancelled by user.");
-                    return;
-                }
-
-                let config = await LoadConfig();
-                config.gitHubSecret = auth;
-
-                const octokit = new Octokit({
-                    auth: auth,
-                });
-
-                await invoke("generate_ssh_key_pair", {
-                    path: configPath,
-                });
-
-                await SaveConfig(config);
-                break;
             case "gb":
-                let gbURL = url.pathname.substring(1, url.pathname.length);
-                let conf = await confirm(
-                    "This mod is external and is not verified by EML. Are you sure you want to install this mod? (" +
-                    gbURL +
-                    ")",
-                );
-                if (conf) {
-                    let downloadURL = gbURL.split(",")[0];
-                    let id = gbURL.split(",")[2];
-
-                    installingMod = true;
-                    let installMod = new ModInstall({
-                        target: document.body,
-                    });
-                    installMod.action = "Downloading and Validating";
-                    installMod.modName = "External Mod";
-                    installMod.description =
-                        "This might take a while depending on your internet speed.";
-                    let validationInfo: any = await invoke("validate_mod", {
-                        url: downloadURL,
-                        destination: ".extern",
-                        mode: "extern",
-                    });
-
-                    console.log(validationInfo);
-                    if (validationInfo.validated) {
-                        installMod.$destroy();
-                        console.log(
-                            ((validationInfo.data.game.toUpperCase() as Game) +
-                                " " +
-                                validationInfo.data.platform.toUpperCase()) as Platform,
-                        );
-                        selectGame.GetValidGame(
-                            validationInfo.data.game.toUpperCase() as Game,
-                            validationInfo.data.platform.toUpperCase() as Platform,
-                            id,
-                            0,
-                            async (game: GameConfig) => {
-                                console.log(game);
-                                if (game != null) {
-                                    let unifiedMod = LocalModToUnifiedMod(validationInfo.data);
-                                    console.log(unifiedMod);
-                                    unifiedMod.version = 0;
-                                    unifiedMod.id = id;
-
-                                    downloadMod.Initialize(
-                                        game,
-                                        true,
-                                        unifiedMod,
-                                        ".extern",
-                                        validationInfo.modicon,
-                                        true,
-                                    );
-
-                                    await downloadMod.Download();
-                                }
-                            },
-                        );
-                    } else {
-                    }
-                }
+                break
         }
     });
 
     onMount(async () => {
+        SetHeader(header)
     });
 
     getMatches().then(async (matches) => {
         if (matches.args["server"].value != null) {
-            SetServerURL(matches.args["server"].value);
+            await SetServerURL(matches.args["server"].value as string);
         }
     });
 
@@ -151,7 +86,6 @@
             Login(userInfo);
         } else {
             Invoke("SignedIn", {error: 1});
-            header.ForceSetPFP("img/loggedoutpfp.jpeg");
         }
     }
 
@@ -177,8 +111,6 @@
         });
     }
 
-    ErrorCatcher();
-
     let routes = {
         "/": Games,
         "/levelloader": LevelLoader,
@@ -190,12 +122,9 @@
         "/modpage": modpage,
         "/profilepage": ProfilePage,
         "/accountsettings": accountsettings,
-        "/modpublisher": Modpublisher,
         "/*": Games,
     };
 
-    InitConfFiles();
-    ListenLoop();
 
     let funcKeyDown: boolean;
 
@@ -211,7 +140,6 @@
         }
 
         if (funcKeyDown) {
-            console.log(e.code);
             switch (e.code) {
                 case "KeyY":
                 case "85":
@@ -219,7 +147,7 @@
                     break;
                 case "KeyD":
                 case "68":
-                    ReadJSON("conf.json").then((d) => {
+                    LoadConfig().then((d) => {
                         invoke("open_dolphin", {path: d.dolphinPath});
                     });
                     break;
@@ -228,12 +156,14 @@
     }
 </script>
 
-<SelectGameForMod bind:this={selectGame}></SelectGameForMod>
-<DownloadMod bind:this={downloadMod}></DownloadMod>
+<SelectGameForModComponent/>
+<DownloadModComponent/>
 
 <main>
-    <Header bind:this={header}/>
-    <Router on:routeLoaded={RouteLoaded} {routes}/>
+    <HeaderComponent bind:this={header}/>
+    {#if initialConfigLoaded}
+        <RouterComponent on:routeLoaded={RouteLoaded} {routes}/>
+    {/if}
 </main>
 
-<svelte:window on:keydown={keyDown} on:keyup={keyUp}/>
+<svelte:window onkeydown={keyDown} onkeyup={keyUp}/>

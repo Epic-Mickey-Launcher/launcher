@@ -1,6 +1,8 @@
 use crate::archive;
 use crate::debug;
 use crate::helper;
+use anyhow::Error;
+use anyhow::Result;
 use bytes::Bytes;
 use futures_util::StreamExt;
 use reqwest::Client;
@@ -23,11 +25,19 @@ pub async fn tool(
     url: String,
     foldername: String,
     window: &Window,
-) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    absolute: bool,
+) -> Result<PathBuf, Error> {
     debug::log(&format!("Beginning download of {}", url));
-    let mut to_pathbuf = helper::get_config_path()?;
+    let mut to_pathbuf = if absolute {
+        helper::get_config_path()?
+    } else {
+        PathBuf::new()
+    };
     to_pathbuf.push(foldername);
-    fs::create_dir_all(&to_pathbuf)?;
+    println!("{}", to_pathbuf.display());
+    if !to_pathbuf.exists() {
+        fs::create_dir_all(&to_pathbuf)?;
+    }
     zip(url, &to_pathbuf, false, window).await?;
     debug::log(&format!("Download Finished"));
     Ok(to_pathbuf)
@@ -38,7 +48,7 @@ pub async fn zip(
     foldername: &PathBuf,
     local: bool,
     window: &Window,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Error> {
     debug::log(&format!("Downloading Archive {}", url));
     fs::create_dir_all(&foldername)?;
 

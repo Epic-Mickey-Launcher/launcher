@@ -1,6 +1,7 @@
 [
   {
-    "categoryname": "Miscellaneous",
+    "name": "Miscellaneous",
+    "banner": "img/em1levelloader/misc.png",
     "levels": [
       {
         "name": "Start Screen",
@@ -9,7 +10,8 @@
     ]
   },
   {
-    "categoryname": "Yen Sid's Lab",
+    "name": "Yen Sid's Lab",
+    "banner": "img/em2levelloader/yensid.png",
     "levels": [
       {
         "name": "House Start",
@@ -34,7 +36,8 @@
     ]
   },
   {
-    "categoryname": "Dark Beauty Castle",
+    "name": "Dark Beauty Castle",
+    "banner": "img/em1levelloader/dbc.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -43,7 +46,8 @@
     ]
   },
   {
-    "categoryname": "Mean Street",
+    "name": "Mean Street",
+    "banner": "img/em1levelloader/ms.png",
     "levels": [
       {
         "name": "South Visit 1",
@@ -80,7 +84,8 @@
     ]
   },
   {
-    "categoryname": "OsTown",
+    "name": "OsTown",
+    "banner": "img/em1levelloader/ostown.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -93,7 +98,8 @@
     ]
   },
   {
-    "categoryname": "Rainbow Caverns",
+    "name": "Rainbow Caverns",
+    "banner": "img/em2levelloader/caverns.png",
     "levels": [
       {
         "name": "Falls Visit 1",
@@ -134,7 +140,8 @@
     ]
   },
   {
-    "categoryname": "Disney Gulch",
+    "name": "Disney Gulch",
+    "banner": "img/em2levelloader/gulch.png",
     "levels": [
       {
         "name": "Canyon Visit 1",
@@ -155,7 +162,8 @@
     ]
   },
   {
-    "categoryname": "Bog Easy",
+    "name": "Bog Easy",
+    "banner": "img/em1levelloader/be.png",
     "levels": [
       {
         "name": "Shanty Town Visit 1",
@@ -180,7 +188,8 @@
     ]
   },
   {
-    "categoryname": "Train Tunnels",
+    "name": "Train Tunnels",
+    "banner": "img/em2levelloader/trains.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -193,7 +202,8 @@
     ]
   },
   {
-    "categoryname": "Fort Wasteland",
+    "name": "Fort Wasteland",
+    "banner": "img/em2levelloader/fort.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -206,7 +216,8 @@
     ]
   },
   {
-    "categoryname": "Floatyard",
+    "name": "Floatyard",
+    "banner": "img/em2levelloader/float.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -219,7 +230,8 @@
     ]
   },
   {
-    "categoryname": "Ventureland",
+    "name": "Ventureland",
+    "banner": "img/em1levelloader/vl.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -248,7 +260,8 @@
     ]
   },
   {
-    "categoryname": "Autotopia",
+    "name": "Autotopia",
+    "banner": "img/em2levelloader/autotopia.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -269,7 +282,8 @@
     ]
   },
   {
-    "categoryname": "Mad Doctor's Attic",
+    "name": "Mad Doctor's Attic",
+    "banner": "img/em2levelloader/attic.png",
     "levels": [
       {
         "name": "Visit 1",
@@ -282,7 +296,8 @@
     ]
   },
   {
-    "categoryname": "Projector Levels",
+    "name": "Projector Levels",
+    "banner": "img/em1levelloader/2d.png",
     "levels": [
       {
         "name": "Band Concert 1",
@@ -359,7 +374,8 @@
     ]
   },
   {
-    "categoryname": "DEC Levels",
+    "name": "DEC Levels",
+    "banner": "img/em2levelloader/dec.png",
     "levels": [
       {
         "name": "Transition 1",
@@ -384,7 +400,8 @@
     ]
   },
   {
-    "categoryname": "Interiors",
+    "name": "Interiors",
+    "banner": "img/em2levelloader/interior.png",
     "levels": [
       {
         "name": "OST Gag Factory",
@@ -497,7 +514,8 @@
     ]
   },
   {
-    "categoryname": "Boss Fights",
+    "name": "Boss Fights",
+    "banner": "img/em2levelloader/boss.png",
     "levels": [
       {
         "name": "Blotworx Dragon Visit 1",
@@ -542,7 +560,8 @@
     ]
   },
   {
-    "categoryname": "Test Maps",
+    "name": "Test Maps",
+    "banner": "img/em1levelloader/test.png",
     "levels": [
       {
         "name": "AI Test Map (Blotlings, Bunny Children)",
@@ -955,7 +974,8 @@
     ]
   },
   {
-    "categoryname": "Old Demo Maps",
+    "name": "Old Demo Maps",
+    "banner": "img/em1levelloader/test.png",
     "levels": [
       {
         "name": "Disney Gulch Guardian Pool Demo",

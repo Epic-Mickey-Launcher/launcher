@@ -1,6 +1,7 @@
 [
   {
-    "categoryname": "Miscellaneous",
+    "name": "Miscellaneous",
+    "banner": "img/em1levelloader/misc.png",
     "levels": [
       {
         "name": "Start Screen",
@@ -9,7 +10,8 @@
     ]
   },
   {
-    "categoryname": "Gremlin Village",
+    "name": "Gremlin Village",
+    "banner": "img/em1levelloader/gv.png",
     "levels": [
       {
         "name": "Slalom",
@@ -42,7 +44,8 @@
     ]
   },
   {
-    "categoryname": "Lonesome Manor",
+    "name": "Lonesome Manor",
+    "banner": "img/em1levelloader/lm.png",
     "levels": [
       {
         "name": "Manor House",
@@ -71,7 +74,8 @@
     ]
   },
   {
-    "categoryname": "Tomorrow City",
+    "name": "Tomorrow City",
+    "banner": "img/em1levelloader/tc.png",
     "levels": [
       {
         "name": "Notilus Room",
@@ -108,7 +112,8 @@
     ]
   },
   {
-    "categoryname": "Pirates of the Wasteland",
+    "name": "Pirates of the Wasteland",
+    "banner": "img/em1levelloader/potw.png",
     "levels": [
       {
         "name": "Pirates of the Wasteland",
@@ -145,7 +150,8 @@
     ]
   },
   {
-    "categoryname": "Dark Beauty Castle",
+    "name": "Dark Beauty Castle",
+    "banner": "img/em1levelloader/dbc.png",
     "levels": [
       {
         "name": "Lab Visit 1",
@@ -218,7 +224,8 @@
     ]
   },
   {
-    "categoryname": "Mickeyjunk Mountain",
+    "name": "Mickeyjunk Mountain",
+    "banner": "img/em1levelloader/mjm.png",
     "levels": [
       {
         "name": "The Heaps",
@@ -251,7 +258,8 @@
     ]
   },
   {
-    "categoryname": "Mean Street",
+    "name": "Mean Street",
+    "banner": "img/em1levelloader/ms.png",
     "levels": [
       {
         "name": "Mean Street Visit 1",
@@ -284,7 +292,8 @@
     ]
   },
   {
-    "categoryname": "Ventureland",
+    "name": "Ventureland",
+    "banner": "img/em1levelloader/vl.png",
     "levels": [
       {
         "name": "Ventureland Visit 1",
@@ -305,7 +314,8 @@
     ]
   },
   {
-    "categoryname": "Bog Easy",
+    "name": "Bog Easy",
+    "banner": "img/em1levelloader/be.png",
     "levels": [
       {
         "name": "Bog Easy Visit 1",
@@ -326,7 +336,8 @@
     ]
   },
   {
-    "categoryname": "OsTown",
+    "name": "OsTown",
+    "banner": "img/em1levelloader/ostown.png",
     "levels": [
       {
         "name": "OsTown Visit 1",
@@ -343,7 +354,8 @@
     ]
   },
   {
-    "categoryname": "Test Maps",
+    "name": "Test Maps",
+    "banner": "img/em1levelloader/test.png",
     "levels": [
       {
         "name": "AI Test",
@@ -432,7 +444,8 @@
     ]
   },
   {
-    "categoryname": "Old Demo Maps",
+    "name": "Old Demo Maps",
+    "banner": "img/em1levelloader/test.png",
     "levels": [
       {
         "name": "E3: Ventureland",
@@ -481,7 +494,8 @@
     ]
   },
   {
-    "categoryname": "Projector Levels",
+    "name": "Projector Levels",
+    "banner": "img/em1levelloader/2d.png",
     "levels": [
       {
         "name": "Mickey and the Beanstalk",
@@ -630,7 +644,8 @@
     ]
   },
   {
-    "categoryname": "Interiors",
+    "name": "Interiors",
+    "banner": "img/em1levelloader/interior.png",
     "levels": [
       {
         "name": "MS Walt's Apartment",

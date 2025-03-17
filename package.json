@@ -21,14 +21,17 @@
     "i": "^0.3.7",
     "marked": "^13.0.3",
     "octokit": "^4.1.2",
-    "pnpm": "^9.15.6",
+    "pnpm": "^9.15.9",
     "svelte-spa-router": "^3.3.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^2.5.3",
+    "@sveltejs/vite-plugin-svelte": "^4.0.4",
     "@tauri-apps/cli": "2.0.0-rc.12",
-    "svelte": "^5.22.5",
-    "svelte-preprocess": "^5.1.4"
+    "@types/node": "^22.13.10",
+    "svelte": "^5.23.1",
+    "svelte-preprocess": "^6.0.3",
+    "vite": "^5.4.14"
   }
 }

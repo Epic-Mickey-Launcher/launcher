@@ -1,86 +1,94 @@
-body{
-  background: rgb(2,0,36);
-background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,29,29,1) 0%, rgba(62,62,62,1) 100%);
+body {
+    background: rgb(2, 0, 36);
+    background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(0, 0, 0, 1) 0%, rgba(29, 29, 29, 1) 0%, rgba(62, 62, 62, 1) 100%);
 }
 
 dialog {
-  background-color: rgb(50,50,50);
-  border:none;
-  border-radius:10px;
-  z-index:30;
-  max-width:50vw;
-  backdrop-filter: drop-shadow(1px 1px 5px black)
+    background-color: rgb(50, 50, 50);
+    border: none;
+    border-radius: 10px;
+    z-index: 30;
+    max-width: 50vw;
+    backdrop-filter: drop-shadow(1px 1px 5px black)
 }
+
 dialog:backdrop {
-  opacity:0.75;
-  background-color: black;
+    opacity: 0.75;
+    background-color: black;
 }
 
 @font-face {
-  font-family: normalfont;
-  src: url(/fonts/norm.ttf);
+    font-family: normalfont;
+    src: url(/fonts/norm.ttf);
 }
 
-.hyperlinkbutton{
-  font-size: 15px;
-  border:none;
-  background-color: transparent;
-  text-decoration: underline;
-  padding: 0px;
+.hyperlinkbutton {
+    font-size: 15px;
+    border: none;
+    background-color: transparent;
+    text-decoration: underline;
+    padding: 0px;
 }
-.hyperlinkbutton:hover{
-  cursor:grab;
-  background-color: transparent;
+
+.hyperlinkbutton:hover {
+    cursor: grab;
+    background-color: transparent;
 }
 
 * {
-  font-family: normalfont;
-  color:white;
+    font-family: normalfont;
+    color: white;
 }
 
 *:disabled {
-  font-family: normalfont;
-  color:gray;
+    font-family: normalfont;
+    color: gray;
 }
-  .dropdown select {
+
+.dropdown select {
     appearance: none;
     -webkit-appearance: none;
     background-color: black;
     padding: 10px;
-  }
+}
 
-  .dropdown {
+.dropdown {
     position: relative;
     margin-right: 30px;
     color: black;
-  }
+}
 
-button{
-  border: 1px solid;
-  border-color: rgb(138, 138, 138);
-  background-color: rgb(82, 82, 82);
-  transition-duration: 0.1s;
+button {
+    border: 1px solid;
+    border-color: rgb(138, 138, 138);
+    background-color: rgb(82, 82, 82);
+    transition-duration: 0.1s;
 }
-.spanHyperLink{
-  cursor:pointer;
-  text-decoration: underline;
+
+.spanHyperLink {
+    cursor: pointer;
+    text-decoration: underline;
 }
-input{
-  border: 1px solid;
-  border-color: rgb(138, 138, 138);
-  background-color: rgb(82, 82, 82);
-  transition-duration: 0.1s;
+
+input {
+    border: 1px solid;
+    border-color: rgb(138, 138, 138);
+    background-color: rgb(82, 82, 82);
+    transition-duration: 0.1s;
 }
-textarea{
-  border: 1px solid;
-  border-color: rgb(138, 138, 138);
-  background-color: rgb(82, 82, 82);
-  transition-duration: 0.1s;
+
+textarea {
+    border: 1px solid;
+    border-color: rgb(138, 138, 138);
+    background-color: rgb(82, 82, 82);
+    transition-duration: 0.1s;
 }
-button:hover{
-  cursor:grab;
-  background-color: rgb(43, 43, 43);
+
+button:hover {
+    cursor: grab;
+    background-color: rgb(43, 43, 43);
 }
-button:hover:disabled{
-  cursor: not-allowed;
+
+button:hover:disabled {
+    cursor: not-allowed;
 }

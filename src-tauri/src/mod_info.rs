@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -27,7 +28,7 @@ pub fn write(
     files: Vec<String>,
     textures: Vec<String>,
     scripts: Vec<String>,
-) -> std::io::Result<()> {
+) -> Result<()> {
     let mut file = File::create(path)?;
 
     if files.len() > 0 {
@@ -59,7 +60,7 @@ pub fn write(
     Ok(())
 }
 
-pub fn read(path: &String) -> std::io::Result<ModFilesInfo> {
+pub fn read(path: &String) -> Result<ModFilesInfo> {
     let mut file = File::open(path)?;
     let mut buffer: String = String::new();
     file.read_to_string(&mut buffer)?;

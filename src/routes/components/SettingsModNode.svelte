@@ -1,115 +1,71 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
-  import { onMount } from "svelte";
-  import ModInstall from "./ModInstall.svelte";
-  export let modName = "mod";
-  export let dumploc = "";
-  export let json = "";
-  export let index = 0;
-  export let active = false;
-  export let gamedata;
-  let node;
-  import { invoke } from "@tauri-apps/api/core";
-  import { ReadFile, WriteFile } from "../library/configfiles";
-  import { listen } from "@tauri-apps/api/event";
-  import { GetGameWiiID } from "../library/gameid";
-  import { Platform } from "../library/types";
-  let checkBox;
+    import {mount, onMount, unmount} from "svelte";
+    import ModInstall from "./ModInstall.svelte";
+    import type {GameInstance} from "../library/instance.svelte";
+    import type {InstalledMod} from "../library/types";
 
-  onMount(async () => {});
+    interface Props {
+        modData: InstalledMod,
+        gameInstance: GameInstance
+    }
 
-  export function setChecked(check) {
-    checkBox.checked = check;
-  }
+    let {
+        modData,
+        gameInstance
+    }: Props = $props();
+    let checkBox: HTMLInputElement = $state();
+    let setStateAllowed = $state(true)
 
-  async function DeleteMod() {
-    let modInstallElement = new ModInstall({
-      target: document.body,
+    onMount(async () => {
+        checkBox.checked = modData.active;
+        setStateAllowed = !modData.local;
     });
-    modInstallElement.modIcon = "/img/waren.png";
-    modInstallElement.modName = modName;
-    modInstallElement.action = "Deleting";
-    modInstallElement.description = "This might take a while...";
 
-    let unlisten = await listen(
-      "change_description_text_delete",
-      (event: any) => {
-        modInstallElement.description = event.payload;
-      },
-    );
 
-    console.log(gamedata);
-    let gameid = gamedata.platform == Platform.PC ? "" : GetGameWiiID(gamedata);
-    console.log(gameid);
+    async function DeleteMod() {
+        let modInstallElement = mount(ModInstall, {
+            target: document.body,
+        });
+        modInstallElement.modIcon = "/img/waren.png";
+        modInstallElement.modName = modData.name;
+        modInstallElement.action = "Deleting";
+        modInstallElement.description = "This might take a while...";
 
-    invoke("delete_mod", {
-      dumploc: dumploc,
-      gameid: gameid,
-      platform: gamedata.platform,
-      modid: JSON.parse(json).modid,
-      active: active,
-    }).then(async () => {
-      let datastring = await ReadFile(dumploc + "/EMLMods.json");
-      let data = JSON.parse(datastring);
-      unlisten();
-      let delete_index = data.indexOf(JSON.parse(json));
+        console.log("deleting")
 
-      data.splice(delete_index, 1);
-      await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
+        let instance = gameInstance as GameInstance
+        await instance.RemoveMod(modData.modid)
+        await unmount(modInstallElement);
+    }
 
-      modInstallElement.$destroy();
-      node.remove();
-    });
-  }
+    async function ToggleMod() {
 
-  async function ToggleMod() {
-    let jsonToObject = JSON.parse(json);
-    jsonToObject.active = !jsonToObject.active;
+        let modInstallElement = mount(ModInstall, {
+            target: document.body,
+            props: {
+                modIcon: "/img/waren.png",
+                modName: modData.name,
+                action: !modData.active ? "Enabling" : "Disabling",
+                description: "This might take a while..."
+            }
+        });
 
-    let modInstallElement = new ModInstall({
-      target: document.body,
-    });
-    modInstallElement.modIcon = "/img/waren.png";
-    modInstallElement.modName = modName;
-    modInstallElement.action = jsonToObject.active ? "Enabling" : "Disabling";
-    modInstallElement.description = "This might take a while...";
+        let instance = gameInstance as GameInstance
+        await instance.SetModActive(modData.modid, !modData.active);
 
-    let unlisten = await listen(
-      "change_description_text_delete",
-      (event: any) => {
-        modInstallElement.description = event.payload;
-      },
-    );
+        await unmount(modInstallElement);
+    }
 
-    let gameid = gamedata.id;
-
-    let jsonString = JSON.stringify(jsonToObject);
-    invoke("change_mod_status", {
-      json: jsonString,
-      dumploc: dumploc,
-      modid: jsonToObject.modid,
-      gameid: gameid,
-      active: jsonToObject.active,
-      modname: jsonToObject.name,
-      platform: gamedata.platform,
-      version: jsonToObject.update,
-    }).then(async () => {
-      let datastring = await ReadFile(dumploc + "/EMLMods.json");
-      let data = JSON.parse(datastring);
-      json = jsonString;
-      active = !jsonToObject.active;
-      data[index] = jsonToObject;
-      await WriteFile(JSON.stringify(data), dumploc + "/EMLMods.json");
-      unlisten();
-      modInstallElement.$destroy();
-    });
-  }
 </script>
 
-<div style="background-color:rgb(22, 22, 22);padding:10px;" bind:this={node}>
-  <label for="check">{modName} | Enabled: </label>
-  <input bind:this={checkBox} on:click={ToggleMod} id="check" type="checkbox" />
+<div style="background-color:rgb(22, 22, 22);padding:10px;">
+    <span>{modData.name}</span>
+    {#if setStateAllowed}
+        <span> | Enabled: </span>
+        <input bind:this={checkBox} id="check" onclick={ToggleMod} type="checkbox"/>
+    {:else}
+        <span> | <span style="color:darkgray;">Local Mod</span></span>
+    {/if}
 
-  <button on:click={DeleteMod} style="background-color:red;">Delete</button>
+    <button onclick={DeleteMod} style="background-color:red;float:right;">Delete</button>
 </div>

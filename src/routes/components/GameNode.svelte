@@ -1,49 +1,45 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
-  import { SetData } from "../library/datatransfer";
-  import { invoke } from "@tauri-apps/api/core";
-  import { ReadFile, ReadJSON } from "../library/configfiles";
-  import { onMount } from "svelte";
-  import { exists } from "@tauri-apps/plugin-fs";
-  import { POST } from "../library/networking";
-  import DownloadMod from "./downloadMod.svelte";
-  import {
-    Game,
-    GameConfig,
-    GameIdentity,
-    Mod,
-    Platform,
-    Region,
-  } from "../library/types";
-  import { GetGameIdentity, GetGameWiiID } from "../library/gameid";
-  export let imgBackgroundURL = undefined;
-  export let imgLogoURL = undefined;
-  export let errorMSG = "";
-  export let data: GameConfig;
-  let updateAvailable = false;
+  import {invoke} from "@tauri-apps/api/core";
+  import {mount, onMount, unmount} from "svelte";
+  import {GetImagePath, ImageType, POST} from "../library/networking";
+  import {Game, Platform, Region,} from "../library/types";
+  import type {GameInstance} from "../library/instance.svelte";
+  import {SetActiveGameInstance} from "../library/config";
+  import {InternetModToUnifiedMod, LocalModToUnifiedMod} from "../library/gameid";
+  import ModInstall from "./ModInstall.svelte";
+
+  let updateAvailable = $state(false);
   let outdatedMods = [];
-  let reg = "";
-  let platformlogo: any;
+  let platformLogo: any = $state();
+  let {
+    imgBackgroundURL="",
+    imgLogoURL="",
+    errorMSG = "",
+    gameInstance,
+    node = $bindable(),
+  } = $props();
+
+  export {
+    node
+  }
+
+  let mainDiv: HTMLElement = $state();
+  let playButton: HTMLButtonElement = $state();
+
   async function CheckForUpdate() {
     let mods = [];
-
     try {
-      let jsonExists = await exists(data.path + "/EMLMods.json");
-      if (jsonExists) {
-        let dataStr = await ReadFile(data.path + "/EMLMods.json");
-        let jsonData: any = JSON.parse(dataStr);
-
-        jsonData.forEach(async (r: any) => {
+        let instance = gameInstance as GameInstance
+        for (const r of instance.mods) {
           if (r.modid != "" && !r.local) {
-            let latestUpdate = await POST("mod/get", { ID: r.modid });
+            let latestUpdate = await POST("mod/get", { ID: r.modid }, true, true);
+            if (latestUpdate.error) continue
             if (r.update != latestUpdate.body.Version) {
               updateAvailable = true;
               mods.push(latestUpdate.body);
             }
           }
-        });
-      }
+        }
 
       outdatedMods = mods;
     } catch {
@@ -76,7 +72,6 @@
     let x = (rawX / GAME_NODE_X) * MAX_ROTATION * 2;
     let y = (rawY / GAME_NODE_Y) * MAX_ROTATION * 2;
 
-    console.log();
     let percentage = Math.min(
       Math.max((1 - rawY / GAME_NODE_Y) * 100, 70),
       105,
@@ -91,92 +86,52 @@
   }
 
   async function OpenGame() {
-    console.log("poopha");
-    let d = await ReadJSON("conf.json");
-
-
-    if (data.platform.toUpperCase() == Platform.Wii) {
-    if (d.dolphinPath == "") {
-      alert("Dolphin is required for this game to work!");
-      return;
-    }
-      let id = GetGameWiiID(data);
-      console.log(id);
-      invoke("playgame", {
-        dolphin: d.dolphinPath,
-        exe: data.path + "/sys/main.dol",
-        id: id,
-      }).then((res) => {
-        if (res == 1) {
-          alert(
-            "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.",
-          );
-        }
-      });
-    } else if (data.platform == Platform.PC) {
-      invoke("get_os").then(async (_os) => {
-        if (_os == "linux") {
-          
-          let gameIdentity: GameIdentity = GetGameIdentity(data.game);
-          if (data.steamVersion) {
-            let steamID = gameIdentity.steamID;
-            invoke("play_steam_game", { id: steamID });
-          }
-        } else if (_os == "windows") {
-          invoke("playgame", {
-            dolphin: data.path + "/DEM2.exe",
-            exe: "",
-            id: "",
-          }).then((res) => {
-            if (res == 1) {
-              alert("Game failed to open.");
-            }
-          });
-        } else {
-          alert("Playing Windows games is not supported on this OS yet.");
-        }
-      });
-    }
+    let instance = gameInstance as GameInstance
+    await instance.Play()
   }
   function OpenDirectory() {
+    let instance = gameInstance as GameInstance
+
     invoke("get_os").then((os) => {
-      let p = os == "windows" ? data.path.replace("/", "\\") : data.path;
+      let p = os == "windows" ? gameInstance.path.replace("/", "\\") : instance.gameConfig.path;
       invoke("open_path_in_file_manager", { path: p });
     });
   }
 
   async function UpdateAllMods() {
-    let downloadMod = new DownloadMod({ target: mainDiv });
-
-    downloadMod.updatecb = () => {
-      updateAvailable = false;
-    };
-
+    let modInstallElement = mount(ModInstall, {
+      target: document.body,
+    });
+    let instance = gameInstance as GameInstance
     for await (let r of outdatedMods) {
-      await downloadMod.Initialize(data, r.ID == "", r);
-      await downloadMod.Download();
+      if (r.local) continue
+      await instance.AddMod(InternetModToUnifiedMod(r))
+      modInstallElement.modName = r.Name;
+      modInstallElement.modIcon = GetImagePath(r.ID, ImageType.Mod);
     }
+    await unmount(modInstallElement)
   }
 
-  let regionTitle = "";
-  let platformTitle = "";
+  let regionTitle = $state("");
+  let platformTitle = $state("");
 
   export async function Init() {
-    setTimeout(Hover, 5);
-    switch (data.platform) {
+    let instance = gameInstance as GameInstance
+
+    switch (instance.gameConfig.platform) {
       case Platform.Wii:
-        platformlogo.src = "img/Wii.svg";
+        platformLogo.src = "img/Wii.svg";
         break;
       case Platform.PC:
-        if (data.steamVersion) {
-          platformlogo.src = "img/steam.svg";
+        if (instance.gameConfig.steamVersion) {
+          platformLogo.src = "img/steam.svg";
         } else {
-          platformlogo.src = "img/windows.svg";
+          platformLogo.src = "img/windows.svg";
         }
         break;
     }
 
-    switch (data.region) {
+    switch (instance.gameConfig.region) {
       case Region.NTSC_U:
         regionPath = "img/regions/usa.svg";
         break;
@@ -218,42 +173,44 @@
         break;
     }
 
-    regionTitle = data.region.toString();
-    platformTitle = data.platform.toString();
-    if (data.steamVersion) {
+    regionTitle = instance.gameConfig.region.toString();
+    platformTitle = instance.gameConfig.platform.toString();
+    if (instance.gameConfig.steamVersion) {
       platformTitle = "Steam";
     }
     await CheckForUpdate();
   }
 
-  let regionPath = "";
+  let regionPath = $state("");
 
   let linuxUnsupported = false;
   onMount(async () => {
+    let instance = gameInstance as GameInstance
+
     let os = await invoke("get_os");
     //band-aid patch for 0.5.1. i don't have time to make a mini-lutris im already way over schedule
-    if (os == "linux" && data.game == Game.EMR && !data.steamVersion) {
+    if (os == "linux" && instance.gameConfig.game == Game.EMR && !instance.gameConfig.steamVersion) {
       linuxUnsupported = true;
       playButton.disabled = true;
       playButton.title =
         "Starting this game from Linux without Steam is not supported yet. Please use solutions like Lutris or Steam.";
     }
+    await Init()
   });
 
   function OpenLevelLoader() {
-    SetData("levelloaderdata", data);
+    let instance = gameInstance as GameInstance
+    SetActiveGameInstance(instance)
     window.open("#/levelloader", "_self");
   }
-  export let node: HTMLDivElement;
-  let mainDiv: HTMLElement;
-  let playButton: HTMLButtonElement;
+
 </script>
 
 <main
   style="display:inline-block;"
   bind:this={mainDiv}
-  on:mouseleave={() => Unhover()}
-  on:mousemove={Hover}
+  onmouseleave={() => Unhover()}
+  onmousemove={Hover}
 >
   <div
     class="gamenode"
@@ -268,7 +225,7 @@
       <div
         style="position:absolute;left:0px;pointer-events:none;top:0px;display:flex;justify-content:center;width:100%;height:100%;"
       >
-        <button class="playbutton" bind:this={playButton} on:click={OpenGame}>
+        <button class="playbutton" bind:this={playButton} onclick={OpenGame}>
           <img src="img/play.svg" style="width:30%;" />
         </button>
       </div>
@@ -279,20 +236,20 @@
         >
           <button
             title="Game Settings"
-            on:click={OpenLevelLoader}
+            onclick={OpenLevelLoader}
             class="gamesettings"
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
 
           <button
-            title="Open Game in Explorer"
-            on:click={OpenDirectory}
+            title="Change Level"
+            onclick={OpenDirectory}
             class="gamesettings"
             ><img src="img/changelevel.svg" style="width:16px;" /></button
           >
           <button
             title="Open Game in Explorer"
-            on:click={OpenDirectory}
+            onclick={OpenDirectory}
             class="gamesettings"
             ><img src="img/openinexplorer.svg" style="width:16px;" /></button
           >
@@ -306,7 +263,7 @@
           <img
             style="width:20px;padding-top:5px;padding-right:3px;"
             alt="platform"
-            bind:this={platformlogo}
+            bind:this={platformLogo}
             title={platformTitle}
             src="img/Wii.svg"
           />
@@ -324,7 +281,7 @@
         {#if updateAvailable}
           <button
             style="background-color: transparent; border:none;"
-            on:click={UpdateAllMods}
+            onclick={UpdateAllMods}
           >
             <svg
               viewBox="0 0 30 30"

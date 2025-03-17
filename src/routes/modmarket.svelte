@@ -1,65 +1,57 @@
 <script lang="ts">
-  import {GetToken, POST} from "./library/networking";
-  import {onMount} from "svelte";
-  import ModNode from "./components/ModNode.svelte";
-  import {ReadJSON} from "./library/configfiles";
-  import {SetData} from "./library/datatransfer.js";
-  import Loading from "./components/loading.svelte";
-  import Dialog from "./components/dialog.svelte";
-  import {GetBackgroundModMarket} from "./library/background";
-  import {invoke} from "@tauri-apps/api/core";
-  import {Mod} from "./library/types";
-  import {GetGameIdentity} from "./library/gameid";
+    import {GetToken, POST} from "./library/networking";
+    import {mount, onMount} from "svelte";
+    import ModNode from "./components/ModNode.svelte";
+    import {SetData} from "./library/datatransfer.js";
+    import Loading from "./components/loading.svelte";
+    import Dialog from "./components/dialog.svelte";
+    import {GetBackgroundModMarket} from "./library/background";
+    import {invoke} from "@tauri-apps/api/core";
+    import {type Mod, Region} from "./library/types";
+    import {GetLoadedGameInstances, SetActiveGameInstance} from "./library/config";
+    import type {GameInstance} from "./library/instance.svelte";
 
-  let load = true;
-    let jsonData: any[];
+    let load = $state(true);
 
-    async function SetJsonData() {
-        jsonData = await ReadJSON("games.json");
-        return jsonData;
-    }
 
     onMount(async () => {
-        await SetJsonData();
 
         let bg = GetBackgroundModMarket();
 
         background.style.backgroundImage = `url(${bg.path})`;
         background_credits = bg.credits;
-        if (jsonData[0] != null) {
-            currentSelectedGame = jsonData[0];
-            SetData("gameinfo", currentSelectedGame);
+        let instances = GetLoadedGameInstances()
+        if (instances[0] != null) {
+            currentSelectedGame = instances[0];
+            SetActiveGameInstance(currentSelectedGame)
             await GetAllMods();
         } else {
             nogames = true;
         }
     });
 
-    let chunks = [];
-    let chunkindex = 1;
-    let ModList: HTMLDivElement;
-    let filter: any;
-    let selectedgamebuild: any;
-    let currentSelectedGame: { game: any; platform: any };
-    let nogames = false;
-    let allspawnednodes = [];
+    let chunks = $state([]);
+    let chunkindex = $state(1);
+    let ModList: HTMLDivElement = $state();
+    let filter: any = $state();
+    let selectedGameInstance: GameInstance = $state();
+    let currentSelectedGame: GameInstance
+    let nogames = $state(false);
+    let allSpawnedModNodes = $state([]);
+    let noModsForGame = $state(false)
 
     async function LoadModList(changePlatform = false, c = 1) {
         chunkindex = c;
 
-        allspawnednodes.forEach((element) => {
-            element.$destroy();
-        });
-
         if (changePlatform) {
-            SetData("gameinfo", selectedgamebuild);
-            currentSelectedGame = selectedgamebuild;
+            currentSelectedGame = selectedGameInstance;
+            SetActiveGameInstance(selectedGameInstance)
         }
 
         await GetAllMods();
     }
 
-    let search: HTMLInputElement;
+    let search: HTMLInputElement = $state();
 
     let featuredModId = "";
     let featuredModImage = "";
@@ -82,11 +74,18 @@
 
     async function GetAllMods() {
         load = true;
+        noModsForGame = false;
+
+        for (const element of allSpawnedModNodes) {
+            await element.Unload()
+        }
+        allSpawnedModNodes = [];
+
         let token = await GetToken();
 
         let d = {
-            Game: currentSelectedGame.game,
-            Platform: currentSelectedGame.platform,
+            Game: currentSelectedGame.gameConfig.game,
+            Platform: currentSelectedGame.gameConfig.platform,
             Token: token,
             PageIndex: chunkindex - 1,
             Order: filter,
@@ -95,36 +94,36 @@
 
         let data = await POST("mod/query", d);
         IntToArray(data.body.RawQuerySize);
-        allspawnednodes = [];
+
 
         if (data.body.ModObjs === null) {
+            load = true
+            noModsForGame = true
             return
         }
 
-        await data.body.ModObjs.forEach((e: Mod) => {
-            let modNode = new ModNode({
-                target: ModList,
-            });
 
-            modNode.modData = e;
-            modNode.gameData = jsonData.find(
-                (r: { game: any; platform: any }) =>
-                    r.game.toUpperCase() == currentSelectedGame.game.toUpperCase() &&
-                    r.platform.toUpperCase() ==
-                    currentSelectedGame.platform.toUpperCase(),
-            );
+        await data.body.ModObjs.forEach((e: Mod) => {
+
             e.Platform = e.Platform.toUpperCase();
             e.Game = e.Game.toUpperCase();
-            modNode.Init();
+            let modNode = mount(ModNode, {
+                target: ModList,
+                props: {
+                    modData: e,
+                    gameInstance: currentSelectedGame
+                }
+            });
 
-            allspawnednodes.push(modNode);
+            modNode.Load();
+            allSpawnedModNodes.push(modNode);
         });
 
         load = false;
 
         let delay = 0.03;
 
-        allspawnednodes.forEach((node) => {
+        allSpawnedModNodes.forEach((node) => {
             setTimeout(() => {
                 if (node == null) {
                     return;
@@ -136,8 +135,8 @@
         });
     }
 
-    let background: HTMLDivElement;
-    let background_credits: string;
+    let background: HTMLDivElement = $state();
+    let background_credits: string = $state();
 </script>
 
 <div
@@ -156,7 +155,7 @@
     <span class="featuredModText">Available Now!</span>
     <p>
       <img
-              on:click={GoToFeaturedMod}
+              onclick={GoToFeaturedMod}
               class="featuredModBanner"
               alt=""
               style="border-radius:10px;filter: drop-shadow(1px 1px 4px black);"
@@ -164,7 +163,7 @@
       />
     </p></span
   >
-    <p/>
+    <p></p>
 {/if}
 
 {#if !nogames}
@@ -173,29 +172,23 @@
     >
         <div class="dropdown">
             <select
-                    bind:value={selectedgamebuild}
-                    on:change={() => LoadModList(true, 1)}
+                    bind:value={selectedGameInstance}
+                    onchange={() => LoadModList(true, 1)}
             >
-                {#await SetJsonData()}
-                    <p>Loading Mod List...</p>
-                {:then data}
-                    {#each data as gamebuild}
-                        <option value={gamebuild}>
-                            {GetGameIdentity(gamebuild.game).name +
-                            " (" +
-                            gamebuild.platform.toUpperCase() +
-                            ", " +
-                            gamebuild.region +
-                            ")"}
-                        </option>
-                    {/each}
-                {/await}
+                {#each GetLoadedGameInstances() as gameInstance}
+                    <option value={gameInstance}>
+                        {gameInstance.gameIdentity.name +
+                        " (" +
+                        gameInstance.gameConfig.platform.toUpperCase() + (gameInstance.gameConfig.region !== Region.None ? (", " + gameInstance.gameConfig.region) : "") + ")"}
+                    </option>
+                {/each}
+
             </select>
         </div>
         <div class="dropdown">
             <select
                     bind:value={filter}
-                    on:change={() => LoadModList()}
+                    onchange={() => LoadModList()}
             >
                 <option value={0}>Newest</option>
                 <option value={1}>Oldest</option>
@@ -208,18 +201,18 @@
 
         <input
                 bind:this={search}
-                on:change={() => Search()}
+                onchange={() => Search()}
                 placeholder="Search"
                 style="border:none;border-radius:3px;background-color:black;border:1px white solid;padding:3px;"
         />
         <button
                 style="width:40px;height:40px;border:none;background:none;margin-left:10px;"
-                on:click={() => window.open("#/uploadmod", "_self")}
+                onclick={() => window.open("#/uploadmod", "_self")}
         ><img src="img/upload.svg" style="width:20px;"/></button
         >
     </div>
 {/if}
-<p/>
+<p></p>
 {#if load}
     {#if nogames}
         <div class="warning">
@@ -227,7 +220,7 @@
                 <p>You don't have any game builds set up yet!</p>
                 <p>
                     <button
-                            on:click={() =>
+                            onclick={() =>
               invoke("open_link", { url: "https://emldocs.kalsvik.no" })}
                             class="hyperlinkbutton">Guide
                     </button
@@ -236,27 +229,31 @@
             </div>
         </div>
     {:else}
+        {#if noModsForGame}
+            <h2 style="text-align:center;">There are no mods available for this game!</h2>
+        {:else}
     <span style="margin-left:45%;">
       <Loading></Loading>
     </span>
+        {/if}
     {/if}
-{:else if allspawnednodes.length == 0}
+{:else if allSpawnedModNodes.length == 0}
     <h1 style="text-align:center;">No mods could be found with your filters.</h1>
     <Dialog content={["Tip: Try to simplify your search to only one word."]}
     ></Dialog>
 {/if}
 <p></p>
-<div bind:this={ModList} style="margin-right:auto;margin-left:auto;"/>
+<div bind:this={ModList} style="margin-right:auto;margin-left:auto;"></div>
 
 <div style="display:flex;justify-content:center;">
     {#each chunks as num}
         {#if num == chunkindex}
             <button
                     style="transform:scale(1.1);background-color:rgb(40, 40, 40);"
-                    on:click={() => LoadModList(false, num)}>{num}</button
+                    onclick={() => LoadModList(false, num)}>{num}</button
             >
         {:else}
-            <button on:click={() => LoadModList(false, num)}>{num}</button>
+            <button onclick={() => LoadModList(false, num)}>{num}</button>
         {/if}
     {/each}
 </div>
