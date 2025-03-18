@@ -2,10 +2,6 @@ name: 'compilestatus'
 
 # This will trigger the action on each push to the `release` branch.
 on: workflow_dispatch
-on:
-  push:
-    branches:
-      - 0.5.1
 
 jobs:
   publish-tauri:
