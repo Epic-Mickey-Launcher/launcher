@@ -23,7 +23,6 @@ pub mod debug;
 pub mod dolphin;
 pub mod download;
 mod emr;
-pub mod git;
 pub mod helper;
 pub mod iso_extract;
 pub mod mod_info;
@@ -156,11 +155,7 @@ fn get_bootbin_id(path: String) -> String {
 }
 
 #[tauri::command]
-fn generate_ssh_key_pair(path: String, window: Window) {
-    git::generate_ssh_key_pair(&path).unwrap_or_else(|error| {
-        helper::handle_error(error, &window);
-    })
-}
+fn generate_ssh_key_pair(path: String, window: Window) {}
 
 #[tauri::command]
 fn write_mod_info(
