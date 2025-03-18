@@ -339,8 +339,15 @@ fn delete_mod_cache(modid: String, window: Window) {
 }
 
 #[tauri::command]
-async fn generate_mod_project(game: String, platform: String, path: String, window: Window) {
-    mod_management::generate_mod_template(game, platform, path)
+async fn generate_mod_project(
+    game: String,
+    platform: String,
+    path: String,
+    name: String,
+    description: String,
+    window: Window,
+) {
+    mod_management::generate_mod_template(name, description, game, platform, path)
         .await
         .unwrap_or_else(|error| {
             helper::handle_error(error, &window);

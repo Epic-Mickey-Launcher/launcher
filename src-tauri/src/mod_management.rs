@@ -579,8 +579,14 @@ pub fn get_installed_mod_icon(path: &PathBuf) -> Result<String, Error> {
     Ok(data_url.to_string())
 }
 
-pub async fn generate_mod_template(game: String, platform: String, path: String) -> Result<()> {
-    eml_validate::generate_project(game, platform, path)
+pub async fn generate_mod_template(
+    name: String,
+    description: String,
+    game: String,
+    platform: String,
+    path: String,
+) -> Result<()> {
+    eml_validate::generate_project(game, platform, name, description, path)
 }
 
 pub async fn change_status(
