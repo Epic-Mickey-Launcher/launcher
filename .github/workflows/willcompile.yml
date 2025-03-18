@@ -27,8 +27,7 @@ jobs:
       - name: install vcpkg
         if: matrix.platform == 'windows-latest'
         run: |
-          cargo install cargo-vcpkg
-          cargo vcpkg build
+          vcpkg integrate install
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
