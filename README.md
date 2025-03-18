@@ -8,7 +8,7 @@ ___
 
 *(Not Including Epic Mickey 2 on XBOX, Wii U or PS3)*
 
-<img src="https://eml.kalsvik.no/games.png" width="400">
+<img src="https://eml.kalsvik.no/gamesmenu.png" width="400">
 
 ## Large Mod Catalouge
 
