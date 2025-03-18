@@ -28,7 +28,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: |
           vcpkg integrate install
-          vcpkg install libarchive
+          vcpkg install libarchive:x64-windows-static-md 
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
