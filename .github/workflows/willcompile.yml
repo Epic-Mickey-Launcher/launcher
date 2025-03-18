@@ -28,6 +28,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: |
           vcpkg integrate install
+          vcpkg install libarchive
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
