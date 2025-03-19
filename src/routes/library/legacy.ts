@@ -16,5 +16,5 @@ export async function ConvertGamesConfigToTrackedGames() {
     for (let game of gameConfigs) {
         tracked_games.push(game.path)
     }
-    await WriteFile(JSON.stringify(tracked_games), await RetrieveFileByAlias("eml-tracked-games", configPath, true))
+    await WriteFile(JSON.stringify(tracked_games, null, 4), await RetrieveFileByAlias("eml-tracked-games", configPath, true))
 }

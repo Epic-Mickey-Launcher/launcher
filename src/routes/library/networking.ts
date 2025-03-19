@@ -210,7 +210,7 @@ export async function POST(route: string, data: any, toJson = true, suppressErro
     const res = await fetch(external ? "" : serverLink + route, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify(data)
+        body: JSON.stringify(data, null, 4)
     });
 
     if (res.status != 200 && !suppressError) {

@@ -72,7 +72,7 @@ export async function LoadGamesConfig(): Promise<string[]> {
 }
 
 export async function SaveGamesConfig(config: string[]) {
-    let processed = JSON.stringify(config)
+    let processed = JSON.stringify(config, null, 4)
     await WriteFile(processed, await RetrieveFileByAlias("eml-tracked-games", configPath))
 }
 
@@ -84,6 +84,6 @@ export async function LoadConfig(): Promise<ConfigFile> {
 }
 
 export async function SaveConfig(config: ConfigFile) {
-    let processed = JSON.stringify(config)
+    let processed = JSON.stringify(config, null, 4)
     await WriteFile(processed, await RetrieveFileByAlias("eml-config", configPath))
 }
