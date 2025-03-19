@@ -417,7 +417,8 @@
                 >
             </p>
             {#if localid === modInfo.Author}
-                <div bind:this={ownercontrols}>
+                <div bind:this={ownercontrols} style="background-color: rgb(21,21,21);padding:15px;border-radius: 5px;">
+                    <span style="margin-right: 5px;color:yellow;">Owner Controls: </span>
                     <button
                             onclick={UpdateMod}>Update Mod
                     </button
