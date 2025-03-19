@@ -24,7 +24,28 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: install vcpkg
+      - name: install brew packages (macos only)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          brew install pkgconfig
+          brew install libarchive
+          echo PKG_CONFIG_PATH=$(brew ls libarchive | grep .pc$ | sed 's|/libarchive.pc||') >> $GITHUB_ENV
+
+      - name: cache vcpkg shit (windows only)
+        if: matrix.platform == 'windows-latest'
+        id: cache-vcpkg
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: C:/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ env.cache-name }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ env.cache-name }}
+            ${{ runner.os }}-vcpkg-
+            ${{ runner.os }}-
+
+      - name: install vcpkg (windows only)
         if: matrix.platform == 'windows-latest'
         run: |
           vcpkg integrate install
