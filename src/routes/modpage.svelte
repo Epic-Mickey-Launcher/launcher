@@ -351,6 +351,7 @@
                     title={liked ? "Remove Like" : "Add Like"}
                     onclick={LikeMod}
                     style="background:transparent;border:none;width:25px;height:25px;margin-left:10px;"
+                    aria-label={liked ? "Remove Like" : "Add Like"}
             >
                 <svg
                         bind:this={hearticon}
@@ -450,35 +451,9 @@
     {/if}
 {/if}
 
-{#if selectRegion}
-    <div class="selectregion">
-    <span style="position:relative;top:250px;">
-      <span>Select region to download to</span>
-      <p></p>
-      <div
-              style="background-color: rgb(38 38 38); width:20%; height:30%;  border-radius:10px; margin:auto; filter:drop-shadow(0 0 5px black)"
-      >
-        {#each allRegions as region}
-          {#if region.installed != "installed"}
-            <button style="width:100%;" onclick={() => Download(region)}
-            >{region.region}</button
-            >
-          {:else}
-              <button style="width:100%;" disabled>{region.region}</button>
-          {/if}
-            <br/>
-        {/each}
-      </div>
-      <p>
-
-      </p></span
-    >
-    </div>
-{/if}
-
 <style>
     .commentBox::-webkit-scrollbar {
-        width: 0px;
+        width: 0;
     }
 
     .sendComment {
