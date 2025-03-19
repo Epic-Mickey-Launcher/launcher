@@ -28,7 +28,7 @@ ___
 
 <img src="https://eml.kalsvik.no/modmanagement.png" width="400">
 
-**Made in Svelte & Tauri**
+**Made with Svelte & Tauri**
 
 # Installation
 
