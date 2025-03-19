@@ -28,7 +28,7 @@ pub async fn tool(
     absolute: bool,
 ) -> Result<PathBuf, Error> {
     debug::log(&format!("Beginning download of {}", url));
-    let mut to_pathbuf = if absolute {
+    let mut to_pathbuf = if !absolute {
         helper::get_config_path()?
     } else {
         PathBuf::new()
@@ -39,7 +39,7 @@ pub async fn tool(
         fs::create_dir_all(&to_pathbuf)?;
     }
     zip(url, &to_pathbuf, false, window).await?;
-    debug::log(&format!("Download Finished"));
+    debug::log("Download Finished");
     Ok(to_pathbuf)
 }
 
