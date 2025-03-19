@@ -192,4 +192,4 @@
     <button onclick={DeleteModCache}>Delete mod cache</button>
     <p></p>
 {/if}
-<span>© 2024 Jonas Kalsvik</span>
+<span>© 2025 Jonas Kalsvik</span>
