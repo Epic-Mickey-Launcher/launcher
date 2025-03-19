@@ -332,7 +332,7 @@ export class GameInstance {
 
     async WriteModList() {
         console.log("Writing Mod List...")
-        await WriteFile(JSON.stringify(this.mods), await RetrieveFileByAlias("eml-mods-json", this.gameConfig.path, true))
+        await WriteFile(JSON.stringify(this.mods, null, 4), await RetrieveFileByAlias("eml-mods-json", this.gameConfig.path, true))
     }
 
     async ReadModList() {
