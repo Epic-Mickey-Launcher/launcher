@@ -35,6 +35,14 @@ dialog:backdrop {
     background-color: transparent;
 }
 
+h1 {
+    font-size: 30px;
+}
+
+h2 {
+    font-size: 20px;
+}
+
 * {
     font-family: normalfont;
     color: white;
