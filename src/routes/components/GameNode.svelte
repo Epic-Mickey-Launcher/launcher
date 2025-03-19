@@ -236,19 +236,23 @@
         >
           <button
             title="Game Settings"
+            aria-label="Game Settings"
             onclick={OpenLevelLoader}
             class="gamesettings"
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
-
+          {#if gameInstance.gameConfig.game === Game.EM1}
           <button
             title="Change Level"
+            aria-label="Change Level"
             onclick={OpenDirectory}
             class="gamesettings"
             ><img src="img/changelevel.svg" style="width:16px;" /></button
           >
+          {/if}
           <button
             title="Open Game in Explorer"
+            aria-label="Open Game in File Explorer"
             onclick={OpenDirectory}
             class="gamesettings"
             ><img src="img/openinexplorer.svg" style="width:16px;" /></button
