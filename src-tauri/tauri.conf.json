@@ -1,5 +1,6 @@
 {
   "identifier": "com.kalsvik.eml",
+  "productName": "Epic Mickey Launcher",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",

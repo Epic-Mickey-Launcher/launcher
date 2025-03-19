@@ -15,12 +15,11 @@
 
 
     onMount(async () => {
-
         let bg = GetBackgroundModMarket();
-
         background.style.backgroundImage = `url(${bg.path})`;
         background_credits = bg.credits;
         let instances = GetLoadedGameInstances()
+        console.log("Got Instances: " + instances)
         if (instances[0] != null) {
             currentSelectedGame = instances[0];
             SetActiveGameInstance(currentSelectedGame)
@@ -75,14 +74,11 @@
     async function GetAllMods() {
         load = true;
         noModsForGame = false;
-
         for (const element of allSpawnedModNodes) {
             await element.Unload()
         }
         allSpawnedModNodes = [];
-
         let token = await GetToken();
-
         let d = {
             Game: currentSelectedGame.gameConfig.game,
             Platform: currentSelectedGame.gameConfig.platform,
@@ -91,22 +87,19 @@
             Order: filter,
             SearchQuery: search.value.toLowerCase(),
         };
-
         let data = await POST("mod/query", d);
         IntToArray(data.body.RawQuerySize);
-
-
         if (data.body.ModObjs === null) {
             load = true
             noModsForGame = true
             return
         }
 
-
         await data.body.ModObjs.forEach((e: Mod) => {
 
             e.Platform = e.Platform.toUpperCase();
             e.Game = e.Game.toUpperCase();
+
             let modNode = mount(ModNode, {
                 target: ModList,
                 props: {
@@ -114,7 +107,6 @@
                     gameInstance: currentSelectedGame
                 }
             });
-
             modNode.Load();
             allSpawnedModNodes.push(modNode);
         });

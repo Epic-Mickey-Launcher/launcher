@@ -102,7 +102,6 @@
     }
 
     export {
-        gameData,
         modData,
         modNodeDiv,
     }

@@ -38,6 +38,7 @@ dialog:backdrop {
 * {
     font-family: normalfont;
     color: white;
+    font-size: 15px;
 }
 
 *:disabled {
