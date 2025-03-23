@@ -73,7 +73,7 @@ IDK
 
 - RampantLeaf: Provider of EM1 level loader data. (https://github.com/andrewplus)
 - SlayCap: Heavy contributor & Provider of EM1 & EM2 level loader data. (https://x.com/SlayCap28)
-- Wiimm: Creator of WIT, which EML formerly relied on for extracting image (https://wit.wiimm.de/)
+- Wiimm: Creator of WIT, which EML formerly relied on for extracting image
   files (https://github.com/Wiimm/wiimms-iso-tools)
 - Nanook: Creator of the NKit tools, which EML formerly relied on to convert NKIT images into normal
   images. (https://github.com/Nanook/NKitv1)
