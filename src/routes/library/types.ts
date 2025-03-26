@@ -95,7 +95,6 @@ export interface ConfigFile {
   dolphinPath: string;
   dolphinConfigPath: string;
   developerMode: boolean;
-  gitHubSecret: string;
 }
 
 export interface Comment {

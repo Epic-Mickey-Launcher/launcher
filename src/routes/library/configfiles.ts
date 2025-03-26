@@ -1,10 +1,4 @@
-import {
-  exists,
-  mkdir,
-  readFile,
-  remove,
-  writeFile,
-} from "@tauri-apps/plugin-fs";
+import { exists, mkdir, readFile, remove, writeFile } from "@tauri-apps/plugin-fs";
 import { appLocalDataDir } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/core";
 import { SaveConfig, SaveGamesConfig } from "./config";
@@ -14,7 +8,7 @@ export let configPath: string;
 
 export async function GetPath(): Promise<string> {
   configPath = await invoke("get_frontend_config_path", {
-    npath: await appLocalDataDir(),
+    npath: await appLocalDataDir()
   });
   return configPath;
 }
@@ -36,7 +30,7 @@ export async function ReadOneTimeNoticeBlacklist(): Promise<string> {
 }
 
 export async function CheckOneTimeNoticeBlacklist(
-  id: string,
+  id: string
 ): Promise<boolean> {
   let buffer = await ReadOneTimeNoticeBlacklist();
   return buffer.includes(id);
@@ -48,7 +42,7 @@ export async function WriteOneTimeNoticeBlacklist(id: string) {
   buffer += id + ",";
   await WriteFile(
     buffer,
-    await RetrieveFileByAlias("eml-one-time-notices", configPath),
+    await RetrieveFileByAlias("eml-one-time-notices", configPath)
   );
 }
 
@@ -100,7 +94,7 @@ export async function ReadToken(): Promise<string> {
 export async function DeleteAllConfigFiles() {
   await DataFolderExists();
   await remove(configPath, {
-    recursive: true,
+    recursive: true
   });
 }
 
@@ -110,10 +104,10 @@ export async function InitConfFiles() {
   console.log(configPath);
 
   let gamesJsonExists = await exists(
-    await RetrieveFileByAlias("eml-tracked-games", configPath),
+    await RetrieveFileByAlias("eml-tracked-games", configPath)
   );
   let confJsonExists = await exists(
-    await RetrieveFileByAlias("eml-config", configPath),
+    await RetrieveFileByAlias("eml-config", configPath)
   );
 
   if (!gamesJsonExists) {
@@ -124,8 +118,7 @@ export async function InitConfFiles() {
     await SaveConfig({
       dolphinPath: "",
       dolphinConfigPath: "",
-      developerMode: false,
-      gitHubSecret: "",
+      developerMode: false
     });
   }
 }
