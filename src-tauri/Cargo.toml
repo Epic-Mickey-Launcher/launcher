@@ -26,7 +26,7 @@ open = "5.1.2"
 chrono = "0.4.31"
 eml-validate = "0.1.9"
 dataurl = "0.1.2"
-tauri = { version = "2.0.0-rc.10", features = [] }
+tauri = { version = "2.0.0-rc.10", features = ["devtools"] }
 tauri-plugin-log = "2.0.0-rc"
 tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
 tauri-plugin-deep-link = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
