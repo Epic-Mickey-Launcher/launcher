@@ -1,0 +1,6 @@
+{
+  "semi": true,
+  "plugins": [
+    "prettier-plugin-svelte"
+  ]
+}
