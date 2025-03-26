@@ -8,10 +8,7 @@
   import { GetBackgroundModMarket } from "./library/background";
   import { invoke } from "@tauri-apps/api/core";
   import { type Mod, Region } from "./library/types";
-  import {
-    GetLoadedGameInstances,
-    SetActiveGameInstance,
-  } from "./library/config";
+  import { GetLoadedGameInstances, SetActiveGameInstance } from "./library/config";
   import type { GameInstance } from "./library/instance.svelte";
 
   let load = $state(true);
@@ -87,7 +84,7 @@
       Token: token,
       PageIndex: chunkindex - 1,
       Order: filter,
-      SearchQuery: search.value.toLowerCase(),
+      SearchQuery: search.value.toLowerCase()
     };
     let data = await POST("mod/query", d);
     IntToArray(data.body.RawQuerySize);
@@ -105,8 +102,8 @@
         target: ModList,
         props: {
           modData: e,
-          gameInstance: currentSelectedGame,
-        },
+          gameInstance: currentSelectedGame
+        }
       });
       modNode.Load();
       allSpawnedModNodes.push(modNode);
@@ -137,7 +134,7 @@
   style="background-attachment:fixed;position: fixed;width:100vw;height:100vh;top:0px;z-index:-1;background-image:url(img/backgrounds/back1.webp);background-position:center;background-size:cover;left:0px;"
 >
   <span style="bottom:3px;position:fixed;font-size:10px;left:3px;"
-    >{background_credits}</span
+  >{background_credits}</span
   >
 </div>
 
@@ -171,12 +168,12 @@
         {#each GetLoadedGameInstances() as gameInstance}
           <option value={gameInstance}>
             {gameInstance.gameIdentity.name +
-              " (" +
-              gameInstance.gameConfig.platform.toUpperCase() +
-              (gameInstance.gameConfig.region !== Region.None
-                ? ", " + gameInstance.gameConfig.region
-                : "") +
-              ")"}
+            " (" +
+            gameInstance.gameConfig.platform.toUpperCase() +
+            (gameInstance.gameConfig.region !== Region.None
+              ? ", " + gameInstance.gameConfig.region
+              : "") +
+            ")"}
           </option>
         {/each}
       </select>
@@ -201,7 +198,7 @@
     <button
       style="width:40px;height:40px;border:none;background:none;margin-left:10px;"
       onclick={() => window.open("#/uploadmod", "_self")}
-      ><img src="img/upload.svg" style="width:20px;" /></button
+    ><img src="img/upload.svg" style="width:20px;" /></button
     >
   </div>
 {/if}
@@ -216,7 +213,7 @@
             onclick={() =>
               invoke("open_link", { url: "https://emldocs.kalsvik.no" })}
             class="hyperlinkbutton"
-            >Guide
+          >Guide
           </button>
         </p>
       </div>
@@ -240,14 +237,11 @@
 
 <div style="display:flex;justify-content:center;">
   {#each chunks as num}
-    {#if num == chunkindex}
-      <button
-        style="transform:scale(1.1);background-color:rgb(40, 40, 40);"
-        onclick={() => LoadModList(false, num)}>{num}</button
-      >
-    {:else}
-      <button onclick={() => LoadModList(false, num)}>{num}</button>
-    {/if}
+    <button
+      style={num === chunkindex ? "transform:scale(1.1);background-color:rgb(40, 40, 40);":""}
+      class="pageButton"
+      onclick={() => LoadModList(false, num)}>{num}</button
+    >
   {/each}
 </div>
 
@@ -256,42 +250,56 @@
 ></div>
 
 <style>
-  .warning {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-right: auto;
-    margin-left: auto;
-    text-align: center;
-    pointer-events: none;
-  }
+    .pageButton {
+        border-radius: 5px;
+        margin-right: 5px;
+        margin-left: 5px;
+        width: 40px;
+        height: 30px;
+        border: none;
+        background-color: #2e2e2e77;
+    }
 
-  .dropdown select {
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: black;
-    padding: 10px;
-  }
+    .pageButton:hover {
+        transform: scale(1.2);
+    }
 
-  .dropdown {
-    position: relative;
-    margin-right: 30px;
-    color: black;
-  }
+    .warning {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        margin-top: auto;
+        margin-bottom: auto;
+        margin-right: auto;
+        margin-left: auto;
+        text-align: center;
+        pointer-events: none;
+    }
 
-  .featuredModBanner {
-    transition-duration: 0.1s;
-  }
+    .dropdown select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: black;
+        padding: 10px;
+    }
 
-  .featuredModBanner:hover {
-    transform: scale(1.05);
-  }
+    .dropdown {
+        position: relative;
+        margin-right: 30px;
+        color: black;
+    }
+
+    .featuredModBanner {
+        transition-duration: 0.1s;
+    }
+
+    .featuredModBanner:hover {
+        transform: scale(1.05);
+    }
 </style>
