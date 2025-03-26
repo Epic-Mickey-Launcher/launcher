@@ -2,9 +2,17 @@
   import { invoke } from "@tauri-apps/api/core";
   import { mount, onMount, unmount } from "svelte";
   import { GetImagePath, ImageType, POST } from "../library/networking";
-  import { Game, OperatingSystemType, Platform, Region } from "../library/types";
+  import {
+    Game,
+    OperatingSystemType,
+    Platform,
+    Region,
+  } from "../library/types";
   import type { GameInstance } from "../library/instance.svelte";
-  import { currentOperatingSystem, SetActiveGameInstance } from "../library/config";
+  import {
+    currentOperatingSystem,
+    SetActiveGameInstance,
+  } from "../library/config";
   import { InternetModToUnifiedMod } from "../library/gameid";
   import ModInstall from "./ModInstall.svelte";
 
@@ -90,11 +98,11 @@
   function OpenDirectory() {
     let instance = gameInstance as GameInstance;
 
-      let p =
-        currentOperatingSystem == OperatingSystemType.Windows
-          ? gameInstance.path.replace("/", "\\")
-          : instance.gameConfig.path;
-      invoke("open_path_in_file_manager", { path: p });
+    let p =
+      currentOperatingSystem == OperatingSystemType.Windows
+        ? gameInstance.path.replace("/", "\\")
+        : instance.gameConfig.path;
+    invoke("open_path_in_file_manager", { path: p });
   }
 
   async function UpdateAllMods() {

@@ -14,15 +14,21 @@ export async function DownloadDolphin() {
   let config = await LoadConfig();
 
   let url = "";
-  if (currentOperatingSystem == OperatingSystemType.Windows) url = DOLPHIN_LINK_WINDOWS;
-  else if (currentOperatingSystem == OperatingSystemType.MacOS) url = DOLPHIN_LINK_MACOS;
-  else if (currentOperatingSystem == OperatingSystemType.Linux) url = DOLPHIN_LINK_LINUX;
+  if (currentOperatingSystem == OperatingSystemType.Windows)
+    url = DOLPHIN_LINK_WINDOWS;
+  else if (currentOperatingSystem == OperatingSystemType.MacOS)
+    url = DOLPHIN_LINK_MACOS;
+  else if (currentOperatingSystem == OperatingSystemType.Linux)
+    url = DOLPHIN_LINK_LINUX;
 
   let path = await invoke("download_tool", { url: url, foldername: "Dolphin" });
 
-  if (currentOperatingSystem == OperatingSystemType.Windows) config.dolphinPath = path + "/Dolphin.exe";
-  else if (currentOperatingSystem == OperatingSystemType.MacOS) config.dolphinPath = path + "/Dolphin.app";
-  else if (currentOperatingSystem == OperatingSystemType.Linux) config.dolphinPath = path + "/dolphin-emu";
+  if (currentOperatingSystem == OperatingSystemType.Windows)
+    config.dolphinPath = path + "/Dolphin.exe";
+  else if (currentOperatingSystem == OperatingSystemType.MacOS)
+    config.dolphinPath = path + "/Dolphin.app";
+  else if (currentOperatingSystem == OperatingSystemType.Linux)
+    config.dolphinPath = path + "/dolphin-emu";
 
   await invoke("create_portable", { dolphinpath: config.dolphinPath });
   await SaveConfig(config);

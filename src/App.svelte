@@ -1,7 +1,11 @@
 <script lang="ts">
   import SelectGameForMod from "./routes/components/SelectGameForMod.svelte";
   import Header from "./routes/components/header.svelte";
-  import { GetPath, InitConfFiles, ReadToken } from "./routes/library/configfiles";
+  import {
+    GetPath,
+    InitConfFiles,
+    ReadToken,
+  } from "./routes/library/configfiles";
   import Router from "svelte-spa-router";
   import Games from "./routes/games.svelte";
   import QuickStart from "./routes/quickstart.svelte";
@@ -13,7 +17,11 @@
   import ProfilePage from "./routes/profilepage.svelte";
   import ModPage from "./routes/modpage.svelte";
   import AccountSettings from "./routes/accountsettings.svelte";
-  import { Login, SetServerURL, type UserInfo } from "./routes/library/networking";
+  import {
+    Login,
+    SetServerURL,
+    type UserInfo,
+  } from "./routes/library/networking";
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
   import { invoke } from "@tauri-apps/api/core";
@@ -23,7 +31,12 @@
   import { onMount } from "svelte";
   import DownloadMod from "./routes/components/downloadMod.svelte";
   import { ConvertGamesConfigToTrackedGames } from "./routes/library/legacy";
-  import { LoadConfig, LoadGameInstancesFromTrackingFile, SetHeader, SetOS } from "./routes/library/config";
+  import {
+    LoadConfig,
+    LoadGameInstancesFromTrackingFile,
+    SetHeader,
+    SetOS,
+  } from "./routes/library/config";
 
   let DownloadModComponent = $state(DownloadMod);
   let SelectGameForModComponent = $state(SelectGameForMod);
@@ -80,7 +93,7 @@
     let token = await ReadToken();
     if (token != "") {
       let userInfo: UserInfo = {
-        token: token
+        token: token,
       };
 
       Login(userInfo);
@@ -92,9 +105,9 @@
   async function ErrorCatcher() {
     await listen("on_rust_error", async (event: any) => {
       let res = await confirm(
-        "Rust Backend Error!\n\"" +
-        event.payload +
-        "\\nThis error might cause further instability. It is recommended that you restart EML to avoid this. Do you want to quit?"
+        'Rust Backend Error!\n"' +
+          event.payload +
+          "\\nThis error might cause further instability. It is recommended that you restart EML to avoid this. Do you want to quit?",
       );
 
       if (res) {
@@ -122,7 +135,7 @@
     "/modpage": ModPage,
     "/profilepage": ProfilePage,
     "/accountsettings": AccountSettings,
-    "/*": Games
+    "/*": Games,
   };
 
   let funcKeyDown: boolean;
