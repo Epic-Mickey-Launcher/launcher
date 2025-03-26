@@ -5,9 +5,10 @@ import {
   type IdentifyGameResult,
   type InstalledMod,
   ModState,
+  OperatingSystemType,
   Platform,
   Region,
-  type UnifiedMod,
+  type UnifiedMod
 } from "./types";
 import { ReadFile, WriteFile } from "./configfiles";
 import { invoke } from "@tauri-apps/api/core";
@@ -17,22 +18,18 @@ import {
   GetGameWiiID,
   IdentifyGame,
   IdentifyISO,
-  LocalModToUnifiedMod,
+  LocalModToUnifiedMod
 } from "./gameid";
 import { exists } from "@tauri-apps/plugin-fs";
 import { POST, serverLink } from "./networking";
 import { RetrieveFileByAlias } from "./filealias";
 import { path } from "@tauri-apps/api";
-import {
-  GetLoadedGameInstances,
-  LoadConfig,
-  RemoveTrackedGame,
-} from "./config";
+import { currentOperatingSystem, GetLoadedGameInstances, LoadConfig, RemoveTrackedGame } from "./config";
 
 export function GetAllInstancesWithSameGame(game: Game, platform: Platform) {
   let gameInstances = GetLoadedGameInstances();
   return gameInstances.filter(
-    (r) => r.gameConfig.game == game && r.gameConfig.platform == platform,
+    (r) => r.gameConfig.game == game && r.gameConfig.platform == platform
   );
 }
 
@@ -61,9 +58,9 @@ export class GameInstance {
     let identifyGame: IdentifyGameResult = await IdentifyGame(
       {
         id: null,
-        path: this.path,
+        path: this.path
       },
-      true,
+      true
     );
 
     if (identifyGame == null) {
@@ -71,9 +68,9 @@ export class GameInstance {
       identifyGame = await IdentifyGame(
         {
           id: null,
-          path: this.path + "/DATA",
+          path: this.path + "/DATA"
         },
-        true,
+        true
       );
 
       if (identifyGame == null) {
@@ -86,7 +83,7 @@ export class GameInstance {
 
     if (identifyGame.platform == Platform.Wii) {
       let id: string = await invoke("get_bootbin_id", {
-        path: this.path + "/" + identifyGame.identifier,
+        path: this.path + "/" + identifyGame.identifier
       });
       identifyGame = await IdentifyISO(id); // Accounting for multiple regions for wii/gc games
     }
@@ -95,12 +92,12 @@ export class GameInstance {
       let ue4ssLockExists = await exists(this.path + "/ue4ss.lock");
       if (!ue4ssLockExists) {
         let confirmInstall = await confirm(
-          "Epic Mickey Rebrushed on EML requires UE4SS. Press Yes to automatically download & inject it. It will not replace any game files. If you cancel this prompt, mods that require it will not work, and you will be given this same prompt when the game is reinitialized.",
+          "Epic Mickey Rebrushed on EML requires UE4SS. Press Yes to automatically download & inject it. It will not replace any game files. If you cancel this prompt, mods that require it will not work, and you will be given this same prompt when the game is reinitialized."
         );
         if (confirmInstall) {
           await invoke("inject_ue4ss", {
             path: this.path,
-            serverUrl: serverLink,
+            serverUrl: serverLink
           });
         }
       }
@@ -112,16 +109,16 @@ export class GameInstance {
       region: identifyGame.region,
       platform: identifyGame.platform,
       uniqueID: "",
-      steamVersion: this.path.includes("steamapps"),
+      steamVersion: this.path.includes("steamapps")
     };
 
     let uidLockExists = await exists(this.path + "/eml-id.lock");
     if (!uidLockExists)
       await WriteFile(
         this.GetShortName(false).toLowerCase().replaceAll(" ", "_") +
-          "_" +
-          Date.now().toString(),
-        this.path + "/eml-id.lock",
+        "_" +
+        Date.now().toString(),
+        this.path + "/eml-id.lock"
       );
     this.gameConfig.uniqueID = await ReadFile(this.path + "/eml-id.lock");
 
@@ -135,7 +132,7 @@ export class GameInstance {
         let configFileContent = await ReadFile(this.path + "/ConfigFiles.ini");
         configFileContent = configFileContent.replace(
           "ShowDevLevelLoad=false",
-          "ShowDevLevelLoad=true",
+          "ShowDevLevelLoad=true"
         );
         await WriteFile(configFileContent, this.path + "/ConfigFiles.ini");
       }
@@ -171,45 +168,43 @@ export class GameInstance {
       invoke("playgame", {
         dolphin: config.dolphinPath,
         exe: this.gameConfig.path + "/sys/main.dol",
-        id: id,
+        id: id
       }).then((res) => {
         if (res == 1) {
           alert(
-            "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings.",
+            "Game failed to open. Make sure that you have specified Dolphin's executable path in the settings."
           );
         }
       });
     } else if (this.gameConfig.platform == Platform.PC) {
-      invoke("get_os").then(async (_os) => {
-        if (_os == "linux") {
-          let gameIdentity: GameIdentity = GetGameIdentity(
-            this.gameConfig.game,
-          );
-          if (this.gameConfig.steamVersion) {
-            let steamID = gameIdentity.steamID;
-            await invoke("play_steam_game", { id: steamID });
-          }
-        } else if (_os == "windows") {
-          let gameRelease = GetGameRelease(
-            this.gameConfig.game,
-            this.gameConfig.platform,
-          );
-          invoke("playgame", {
-            dolphin: await path.join(
-              this.gameConfig.path,
-              gameRelease.identifier,
-            ),
-            exe: "",
-            id: "",
-          }).then((res) => {
-            if (res == 1) {
-              alert("Game failed to open.");
-            }
-          });
-        } else {
-          alert("Playing Windows games is not supported on this OS yet.");
+      if (currentOperatingSystem == OperatingSystemType.Linux) {
+        let gameIdentity: GameIdentity = GetGameIdentity(
+          this.gameConfig.game
+        );
+        if (this.gameConfig.steamVersion) {
+          let steamID = gameIdentity.steamID;
+          await invoke("play_steam_game", { id: steamID });
         }
-      });
+      } else if (currentOperatingSystem == OperatingSystemType.Windows) {
+        let gameRelease = GetGameRelease(
+          this.gameConfig.game,
+          this.gameConfig.platform
+        );
+        invoke("playgame", {
+          dolphin: await path.join(
+            this.gameConfig.path,
+            gameRelease.identifier
+          ),
+          exe: "",
+          id: ""
+        }).then((res) => {
+          if (res == 1) {
+            alert("Game failed to open.");
+          }
+        });
+      } else {
+        alert("Playing Windows games is not supported on this OS yet.");
+      }
     }
   }
 
@@ -227,7 +222,7 @@ export class GameInstance {
       let validationInfo: any = await invoke("validate_mod", {
         url: url,
         destination: "",
-        mode: "local",
+        mode: "local"
       });
 
       if (!validationInfo.validated) {
@@ -254,7 +249,7 @@ export class GameInstance {
         gameid: gameID,
         platform: this.gameConfig.platform,
         modid: modData.id,
-        active: existingMod.active,
+        active: existingMod.active
       });
 
       this.mods.splice(delete_index, 1);
@@ -275,7 +270,7 @@ export class GameInstance {
       modid: modData.id.toString(),
       gameid: gameID,
       platform: platform,
-      version: String(modData.version),
+      version: String(modData.version)
     });
 
     this.mods.push({
@@ -283,7 +278,7 @@ export class GameInstance {
       modid: modData.id,
       active: true,
       update: modData.version,
-      local: local,
+      local: local
     });
 
     await this.WriteModList();
@@ -292,9 +287,9 @@ export class GameInstance {
       await POST(
         "mod/download/increment",
         {
-          ID: modData.id,
+          ID: modData.id
         },
-        false,
+        false
       );
     }
     this.busy = false;
@@ -321,7 +316,7 @@ export class GameInstance {
       gameid: gameID,
       platform: this.gameConfig.platform,
       modid: localMod.modid,
-      active: localMod.active,
+      active: localMod.active
     });
     this.mods.splice(delete_index, 1);
     await this.WriteModList();
@@ -345,7 +340,7 @@ export class GameInstance {
     }
 
     let localInstalledMod = this.mods.find(
-      (r: { modid: any }) => r.modid == mod.id,
+      (r: { modid: any }) => r.modid == mod.id
     );
     if (localInstalledMod != null) {
       if (localInstalledMod.update != mod.version) {
@@ -368,7 +363,7 @@ export class GameInstance {
       active: active,
       modname: mod.name,
       platform: this.gameConfig.platform,
-      version: mod.local ? "0" : mod.update.toString(),
+      version: mod.local ? "0" : mod.update.toString()
     });
     await this.WriteModList();
   }
@@ -377,7 +372,7 @@ export class GameInstance {
     console.log("Writing Mod List...");
     await WriteFile(
       JSON.stringify(this.mods, null, 4),
-      await RetrieveFileByAlias("eml-mods-json", this.gameConfig.path, true),
+      await RetrieveFileByAlias("eml-mods-json", this.gameConfig.path, true)
     );
   }
 
@@ -385,7 +380,7 @@ export class GameInstance {
     let path = await RetrieveFileByAlias(
       "eml-mods-json",
       this.gameConfig.path,
-      true,
+      true
     );
     let modListExists = await exists(path);
     if (!modListExists) return [];

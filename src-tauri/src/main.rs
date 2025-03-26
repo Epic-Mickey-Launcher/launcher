@@ -87,7 +87,6 @@ fn main() {
             get_frontend_config_path,
             upload_file_chunks,
             generate_mod_project,
-            generate_ssh_key_pair,
             package_mod_for_publish,
         ])
         .run(tauri::generate_context!())
@@ -118,7 +117,7 @@ fn open_dolphin(path: String) {
 #[tauri::command]
 fn open_link(url: String, window: Window) {
     open::that(url).unwrap_or_else(|error| {
-        //helper::handle_error(anyhow::Error::from(&error), &window);
+        helper::handle_error(anyhow::Error::from(error), &window);
     });
 }
 
@@ -153,9 +152,6 @@ fn get_bootbin_id(path: String) -> String {
     let id = std::str::from_utf8(&id_bytes[0..6]).unwrap().to_uppercase();
     return id;
 }
-
-#[tauri::command]
-fn generate_ssh_key_pair(path: String, window: Window) {}
 
 #[tauri::command]
 fn write_mod_info(

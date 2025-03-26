@@ -9,8 +9,8 @@
   import ModInstall from "./components/ModInstall.svelte";
   import { exists } from "@tauri-apps/plugin-fs";
   import { GameInstance } from "./library/instance.svelte";
-  import { activeInstance, RemoveTrackedGame } from "./library/config";
-  import { Game, Platform, Region } from "./library/types";
+  import { activeInstance, currentOperatingSystem, RemoveTrackedGame } from "./library/config";
+  import { Game, OperatingSystemType, Platform, Region } from "./library/types";
 
   let data: GameInstance;
   let mainSettings: HTMLDivElement = $state();
@@ -40,10 +40,8 @@
   }
 
   function OpenDirectory() {
-    invoke("get_os").then((os) => {
-      let p = os == "windows" ? data.path.replace("/", "\\") : data.path;
-      invoke("open_path_in_file_manager", { path: p });
-    });
+    let p = currentOperatingSystem == OperatingSystemType.Windows ? data.path.replace("/", "\\") : data.path;
+    invoke("open_path_in_file_manager", { path: p });
   }
 
   async function RefreshMods() {
@@ -91,12 +89,12 @@
     let data = activeInstance;
     const selectedPath = await open({
       title: "Select archive",
-      multiple: false,
+      multiple: false
     });
     let filename = selectedPath.toString().split("\\").pop().split("/").pop();
 
     let modInstallElement = mount(ModInstall, {
-      target: document.body,
+      target: document.body
     });
     modInstallElement.modIcon = "img/waren.png";
     modInstallElement.modName = filename;
@@ -153,19 +151,19 @@
   <div bind:this={mainSettings}>
     <h2>
       Settings for <i
-        >{activeInstance.gameIdentity.name +
-          " (" +
-          activeInstance.gameConfig.platform.toUpperCase() +
-          (activeInstance.gameConfig.region !== Region.None
-            ? ", " + activeInstance.gameConfig.region
-            : "") +
-          ")"}</i
-      >
+    >{activeInstance.gameIdentity.name +
+    " (" +
+    activeInstance.gameConfig.platform.toUpperCase() +
+    (activeInstance.gameConfig.region !== Region.None
+      ? ", " + activeInstance.gameConfig.region
+      : "") +
+    ")"}</i
+    >
     </h2>
     <hr />
     <p></p>
     {#if currentLevelJSON.length > 0}
-      <button onclick={OpenLevelLoader}>Change Level </button>
+      <button onclick={OpenLevelLoader}>Change Level</button>
     {/if}
     <button onclick={OpenDirectory}>Open Directory</button>
     <button onclick={DeleteFromGameList}>Delete from Game List</button>
@@ -203,7 +201,7 @@
         />
         <span
           style="z-index:5;font-size:50px;position:relative;bottom:80px;;left:0px;width:112px;font-size:25px;text-align:center;"
-          >{selectedCategoryName}</span
+        >{selectedCategoryName}</span
         >
       </div>
       <br />
@@ -243,40 +241,40 @@
         class="play"
         onclick={() => ExitLevelLoader(1)}
         style="        border-radius: 0px 10px 10px 0px;"
-        >Save Level and Return
+      >Save Level and Return
       </button>
     </p>
     <p>
       <span
-        >Level Loader Data <s>stolen</s> borrowed from RampantLeaf & SlayCap</span
+      >Level Loader Data <s>stolen</s> borrowed from RampantLeaf & SlayCap</span
       >
     </p>
   </div>
 </main>
 
 <style>
-  .play {
-    padding: 10px 20px;
-    background: rgb(2, 0, 36);
-    background: linear-gradient(
-      143deg,
-      rgba(2, 0, 36, 1) 0%,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(229, 0, 255, 1) 0%,
-      rgba(133, 0, 196, 1) 100%
-    );
-    border: none;
-    border-radius: 10px 0 0 10px;
-    transition-duration: 0.2s;
-  }
+    .play {
+        padding: 10px 20px;
+        background: rgb(2, 0, 36);
+        background: linear-gradient(
+                143deg,
+                rgba(2, 0, 36, 1) 0%,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(229, 0, 255, 1) 0%,
+                rgba(133, 0, 196, 1) 100%
+        );
+        border: none;
+        border-radius: 10px 0 0 10px;
+        transition-duration: 0.2s;
+    }
 
-  .play:hover {
-    background: linear-gradient(
-      0deg,
-      rgba(2, 0, 36, 1) 0%,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(229, 0, 255, 1) 0%,
-      rgba(133, 0, 196, 1) 100%
-    );
-  }
+    .play:hover {
+        background: linear-gradient(
+                0deg,
+                rgba(2, 0, 36, 1) 0%,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(229, 0, 255, 1) 0%,
+                rgba(133, 0, 196, 1) 100%
+        );
+    }
 </style>

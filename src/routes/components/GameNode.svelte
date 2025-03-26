@@ -2,13 +2,10 @@
   import { invoke } from "@tauri-apps/api/core";
   import { mount, onMount, unmount } from "svelte";
   import { GetImagePath, ImageType, POST } from "../library/networking";
-  import { Game, Platform, Region } from "../library/types";
+  import { Game, OperatingSystemType, Platform, Region } from "../library/types";
   import type { GameInstance } from "../library/instance.svelte";
-  import { SetActiveGameInstance } from "../library/config";
-  import {
-    InternetModToUnifiedMod,
-    LocalModToUnifiedMod,
-  } from "../library/gameid";
+  import { currentOperatingSystem, SetActiveGameInstance } from "../library/config";
+  import { InternetModToUnifiedMod } from "../library/gameid";
   import ModInstall from "./ModInstall.svelte";
 
   let updateAvailable = $state(false);
@@ -93,13 +90,11 @@
   function OpenDirectory() {
     let instance = gameInstance as GameInstance;
 
-    invoke("get_os").then((os) => {
       let p =
-        os == "windows"
+        currentOperatingSystem == OperatingSystemType.Windows
           ? gameInstance.path.replace("/", "\\")
           : instance.gameConfig.path;
       invoke("open_path_in_file_manager", { path: p });
-    });
   }
 
   async function UpdateAllMods() {
@@ -191,10 +186,9 @@
   onMount(async () => {
     let instance = gameInstance as GameInstance;
 
-    let os = await invoke("get_os");
     //band-aid patch for 0.5.1. i don't have time to make a mini-lutris im already way over schedule
     if (
-      os == "linux" &&
+      currentOperatingSystem == OperatingSystemType.Linux &&
       instance.gameConfig.game == Game.EMR &&
       !instance.gameConfig.steamVersion
     ) {
