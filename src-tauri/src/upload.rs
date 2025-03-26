@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::io::{Read, Seek, Write};
 
 #[derive(Serialize)]
+#[allow(non_snake_case)]
 struct TunnelInitData {
     TunnelID: String,
     FileSize: u64,
