@@ -1,4 +1,3 @@
-
 <script lang="ts">
   import { onMount } from "svelte";
   import { GetImagePath, ImageType, POST } from "../library/networking";
@@ -16,7 +15,7 @@
     showPfp = true,
     showText = true,
     textSize = 12,
-    imageSize = 12
+    imageSize = 12,
   }: Props = $props();
   let pfpUrl = $state("");
   let username = $state("");
@@ -48,13 +47,7 @@
     window.open("#/profilepage", "_self");
   }
 
-  export {
-  	ID,
-  	showPfp,
-  	showText,
-  	textSize,
-  	imageSize,
-  }
+  export { ID, showPfp, showText, textSize, imageSize };
 </script>
 
 {#if showText}

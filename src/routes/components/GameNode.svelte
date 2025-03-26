@@ -1,27 +1,28 @@
 <script lang="ts">
-  import {invoke} from "@tauri-apps/api/core";
-  import {mount, onMount, unmount} from "svelte";
-  import {GetImagePath, ImageType, POST} from "../library/networking";
-  import {Game, Platform, Region,} from "../library/types";
-  import type {GameInstance} from "../library/instance.svelte";
-  import {SetActiveGameInstance} from "../library/config";
-  import {InternetModToUnifiedMod, LocalModToUnifiedMod} from "../library/gameid";
+  import { invoke } from "@tauri-apps/api/core";
+  import { mount, onMount, unmount } from "svelte";
+  import { GetImagePath, ImageType, POST } from "../library/networking";
+  import { Game, Platform, Region } from "../library/types";
+  import type { GameInstance } from "../library/instance.svelte";
+  import { SetActiveGameInstance } from "../library/config";
+  import {
+    InternetModToUnifiedMod,
+    LocalModToUnifiedMod,
+  } from "../library/gameid";
   import ModInstall from "./ModInstall.svelte";
 
   let updateAvailable = $state(false);
   let outdatedMods = [];
   let platformLogo: any = $state();
   let {
-    imgBackgroundURL="",
-    imgLogoURL="",
+    imgBackgroundURL = "",
+    imgLogoURL = "",
     errorMSG = "",
     gameInstance,
     node = $bindable(),
   } = $props();
 
-  export {
-    node
-  }
+  export { node };
 
   let mainDiv: HTMLElement = $state();
   let playButton: HTMLButtonElement = $state();
@@ -29,17 +30,17 @@
   async function CheckForUpdate() {
     let mods = [];
     try {
-        let instance = gameInstance as GameInstance
-        for (const r of instance.mods) {
-          if (r.modid != "" && !r.local) {
-            let latestUpdate = await POST("mod/get", { ID: r.modid }, true, true);
-            if (latestUpdate.error) continue
-            if (r.update != latestUpdate.body.Version) {
-              updateAvailable = true;
-              mods.push(latestUpdate.body);
-            }
+      let instance = gameInstance as GameInstance;
+      for (const r of instance.mods) {
+        if (r.modid != "" && !r.local) {
+          let latestUpdate = await POST("mod/get", { ID: r.modid }, true, true);
+          if (latestUpdate.error) continue;
+          if (r.update != latestUpdate.body.Version) {
+            updateAvailable = true;
+            mods.push(latestUpdate.body);
           }
         }
+      }
 
       outdatedMods = mods;
     } catch {
@@ -86,14 +87,17 @@
   }
 
   async function OpenGame() {
-    let instance = gameInstance as GameInstance
-    await instance.Play()
+    let instance = gameInstance as GameInstance;
+    await instance.Play();
   }
   function OpenDirectory() {
-    let instance = gameInstance as GameInstance
+    let instance = gameInstance as GameInstance;
 
     invoke("get_os").then((os) => {
-      let p = os == "windows" ? gameInstance.path.replace("/", "\\") : instance.gameConfig.path;
+      let p =
+        os == "windows"
+          ? gameInstance.path.replace("/", "\\")
+          : instance.gameConfig.path;
       invoke("open_path_in_file_manager", { path: p });
     });
   }
@@ -102,21 +106,21 @@
     let modInstallElement = mount(ModInstall, {
       target: document.body,
     });
-    let instance = gameInstance as GameInstance
+    let instance = gameInstance as GameInstance;
     for await (let r of outdatedMods) {
-      if (r.local) continue
-      await instance.AddMod(InternetModToUnifiedMod(r))
+      if (r.local) continue;
+      await instance.AddMod(InternetModToUnifiedMod(r));
       modInstallElement.modName = r.Name;
       modInstallElement.modIcon = GetImagePath(r.ID, ImageType.Mod);
     }
-    await unmount(modInstallElement)
+    await unmount(modInstallElement);
   }
 
   let regionTitle = $state("");
   let platformTitle = $state("");
 
   export async function Init() {
-    let instance = gameInstance as GameInstance
+    let instance = gameInstance as GameInstance;
 
     switch (instance.gameConfig.platform) {
       case Platform.Wii:
@@ -185,25 +189,28 @@
 
   let linuxUnsupported = false;
   onMount(async () => {
-    let instance = gameInstance as GameInstance
+    let instance = gameInstance as GameInstance;
 
     let os = await invoke("get_os");
     //band-aid patch for 0.5.1. i don't have time to make a mini-lutris im already way over schedule
-    if (os == "linux" && instance.gameConfig.game == Game.EMR && !instance.gameConfig.steamVersion) {
+    if (
+      os == "linux" &&
+      instance.gameConfig.game == Game.EMR &&
+      !instance.gameConfig.steamVersion
+    ) {
       linuxUnsupported = true;
       playButton.disabled = true;
       playButton.title =
         "Starting this game from Linux without Steam is not supported yet. Please use solutions like Lutris or Steam.";
     }
-    await Init()
+    await Init();
   });
 
   function OpenLevelLoader() {
-    let instance = gameInstance as GameInstance
-    SetActiveGameInstance(instance)
+    let instance = gameInstance as GameInstance;
+    SetActiveGameInstance(instance);
     window.open("#/levelloader", "_self");
   }
-
 </script>
 
 <main
@@ -242,13 +249,13 @@
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
           {#if gameInstance.gameConfig.game === Game.EM1}
-          <button
-            title="Change Level"
-            aria-label="Change Level"
-            onclick={OpenDirectory}
-            class="gamesettings"
-            ><img src="img/changelevel.svg" style="width:16px;" /></button
-          >
+            <button
+              title="Change Level"
+              aria-label="Change Level"
+              onclick={OpenDirectory}
+              class="gamesettings"
+              ><img src="img/changelevel.svg" style="width:16px;" /></button
+            >
           {/if}
           <button
             title="Open Game in Explorer"

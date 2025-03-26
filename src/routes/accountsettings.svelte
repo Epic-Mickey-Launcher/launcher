@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+  import { run } from "svelte/legacy";
 
   import { onMount } from "svelte";
   import {
@@ -149,7 +149,8 @@
 <p>
   <span style="display:flex;">
     <span style="margin:auto 0;">Change Bio:</span>
-    <textarea cols="30" bind:this={bio} placeholder="i like video games"></textarea>
+    <textarea cols="30" bind:this={bio} placeholder="i like video games"
+    ></textarea>
   </span>
 </p>
 <p>

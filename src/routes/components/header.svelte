@@ -1,4 +1,3 @@
-
 <script lang="ts">
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
@@ -20,7 +19,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { SetData } from "../library/datatransfer";
   import Loading from "./loading.svelte";
-  import {SetHeader} from "../library/config";
+  import { SetHeader } from "../library/config";
   let pfp: string = $state();
   let serverNotice = false;
   let latestDownloadLink = "";
@@ -30,17 +29,16 @@
   let connectionIssues: boolean = $state();
   let version = $state("");
   let messagesOpen = false;
-  let newVersion = $state("")
+  let newVersion = $state("");
   let statusTextColor = $state("");
   let statusBannerColor = $state("");
   let statusText = $state("");
   let statusVisible = $state(false);
 
-
- export async function SetVisible(visible: boolean) {
-   console.log("Header Visible: " +  visible)
+  export async function SetVisible(visible: boolean) {
+    console.log("Header Visible: " + visible);
     header.style.display = visible ? "flex" : "none";
- }
+  }
 
   async function DeleteMessage(id: string) {
     drawMessages = false;
@@ -196,7 +194,7 @@
       //todo: rough, remove this
       if (res.message.includes("FOR OUTDATED CLIENTS:")) {
         statusVisible = false;
-        return
+        return;
       }
       statusText = res.message;
       statusBannerColor = res.bannerColor;
@@ -225,14 +223,16 @@
     let info = await GETEXT(
       "https://api.github.com/repos/Epic-Mickey-Launcher/launcher/releases",
     );
-    let info_stable = info.filter((r: { prerelease: boolean }) => !r.prerelease);
+    let info_stable = info.filter(
+      (r: { prerelease: boolean }) => !r.prerelease,
+    );
     let newest_release = info_stable[0];
     let current_version = await getVersion();
     if (newest_release.tag_name != current_version) {
       SetOutdated();
       latestDownloadLink = newest_release.html_url;
       updateHyperLink.style.display = "block";
-      newVersion = newest_release.tag_name
+      newVersion = newest_release.tag_name;
     }
   });
 
@@ -257,7 +257,6 @@
   let drawMessages = $state(true);
   let messagesDiv: HTMLDivElement = $state();
 
-
   function OpenLatestDownloadPage() {
     invoke("open_link", { url: latestDownloadLink });
   }
@@ -279,7 +278,6 @@
       OpenPage("register");
     }
   }
-
 </script>
 
 <main>
@@ -291,143 +289,142 @@
     </div>
   {/if}
 
-    <p></p>
-    <div class="header" bind:this={header}>
+  <p></p>
+  <div class="header" bind:this={header}>
+    <img
+      src="/img/eml.svg"
+      alt=""
+      title={version}
+      style="width:300px;padding:5px 0px;position:relative;right:30px;"
+    />
+
+    <p style="margin-right:20px"></p>
+
+    <button
+      onclick={() => OpenPage("modmarket")}
+      class="headerButton startheaderbuttons">Mods</button
+    >
+
+    <button onclick={() => OpenPage("games")} class="headerButton">Games</button
+    >
+
+    <button
+      onclick={() => OpenPage("settings")}
+      class="headerButton endheaderbuttons">Settings</button
+    >
+
+    <button
+      class="hyperlinkbutton"
+      onclick={OpenLatestDownloadPage}
+      bind:this={updateHyperLink}
+      style="margin:auto 10px;color:lime;display:none;"
+      >Update Available!<br />({version}->{newVersion})</button
+    >
+
+    {#if connectionIssues}
       <img
-        src="/img/eml.svg"
         alt=""
-        title={version}
-        style="width:300px;padding:5px 0px;position:relative;right:30px;"
+        style="width:32px;margin-left:12px;"
+        src="img/warning.svg"
+        title="Cannot connect to online services!"
       />
-
-      <p style="margin-right:20px"></p>
-
-      <button
-        onclick={() => OpenPage("modmarket")}
-        class="headerButton startheaderbuttons">Mods</button
-      >
-
-      <button onclick={() => OpenPage("games")} class="headerButton"
-        >Games</button
-      >
-
-      <button
-        onclick={() => OpenPage("settings")}
-        class="headerButton endheaderbuttons">Settings</button
-      >
-
-      <button
-        class="hyperlinkbutton"
-        onclick={OpenLatestDownloadPage}
-        bind:this={updateHyperLink}
-        style="margin:auto 10px;color:lime;display:none;"
-        >Update Available!<br>({version}->{newVersion})</button
-      >
-
-      {#if connectionIssues}
-        <img
-          alt=""
-          style="width:32px;margin-left:12px;"
-          src="img/warning.svg"
-          title="Cannot connect to online services!"
-        />
-      {/if}
-      <div class="pfpbutton">
-        <div style="position: relative;float:left;">
-          <div bind:this={messagesDiv} class="messages">
-            <button
-              style="position:absolute;right:0px;border:none;background-color: transparent;font-size: 30px;"
-              onclick={() => closeMessage()}>x</button
-            >
-            <h1 style="text-align: center;">Messages</h1>
-            <hr />
-
-            {#if drawMessages}
-              {#if messagesList.length == 0}
-                <span style="text-align: center;">
-                  <h2>):</h2>
-                  <h3>forever alone</h3>
-                </span>
-              {/if}
-              {#each messagesList as msg}
-                <div
-                  style="width:90%;height:50px;background-color: rgba(10, 10, 10, 1);margin:auto;padding:5px;border-radius:5px;overflow-y:scroll;position:relative;margin-top:5px;"
-                >
-                  <span style="font-size: 12px;"
-                    >{msg.From == "0" ? "System" : msg.From} | {new Date(
-                      Number(msg.ID),
-                    ).toLocaleString()}</span
-                  >
-                  <button
-                    onclick={() => DeleteMessage(msg.ID)}
-                    style="font-size: 7px;right:0px;top:0px;position: absolute;border-radius:0px 5px 0px 0px;"
-                    >Delete</button
-                  >
-                  <br />
-                  <span
-                    style="font-size:10px;text-wrap:balance;overflow-wrap:break-word;line-height:2px;"
-                    >{#each ParseMessage(msg.Content) as element}
-                      {#if element.Type === "plain"}
-                        {element.Value}
-                      {:else if element.Type === "mod"}
-                        <button
-                          class="hyperlinkbutton"
-                          style="font-size:15px;"
-                          onclick={() => {
-                            SetData("modpage_id", element.Value);
-                            window.open("#/modpage", "_self");
-                          }}
-                          >{#await POST( "mod/get", { ID: element.Value }, ) then res}
-                            {res.body.Name}
-                          {/await}</button
-                        >
-                      {/if}
-                    {/each}</span
-                  >
-                </div>
-              {/each}
-            {:else}
-              <Loading></Loading>
-            {/if}
-          </div>
+    {/if}
+    <div class="pfpbutton">
+      <div style="position: relative;float:left;">
+        <div bind:this={messagesDiv} class="messages">
           <button
-            class="notifications"
-            style="background-color: transparent;border:none;margin-top: 20px;position: relative;"
-            onclick={() => openMessage()}
+            style="position:absolute;right:0px;border:none;background-color: transparent;font-size: 30px;"
+            onclick={() => closeMessage()}>x</button
           >
-            <img
-              src="img/notifications.svg"
-              style="width:16px;margin-right: 12px;"
-            />
+          <h1 style="text-align: center;">Messages</h1>
+          <hr />
 
-            {#if messagesCount > 0}
+          {#if drawMessages}
+            {#if messagesList.length == 0}
+              <span style="text-align: center;">
+                <h2>):</h2>
+                <h3>forever alone</h3>
+              </span>
+            {/if}
+            {#each messagesList as msg}
               <div
-                style="position:absolute;background-color: red;border-radius:100%;width:16px;height:16px;bottom:20px;right:9px;"
+                style="width:90%;height:50px;background-color: rgba(10, 10, 10, 1);margin:auto;padding:5px;border-radius:5px;overflow-y:scroll;position:relative;margin-top:5px;"
               >
-                <span style="letter-spacing:-2px;"
-                  >{messagesCount > 9 ? "+9" : messagesCount}</span
+                <span style="font-size: 12px;"
+                  >{msg.From == "0" ? "System" : msg.From} | {new Date(
+                    Number(msg.ID),
+                  ).toLocaleString()}</span
+                >
+                <button
+                  onclick={() => DeleteMessage(msg.ID)}
+                  style="font-size: 7px;right:0px;top:0px;position: absolute;border-radius:0px 5px 0px 0px;"
+                  >Delete</button
+                >
+                <br />
+                <span
+                  style="font-size:10px;text-wrap:balance;overflow-wrap:break-word;line-height:2px;"
+                  >{#each ParseMessage(msg.Content) as element}
+                    {#if element.Type === "plain"}
+                      {element.Value}
+                    {:else if element.Type === "mod"}
+                      <button
+                        class="hyperlinkbutton"
+                        style="font-size:15px;"
+                        onclick={() => {
+                          SetData("modpage_id", element.Value);
+                          window.open("#/modpage", "_self");
+                        }}
+                        >{#await POST( "mod/get", { ID: element.Value }, ) then res}
+                          {res.body.Name}
+                        {/await}</button
+                      >
+                    {/if}
+                  {/each}</span
                 >
               </div>
-            {/if}
-          </button>
+            {/each}
+          {:else}
+            <Loading></Loading>
+          {/if}
         </div>
         <button
-          onclick={() => PfpButton()}
-          style="border:none;background-color: Transparent;"
-          class="pfphover"
+          class="notifications"
+          style="background-color: transparent;border:none;margin-top: 20px;position: relative;"
+          onclick={() => openMessage()}
         >
-          <img src={pfp} alt="" title="Sign Up" class="pfp" />
+          <img
+            src="img/notifications.svg"
+            style="width:16px;margin-right: 12px;"
+          />
+
+          {#if messagesCount > 0}
+            <div
+              style="position:absolute;background-color: red;border-radius:100%;width:16px;height:16px;bottom:20px;right:9px;"
+            >
+              <span style="letter-spacing:-2px;"
+                >{messagesCount > 9 ? "+9" : messagesCount}</span
+              >
+            </div>
+          {/if}
         </button>
       </div>
-    </div>
-    {#if serverNotice}
-      <div
-        style="width:90vw;text-align:center;padding:10px;background-color:yellow;margin:auto;border-radius:0px 0px 8px 8px;"
+      <button
+        onclick={() => PfpButton()}
+        style="border:none;background-color: Transparent;"
+        class="pfphover"
       >
-        <span style="color:black"></span>
-      </div>
-    {/if}
-    <p style="margin-bottom:60px"></p>
+        <img src={pfp} alt="" title="Sign Up" class="pfp" />
+      </button>
+    </div>
+  </div>
+  {#if serverNotice}
+    <div
+      style="width:90vw;text-align:center;padding:10px;background-color:yellow;margin:auto;border-radius:0px 0px 8px 8px;"
+    >
+      <span style="color:black"></span>
+    </div>
+  {/if}
+  <p style="margin-bottom:60px"></p>
 </main>
 
 <style>
