@@ -1,30 +1,30 @@
 <img src="https://kalsvik.no/res/eml.svg" width="400">
 
-### Easiest way to Play, Mod, and enjoy Epic Mickey on PC
+### Easiest way to Play & Mod Epic Mickey on PC
 
-___
+---
 
 ## Support for every Epic Mickey game
 
-*(Not Including Epic Mickey 2 on XBOX, Wii U or PS3)*
+_(Not Including Epic Mickey 2 on XBOX, Wii U or PS3)_
 
 <img src="https://eml.kalsvik.no/gamesmenu.png" width="400">
 
 ## Large Mod Catalouge
 
-*EML contains a bunch of mods uploaded by the community.*
+_EML contains a bunch of mods uploaded by the community._
 
 <img src="https://eml.kalsvik.no/modmarket.png" width="400">
 
 ## Networking Features
 
-*Upload your own mods, Send comments, Vote on mods & customize your profile with an EML Account.*
+_Upload your own mods, Send comments, Vote on mods & customize your profile with an EML Account._
 
 <img src="https://eml.kalsvik.no/profilepage.png" width="400">
 
 ## Robust Mod Management
 
-*Easily Disable/Enable mods with one click.*
+_Easily Disable/Enable mods with one click._
 
 <img src="https://eml.kalsvik.no/modmanagement.png" width="400">
 
@@ -47,7 +47,7 @@ Download the latest .DEB from the latest [Release](https://github.com/KjubDusJub
 ## Linux (Arch)
 
 Epic Mickey Launcher is available on the [AUR](https://aur.archlinux.org/packages/epicmickeylauncher) and can be
-installed via [yay](https://github.com/Jguer/yay) with ```yay -S epicmickeylauncher```
+installed via [yay](https://github.com/Jguer/yay) with `yay -S epicmickeylauncher`
 
 # Build Instructions
 
@@ -81,4 +81,4 @@ IDK
 - RE-UE4SS: Used by EMR for script mods. (https://github.com/UE4SS-RE/RE-UE4SS)
 - Function Point: Awesome Edition. (https://www.youtube.com/@function_point)
 - All EML users: At age 14, I did not expect my tiny dinky project to take off and do so well. It's been a really fun
-  learning project, and I have way more in store for the future. Thank you all. 
+  learning project, and I have way more in store for the future. Thank you all.
