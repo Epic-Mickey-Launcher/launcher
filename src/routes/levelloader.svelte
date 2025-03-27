@@ -15,6 +15,7 @@
     RemoveTrackedGame,
   } from "./library/config";
   import { Game, OperatingSystemType, Platform, Region } from "./library/types";
+  import { GetData, SetData } from "./library/datatransfer";
 
   let data: GameInstance;
   let mainSettings: HTMLDivElement = $state();
@@ -89,6 +90,11 @@
       SelectCategory(currentLevelJSON[0]);
     } else {
       currentLevelJSON = [];
+    }
+
+    if (GetData("openlevelloader") == true) {
+      SetData("openlevelloader", false);
+      OpenLevelLoader();
     }
   });
 

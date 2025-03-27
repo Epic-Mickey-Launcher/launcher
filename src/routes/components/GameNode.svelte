@@ -15,6 +15,7 @@
   } from "../library/config";
   import { InternetModToUnifiedMod } from "../library/gameid";
   import ModInstall from "./ModInstall.svelte";
+  import { SetData } from "../library/datatransfer";
 
   let updateAvailable = $state(false);
   let outdatedMods = [];
@@ -208,10 +209,15 @@
     await Init();
   });
 
-  function OpenLevelLoader() {
+  function OpenGameSettings() {
     let instance = gameInstance as GameInstance;
     SetActiveGameInstance(instance);
     window.open("#/levelloader", "_self");
+  }
+
+  function OpenLevelLoader() {
+    SetData("openlevelloader", true);
+    OpenGameSettings();
   }
 </script>
 
@@ -246,7 +252,7 @@
           <button
             title="Game Settings"
             aria-label="Game Settings"
-            onclick={OpenLevelLoader}
+            onclick={OpenGameSettings}
             class="gamesettings"
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
@@ -254,7 +260,7 @@
             <button
               title="Change Level"
               aria-label="Change Level"
-              onclick={OpenDirectory}
+              onclick={OpenLevelLoader}
               class="gamesettings"
               ><img src="img/changelevel.svg" style="width:16px;" /></button
             >
