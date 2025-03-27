@@ -48,6 +48,8 @@ commands.allow = [
 [[scope.allow]]
 path = "$HOME/**"
 [[scope.allow]]
+path = "**/*"
+[[scope.allow]]
 path = "$LOCALDATA/**"
 [[scope.allow]]
 path = "**/**"
