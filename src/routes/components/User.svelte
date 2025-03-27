@@ -1,20 +1,27 @@
-<svelte:options accessors />
-
 <script lang="ts">
   import { onMount } from "svelte";
   import { GetImagePath, ImageType, POST } from "../library/networking";
   import { SetData, cachedUsers } from "../library/datatransfer";
-  export let ID: string;
-  export let showPfp: boolean = true;
-  export let showText: boolean = true;
-  export let textSize: number = 12;
-  export let imageSize: number = 12;
-  let pfpUrl = "";
-  let username = "";
+  interface Props {
+    ID: string;
+    showPfp?: boolean;
+    showText?: boolean;
+    textSize?: number;
+    imageSize?: number;
+  }
+
+  let {
+    ID,
+    showPfp = true,
+    showText = true,
+    textSize = 12,
+    imageSize = 12,
+  }: Props = $props();
+  let pfpUrl = $state("");
+  let username = $state("");
   onMount(async () => {
     pfpUrl = GetImagePath(ID, ImageType.User, false);
     let cachedUser = cachedUsers.find((r) => r.ID == ID);
-    console.log(cachedUser);
     if (cachedUser == null) {
       let res = await POST("user/username", { id: ID }, false, true);
       if (res.error) {
@@ -39,12 +46,14 @@
     SetData("profile_id", ID);
     window.open("#/profilepage", "_self");
   }
+
+  export { ID, showPfp, showText, textSize, imageSize };
 </script>
 
 {#if showText}
   <button
     class="hyperlinkbutton"
-    on:click={OpenProfilePage}
+    onclick={OpenProfilePage}
     style="font-size: {textSize}px;">{username}</button
   >
 {/if}

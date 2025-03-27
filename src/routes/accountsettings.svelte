@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from "svelte/legacy";
+
   import { onMount } from "svelte";
   import {
     GetId,
@@ -16,17 +18,13 @@
 
   let currentUsername = "";
 
-  let username: HTMLInputElement;
-  let password: HTMLInputElement;
-  let email: HTMLInputElement;
-  let bio: HTMLTextAreaElement;
-  let pfpUrl: string = "";
+  let username: HTMLInputElement = $state();
+  let password: HTMLInputElement = $state();
+  let email: HTMLInputElement = $state();
+  let bio: HTMLTextAreaElement = $state();
+  let pfpUrl: string = $state("");
 
-  let files: any;
-  $: if (files) {
-    let file = files[0];
-    GetPfpData(file);
-  }
+  let files: any = $state();
 
   async function ApplyChanges() {
     if (loggedin) {
@@ -135,9 +133,15 @@
       placeholderEmail = response.body;
     });
   });
-  let emailOptions;
-  let optionMessages: string;
-  let placeholderEmail = "jimbob83@yahoo.com";
+  let emailOptions = $state();
+  let optionMessages: string = $state();
+  let placeholderEmail = $state("jimbob83@yahoo.com");
+  run(() => {
+    if (files) {
+      let file = files[0];
+      GetPfpData(file);
+    }
+  });
 </script>
 
 <span>Change Username:</span>
@@ -145,7 +149,8 @@
 <p>
   <span style="display:flex;">
     <span style="margin:auto 0;">Change Bio:</span>
-    <textarea cols="30" bind:this={bio} placeholder="i like video games" />
+    <textarea cols="30" bind:this={bio} placeholder="i like video games"
+    ></textarea>
   </span>
 </p>
 <p>
@@ -156,7 +161,7 @@
 <p>
   <span>Change E-Mail</span>
   <input placeholder={placeholderEmail} bind:this={email} /><button
-    on:click={() => emailOptions.showModal()}>...</button
+    onclick={() => emailOptions.showModal()}>...</button
   >
 </p>
 
@@ -166,12 +171,12 @@
   <img src={pfpUrl} alt="" style="width:30px;margin-bottom:-10px;" />
 </p>
 <p>
-  <button on:click={Logout}>Log Out</button>
+  <button onclick={Logout}>Log Out</button>
 </p>
-<p />
-<button on:click={DeleteAccount}>Delete Account</button>
-<p />
-<button style="width:30%;" on:click={ApplyChanges}>Apply Changes</button>
+<p></p>
+<button onclick={DeleteAccount}>Delete Account</button>
+<p></p>
+<button style="width:30%;" onclick={ApplyChanges}>Apply Changes</button>
 
 <dialog bind:this={emailOptions}>
   <p>
@@ -182,5 +187,5 @@
       <option value="0">Don't send any</option>
     </select>
   </p>
-  <button on:click={SaveMailOptions}>Save</button>
+  <button onclick={SaveMailOptions}>Save</button>
 </dialog>

@@ -1,34 +1,37 @@
 <script lang="ts">
   import OneTimeNotice from "./components/OneTimeNotice.svelte";
   import GameNode from "./components/GameNode.svelte";
-  import { exists, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
-  import { appLocalDataDir } from "@tauri-apps/api/path";
-  import { onMount } from "svelte";
-  import { FileExists, InitConfFiles } from "./library/configfiles.js";
-  import { Game, GameConfig } from "./library/types";
+  import { mount, onMount, unmount } from "svelte";
+  import { GetGameIdentity } from "./library/gameid";
+  import AddGameC from "./components/addgame.svelte";
+  import { GameInstance } from "./library/instance.svelte";
+  import { AddTrackedGame, GetLoadedGameInstances } from "./library/config";
+  import { GetPath } from "./library/configfiles";
+  import { open } from "@tauri-apps/plugin-dialog";
+  import { ExtractISO } from "./library/isoextract";
+  import type { IdentifyGameResult } from "./library/types";
+  import ModInstall from "./components/ModInstall.svelte";
+  import Dialog from "./components/dialog.svelte";
 
-  let gameNodeDiv: HTMLDivElement;
-  let blackoutDiv: HTMLDivElement;
-  let bannerDiv: HTMLDivElement;
-  let hoveredGame = "EM1";
+  let AddGameComponent;
+  let addGameButton: HTMLDivElement = $state();
+  let gameNodeDiv: HTMLDivElement = $state();
+  let blackoutDiv: HTMLDivElement = $state();
+  let bannerDiv: HTMLDivElement = $state();
+  let hoveredGame = $state("EM1");
   let nodes = [];
+  let addGameButtonDisabled = false;
+  let noGamesNotice = $state(false);
+  let OneTimeNoticeComponent = $state(OneTimeNotice);
 
   onMount(async () => {
-    const appLocalDataDirPath = await appLocalDataDir();
-    let confExists = await FileExists(appLocalDataDirPath + "conf.json");
-    if (!confExists) {
-      InitConfFiles();
+    addGameButton.classList.toggle("expandgamebutton");
+    await GetPath();
+    let gameInstances = GetLoadedGameInstances();
+    if (gameInstances.length == 0) {
+      noGamesNotice = true;
     }
-    let jsonExists = await exists(appLocalDataDirPath + "games.json");
-    if (!jsonExists) {
-      await writeTextFile({
-        path: appLocalDataDirPath + "games.json",
-        contents: "[]",
-      });
-    }
-    let t = await readTextFile(appLocalDataDirPath + "games.json");
-    let jsonData: GameConfig[] = JSON.parse(t);
-    jsonData.forEach((dat: GameConfig) => {
+    gameInstances.forEach((dat: GameInstance) => {
       CreateNode(dat);
     });
 
@@ -41,83 +44,191 @@
     });
   });
 
-  function AddGame() {
-    window.open("#/addgame", "_self");
+  function DefaultAddGameButton() {
+    if (!addGameButtonDisabled) return;
+    addGameButton.classList.toggle("expandgamebutton");
+    addGameButtonDisabled = false;
   }
-  //todo: remove useless variables game, directory, platform
-  function CreateNode(dat: GameConfig) {
-    var element = new GameNode({
-      target: gameNodeDiv,
+
+  async function AddGameButton() {
+    if (addGameButtonDisabled) return;
+    addGameButton.classList.toggle("expandgamebutton");
+    addGameButtonDisabled = true;
+  }
+
+  async function AddGame(isImage: boolean) {
+    const selected = await open({
+      multiple: false,
+      filters: [
+        {
+          name: "Image",
+          extensions: ["rvz", "iso", "wbfs"],
+        },
+      ],
+      directory: !isImage,
     });
 
-    nodes.push(element);
-    element.data = dat;
-    element.mouseEnterCB = (g: string) => {
-      hoveredGame = g;
-      blackoutDiv.style.opacity = "0.9";
-      bannerDiv.style.opacity = "1";
-    };
-    element.mouseExitCB = () => {
-      blackoutDiv.style.opacity = "0";
-      bannerDiv.style.opacity = "0";
-    };
-    element.Init();
+    let path = selected;
 
-    if (dat.game == Game.EM1.toString()) {
-      element.imgLogoURL = "/img/emlogo.png";
-      element.imgBackgroundURL = "/img/em1banner.png";
-    } else {
-      element.imgLogoURL = "/img/em2logo.png";
-      element.imgBackgroundURL = "/img/em2banner.png";
+    if (path == null) return;
+
+    let modInstallElement = mount(ModInstall, {
+      target: document.body,
+      props: {
+        modIcon: isImage ? "img/dolphin.png" : "img/emicon.png",
+        action: isImage
+          ? "Extracting your game with Dolphin..."
+          : "Adding your game...",
+        modName: "",
+        description: "This won't take long!",
+      },
+    });
+
+    if (isImage) {
+      path = await ExtractISO(
+        selected,
+        (identifiedGame: IdentifyGameResult) => {
+          let gameIdentity = GetGameIdentity(identifiedGame.game);
+
+          modInstallElement.action = "Adding";
+          modInstallElement.modName = gameIdentity.name;
+          modInstallElement.modIcon = gameIdentity.resources.iconImageUrl;
+        },
+      );
     }
+
+    let card = await CreateNode(await AddTrackedGame(path));
+
+    await unmount(modInstallElement);
+
+    noGamesNotice = false;
+
+    setTimeout(() => {
+      card.node.style.opacity = 1;
+    }, 100);
+  }
+
+  //todo: remove useless variables game, directory, platform
+  async function CreateNode(instance: GameInstance) {
+    let release = GetGameIdentity(instance.gameConfig.game);
+    const element = mount(GameNode, {
+      target: gameNodeDiv,
+      props: {
+        imgBackgroundURL: release.resources.cardImageUrl,
+        imgLogoURL: release.resources.logoImageUrl,
+        gameInstance: instance,
+      },
+    });
+    nodes.push(element);
+    return element;
   }
 </script>
 
+<AddGameC bind:this={AddGameComponent} />
 <div bind:this={blackoutDiv} class="blackout"></div>
-<div class="gamebanner" bind:this={bannerDiv}>
+<div bind:this={bannerDiv} class="gamebanner">
   <img
     alt=""
-    style="width:65vw;margin:auto;overflow:hidden;"
     src="img/{hoveredGame}bannerfull.png"
+    style="width:65vw;margin:auto;overflow:hidden;"
   />
 </div>
 
 <h1 style="text-align:center;filter:drop-shadow(0 0 4px black)">Games</h1>
 <hr style="width:500px" />
-<p />
-<div style="display:flex;justify-content:center">
-  <div bind:this={gameNodeDiv} class="gamegrid" />
-</div>
-<p style="margin-bottom:50px;" />
-<button on:click={AddGame} class="addgamebutton"
-  ><span style="position:relative;bottom:8px;">+</span></button
->
 
-<OneTimeNotice
-  id="dolphinconfig"
+<div style="display:flex;justify-content:center">
+  <div bind:this={gameNodeDiv} class="gamegrid"></div>
+</div>
+<p style="margin-bottom:50px;display:flex;"></p>
+<div style="display:flex;justify-content: center;">
+  <div
+    bind:this={addGameButton}
+    class="addgamebutton expandgamebutton"
+    onclick={AddGameButton}
+    onkeydown={() => {}}
+    onpointerleave={DefaultAddGameButton}
+    role="button"
+    tabindex="0"
+  >
+    <span style="position: absolute;top:3px;">+</span>
+    <button class="addgamesubbutton" onclick={() => AddGame(true)}
+      >Add Game via Image
+    </button>
+    <button class="addgamesubbutton" onclick={() => AddGame(false)}
+      >Add Game via Files
+    </button>
+  </div>
+</div>
+{#if noGamesNotice}
+  <p></p>
+  <Dialog
+    content={[
+      "Quite lonely around here...<br/>Press the + Button to add a game!",
+    ]}
+  ></Dialog>
+{/if}
+<p></p>
+<OneTimeNoticeComponent
   content="EML uses a Dolphin Config separate from your global one. To apply any changes, you must open Dolphin in EML config mode. You can do so by pressing CTRL + D now."
-></OneTimeNotice>
+  id="dolphinconfig"
+/>
 
 <style>
   .addgamebutton {
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
+    overflow: hidden;
     text-align: center;
     font-size: 20px;
     border-radius: 10px;
     width: 100px;
     height: 30px;
     border: 1px solid;
-    padding: 10px 0px;
     border-color: rgb(138, 138, 138);
     background-color: rgb(82, 82, 82);
     transition-duration: 0.1s;
-    margin-bottom: 30px;
+    align-items: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
   }
 
   .addgamebutton:hover {
-    background-color: rgb(43, 43, 43);
+    background-color: rgb(20 20 20);
+  }
+
+  .expandgamebutton {
+    width: 150px;
+    height: 60px;
+    pointer-events: none;
+  }
+
+  .expandgamebutton:hover {
+    background-color: rgb(82, 82, 82);
+  }
+
+  .expandgamebutton span {
+    color: transparent;
+  }
+
+  .expandgamebutton .addgamesubbutton {
+    color: white;
+    display: block;
+    pointer-events: all;
+    background-color: rgb(55 55 56);
+  }
+
+  .addgamesubbutton {
+    width: 150px;
+    height: 50%;
+    font-size: 12px;
+    background-color: transparent;
+    border: none;
+    color: transparent;
+    display: none;
+  }
+
+  .addgamesubbutton:hover {
+    background-color: rgb(20 20 20);
   }
 
   .gamegrid {

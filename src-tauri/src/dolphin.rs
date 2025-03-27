@@ -1,5 +1,6 @@
 extern crate dirs_next;
 use crate::helper;
+use anyhow::Result;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -70,7 +71,7 @@ pub fn open(path: String) {
     }
 }
 
-pub fn set_override(_path: String) -> std::io::Result<()> {
+pub fn set_override(_path: String) -> Result<()> {
     let mut path = helper::get_config_path()?;
     fs::create_dir_all(&path)?;
     path.push("dolphinoverride");
@@ -79,7 +80,7 @@ pub fn set_override(_path: String) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn create_portable(dolphinpath: String) -> std::io::Result<()> {
+pub fn create_portable(dolphinpath: String) -> Result<()> {
     let mut dolphin_config_path = PathBuf::from(&dolphinpath);
     dolphin_config_path.pop();
     let config_folder_name = if env::consts::OS == "windows" {

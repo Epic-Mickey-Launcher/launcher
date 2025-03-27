@@ -1,60 +1,66 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { GetData } from "./library/datatransfer";
+  import { mount, onMount, unmount } from "svelte";
+  import { GetData, SetData } from "./library/datatransfer";
   import {
     GetId,
     GetImagePath,
     GetToken,
     ImageType,
-    POST,
     loggedin,
+    POST,
   } from "./library/networking";
-  import { GameConfig, Mod, Platform } from "./library/types";
-  import { ReadFile, ReadJSON, WriteFile } from "./library/configfiles";
+  import {
+    Game,
+    type GameConfig,
+    type Mod,
+    ModState,
+    Platform,
+  } from "./library/types";
   import CommentNode from "./components/CommentNode.svelte";
-  import { exists } from "@tauri-apps/api/fs";
   import Loading from "./components/loading.svelte";
   import DownloadMod from "./components/downloadMod.svelte";
   import { parse } from "marked";
   import DOMPurify from "dompurify";
   import User from "./components/User.svelte";
-  import { invoke } from "@tauri-apps/api";
-  import Commit from "./components/Commit.svelte";
-  let commentInput: HTMLTextAreaElement;
+  import { activeInstance } from "./library/config";
+  import { InternetModToUnifiedMod } from "./library/gameid";
+  import ModInstall from "./components/ModInstall.svelte";
+  import {
+    GameInstance,
+    GetAllInstancesWithSameGame,
+  } from "./library/instance.svelte";
+
+  let commentInput: HTMLTextAreaElement = $state();
   let update = false;
-  let downloadButton: HTMLButtonElement;
+  let downloadButton: HTMLButtonElement = $state();
   let id = "";
-  let allRegions = [];
-  let downloads = 0;
-  let likes = 0;
-  let liked = false;
-  let removeCommentButton = false;
-  let time = "";
-  let youtubevideoembed: HTMLIFrameElement;
+  let allRegions = $state([]);
+  let downloads = $state(0);
+  let likes = $state(0);
+  let liked = $state(false);
+  let time = $state("");
+  let youtubevideoembed: HTMLIFrameElement = $state();
   let downloadMod: DownloadMod;
-  let localid: string;
-  let ownercontrols: HTMLDivElement;
-  let commits = [];
+  let localid: string = $state();
+  let ownercontrols: HTMLDivElement = $state();
   let commentsCount = 0;
-  let comments = [];
-  let hearticon: SVGSVGElement;
-  let selectRegion = false;
-  let youtubelink: string;
-  let downloadStatus = "Download";
-  let modPublished = true;
-  let mainDiv: HTMLDivElement;
-  let sendButton: HTMLButtonElement;
+  let comments = $state([]);
+  let hearticon: SVGSVGElement = $state();
+  let selectRegion = $state(false);
+  let youtubelink: string = $state();
+  let downloadStatus = $state("Download");
+  let modPublished = $state(true);
+  let mainDiv: HTMLDivElement = $state();
+  let sendButton: HTMLButtonElement = $state();
   let gameInfo: GameConfig;
-  let modInfo: Mod;
+  let modInfo: Mod = $state();
+  let formattedDescription = $state();
 
-  async function SetJsonData() {
-    let jsonData = await ReadJSON("games.json");
-
-    return jsonData;
-  }
+  let compatibleInstances: GameInstance[] = $state([]);
+  let selectedInstance: GameInstance = $state();
 
   onMount(async () => {
-    Init();
+    await Init();
   });
 
   //sux. merge these
@@ -71,6 +77,7 @@
       sendButton.style.marginTop = "-16px";
     }
   }
+
   function OnCommentInput() {
     if (commentInput.value.trim() != "") {
       sendButton.style.opacity = "0.3";
@@ -91,11 +98,24 @@
 
     let res = await POST("mod/get", { id: modid, token: token });
     if (res.error) return;
-    modInfo = res.body;
+    modInfo = res.body as Mod;
 
-    res = await POST("mod/commits", { ID: modid });
-    if (res.error) return;
-    commits = res.body;
+    compatibleInstances = GetAllInstancesWithSameGame(
+      modInfo.Game.toUpperCase() as Game,
+      modInfo.Platform.toUpperCase() as Platform,
+    );
+    selectedInstance = activeInstance;
+    if (
+      (await selectedInstance.CheckMod(InternetModToUnifiedMod(modInfo))) ==
+      ModState.Incompatible
+    ) {
+      if (compatibleInstances.length > 0) {
+        selectedInstance = compatibleInstances[0];
+      } else {
+        await alert("You don't have a compatible game to install this mod to!");
+        window.open("#/modmarket", "_self");
+      }
+    }
 
     res = await POST("like/liked", { Token: token, PageID: modid });
     if (res.error) return;
@@ -110,27 +130,26 @@
     }
 
     if (modInfo.Video != null && modInfo.Video != "") {
-      youtubevideoembed.style.display = "block";
       youtubelink = "https://www.youtube.com/embed/" + modInfo.Video;
     }
 
-    let d = new Date(parseInt(modInfo.ID));
-
-    time = d.toLocaleString();
-
+    let date = new Date(parseInt(modInfo.ID));
+    time = date.toLocaleString();
     modPublished = modInfo.Published;
 
-    CheckIfDownloaded();
+    await GetFormattedDescription();
+    await CheckIfDownloaded();
 
-    downloadMod = new DownloadMod({
+    downloadMod = mount(DownloadMod, {
       target: mainDiv,
     });
 
     mainDiv.style.opacity = "1";
   }
 
-  async function OpenCommitHistory() {
-    commitHistory.showModal();
+  async function SelectNewInstance() {
+    console.log("new instance selected: " + selectedInstance.uniqueID);
+    await CheckIfDownloaded();
   }
 
   async function PostComment() {
@@ -138,7 +157,6 @@
       commentInput.value.trim().length > 0 &&
       commentInput.value.trim().length < 300
     ) {
-      removeCommentButton = true;
       let token = await GetToken();
       let res = await POST(
         "comment/send",
@@ -150,11 +168,10 @@
         false,
       );
       if (!res.error) {
-        RefreshComments();
+        await RefreshComments();
       }
       commentInput.value = "";
       FocusOutCommentInput();
-      removeCommentButton = false;
     }
   }
 
@@ -183,28 +200,8 @@
   }
 
   async function UpdateMod() {
-    //todo: this just prints the current commit hash, not the remote one.
-    let conf = await confirm(
-      "This will update the mod to the latest commit (" +
-        commits[0].Hash +
-        ") and increment the version to " +
-        (modInfo.Version + 1) +
-        ". Are you sure?",
-    );
-
-    if (conf) {
-      let res = await POST(
-        "mod/update",
-        {
-          Token: await GetToken(),
-          ID: modInfo.ID,
-        },
-        false,
-      );
-
-      if (res.error) return;
-      Init();
-    }
+    SetData("moduploadid", modInfo.ID);
+    window.open("#/uploadmod", "_self");
   }
 
   async function PublishMod() {
@@ -236,64 +233,20 @@
   }
 
   async function OnPressDownload() {
-    if (allRegions.length > 1) {
-      selectRegion = true;
-    } else {
-      Download();
-    }
-  }
-
-  async function ChangeUrl() {
-    let url = await prompt("New URL:");
-
-    if (!url.toLowerCase().startsWith("https://")) {
-      await alert("URL must be https.");
-      return;
-    }
-
-    let token = await GetToken();
-
-    await POST("mod/changegit", {
-      ID: modInfo.ID,
-      Token: token,
-      GitRepositoryUrl: url,
-    });
+    await Download();
   }
 
   async function Download(regionoverride = null) {
-    if (regionoverride != null) {
-      selectRegion = false;
-      gameInfo = regionoverride;
-      id = regionoverride.id;
-    }
-
-    downloadMod.Initialize(gameInfo, false, modInfo);
-    downloadMod.Download();
-    downloadMod.updatecb = () => {
-      CheckIfDownloaded();
-    };
-  }
-
-  async function CheckInstall(path: string) {
-    let file_exists = await exists(path + "/EMLMods.json");
-
-    if (!file_exists) {
-      await WriteFile("[]", path + "/EMLMods.json");
-    }
-
-    let dataStr = await ReadFile(path + "/EMLMods.json");
-
-    let dataJson = JSON.parse(dataStr);
-    let json = dataJson.find((r: { modid: any }) => r.modid == modInfo.ID);
-    downloadStatus = "Download";
-    if (json != null) {
-      if (json.update != modInfo.Version) {
-        return "update";
-      } else {
-        return "installed";
-      }
-    }
-    return "none";
+    let modInstallElement = mount(ModInstall, {
+      target: document.body,
+    });
+    modInstallElement.modIcon = GetImagePath(modInfo.ID, ImageType.Mod);
+    modInstallElement.modName = modInfo.Name;
+    modInstallElement.action = "Downloading";
+    modInstallElement.description = "This might take a while...";
+    await selectedInstance.AddMod(InternetModToUnifiedMod(modInfo));
+    await CheckIfDownloaded();
+    await unmount(modInstallElement);
   }
 
   async function Report() {
@@ -307,7 +260,7 @@
     );
     if (conf) {
       let reportReason = await prompt("Report Reason: ");
-
+      if (reportReason.trim() == "") return;
       let res = await POST(
         "user/report",
         {
@@ -325,82 +278,28 @@
   }
 
   async function CheckIfDownloaded() {
-    let Gamesjson = await SetJsonData();
-
-    let haveGame = false;
-
-    let platform = modInfo.Platform;
-
-    if (modInfo.Platform == null) {
-      platform = Platform.Wii;
-    }
-
-    allRegions = Gamesjson.filter(
-      (r: GameConfig) =>
-        r.platform.toLowerCase() == platform.toLowerCase() &&
-        r.game.toLowerCase() == modInfo.Game.toLowerCase(),
+    let state = await selectedInstance.CheckMod(
+      InternetModToUnifiedMod(modInfo),
     );
-
-    console.log(allRegions.length);
-
-    if (allRegions.length == 1) {
-      gameInfo = allRegions[0];
-      id = allRegions[0].id;
-      haveGame = true;
-    } else if (allRegions.length > 1) {
-      haveGame = true;
-
-      for (let i = 0; i < allRegions.length; i++) {
-        let res = await CheckInstall(allRegions[i].path);
-        allRegions[i].installed = res;
-      }
-
-      let allInstalled = allRegions.filter((r) => r.installed == "installed");
-      if (allInstalled.length == allRegions.length) {
-        downloadButton.disabled = true;
-        downloadStatus = "Already Installed";
-      }
-    } else if (allRegions.length == 0) {
+    if (state == ModState.NotInstalled) {
+      downloadButton.textContent = "Download";
+      downloadButton.disabled = false;
+    } else if (state == ModState.UpdateAvailable) {
+      downloadButton.textContent = "Update";
+      downloadButton.disabled = false;
+    } else if (state == ModState.Incompatible) {
+      downloadButton.textContent = `Incompatible with ${selectedInstance.GetShortName(false)}`;
       downloadButton.disabled = true;
-      downloadStatus = `${modInfo.Game} (${platform}) not installed!`;
-    }
-
-    if (haveGame && allRegions.length == 1) {
-      let res = await CheckInstall(gameInfo.path);
-      if (res == "update") {
-        update = true;
-        downloadStatus = "Update Available";
-      } else if (res == "installed") {
-        downloadButton.disabled = true;
-        downloadStatus = "Already Installed";
-      }
+    } else if (state == ModState.Installed) {
+      downloadButton.textContent = "Installed";
+      downloadButton.disabled = true;
     }
   }
 
-  function CloseRegion() {
-    selectRegion = false;
+  async function GetFormattedDescription() {
+    formattedDescription = DOMPurify.sanitize(await parse(modInfo.Description));
   }
-
-  let commitHistory: HTMLDialogElement;
 </script>
-
-<dialog style="width:50%;" bind:this={commitHistory}>
-  <h1>Commit History</h1>
-  <hr />
-  <div
-    style="width:80%;background-color: rgb(10, 10, 10);padding:10px;border-radius: 10px;margin:auto;overflow-y: scroll;height:600px;"
-  >
-    {#each commits as commit}
-      <Commit
-        timestamp={commit.Timestamp}
-        content={commit.CommitContent}
-        author={commit.Author}
-        hash={commit.Hash.substring(32)}
-      ></Commit>
-    {/each}
-  </div>
-  <button on:click={() => commitHistory.close()}>Close</button>
-</dialog>
 
 {#if modInfo == null}
   <span style="margin-left:45%;">
@@ -425,29 +324,27 @@
           class="commentBox"
           style="width:200px;height:235px; background-color: rgb(20 20 20);border-radius: 0px 0px 10px 10px;position: relative;overflow-y:scroll;top:-20px;scrollbar-width: none;"
         >
-        <div style="position:sticky;top:0px;">
-          <textarea
-            style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:200px;"
-            placeholder="Comment..."
-            bind:this={commentInput}
-            on:input={OnCommentInput}
-            on:focusout={FocusOutCommentInput}
-          ></textarea>
-          {#if !removeCommentButton}
-          <button
-            bind:this={sendButton}
-            on:click={PostComment}
-            title="send"
-            class="sendComment"
-            ><img
-              src="img/send.svg"
-              alt=""
-              style="width:8px;margin:auto;z-index: 3;"
-            /></button
-          >
-          {/if}
-        </div>
+          <div style="position:sticky;top:0px;">
+            <textarea
+              style="background-color: rgb(30 30 30);border: none;resize: none;border-bottom: 1px white solid;width:196px;"
+              placeholder="Comment..."
+              bind:this={commentInput}
+              oninput={OnCommentInput}
+              onfocusout={FocusOutCommentInput}
+            ></textarea>
 
+            <button
+              bind:this={sendButton}
+              onclick={PostComment}
+              title="send"
+              class="sendComment"
+              ><img
+                src="img/send.svg"
+                alt=""
+                style="width:8px;margin:auto;z-index: 3;"
+              /></button
+            >
+          </div>
 
           <div>
             {#each comments as comment}
@@ -464,107 +361,96 @@
     </div>
     <div>
       <span style="font-size:30px;">{modInfo.Name}</span>
-      <svg style="width:25px;height:25px;margin-left:10px;fill:white;"
-        ><path
+      <svg style="width:25px;height:25px;margin-left:10px;fill:white;">
+        <path
           d="M12.033,19.011a3.489,3.489,0,0,0,2.475-1.024l3.919-3.919-2.121-2.121-2.782,2.782L13.5,0l-3,0,.024,14.709L7.76,11.947,5.639,14.068l3.919,3.919A3.487,3.487,0,0,0,12.033,19.011Z"
-        /><path d="M21,16v5H3V16H0v5a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V16Z" /></svg
-      > <span style="margin-left: 3px;">{downloads}</span>
+        />
+        <path d="M21,16v5H3V16H0v5a3,3,0,0,0,3,3H21a3,3,0,0,0,3-3V16Z" />
+      </svg>
+      <span style="margin-left: 3px;">{downloads}</span>
       <button
         title={liked ? "Remove Like" : "Add Like"}
-        on:click={LikeMod}
+        onclick={LikeMod}
         style="background:transparent;border:none;width:25px;height:25px;margin-left:10px;"
-        ><svg
+        aria-label={liked ? "Remove Like" : "Add Like"}
+      >
+        <svg
           bind:this={hearticon}
           width="25px"
           height="25px"
           style="fill:white;"
-          ><path
+        >
+          <path
             d="M12,23.462l-.866-.612C9.994,22.044,0,14.783,0,8.15A7.036,7.036,0,0,1,6.75.875,6.57,6.57,0,0,1,12,3.582,6.57,6.57,0,0,1,17.25.875,7.036,7.036,0,0,1,24,8.15c0,6.633-9.994,13.894-11.134,14.7ZM6.75,3.875A4.043,4.043,0,0,0,3,8.15c0,3.916,5.863,9.21,9,11.611,3.137-2.4,9-7.695,9-11.611a4.043,4.043,0,0,0-3.75-4.275A4.043,4.043,0,0,0,13.5,8.15h-3A4.043,4.043,0,0,0,6.75,3.875Z"
-          /></svg
-        ></button
-      ><span style="margin-left: 10px;">{likes}</span><span
+          />
+        </svg>
+      </button>
+      <span style="margin-left: 10px;">{likes}</span><span
         style="margin-right:14px;"
       ></span>
 
-      <button
-        on:click={Report}
-        style="border:none;background-color:transparent"
-      >
-        <img src="img/report.svg" style="width:25px;" />
+      <button onclick={Report} style="border:none;background-color:transparent">
+        <img src="img/report.svg" style="width:25px;" alt="" />
       </button>
       <span style="margin-right:14px;"></span>
-      <span style="background-color:black;padding:3px;border-radius:5px;"
+      <span
+        title="This value is not indicative of the actual version of the mod, but instead how many times it's been updated."
+        style="background-color:black;padding:3px;border-radius:5px;"
         >v{modInfo.Version}</span
       >
       <p>
         <User textSize={15} ID={modInfo.Author}></User>
         <span>| Published on: {time}</span> <br />
-        <span
-          >Repository URL:
-          {#if modInfo.RepositoryUrl == "legacy"}
-            None (Legacy Mod)
-          {:else}
-            <button
-              on:click={() =>
-                invoke("open_link", { url: modInfo.RepositoryUrl })}
-              class="hyperlinkbutton">Link</button
-            >
-          {/if}
-        </span>
         <br />
-        <span
-          >Latest Commit:
-
-          {#if modInfo.RepositoryUrl == "legacy"}
-            None (Legacy Mod)
-          {:else if commits.length > 0}
-            <button class="hyperlinkbutton" on:click={OpenCommitHistory}
-              >{commits[0].Hash.substring(32)}</button
-            >
-          {/if}
-        </span>
       </p>
       <p></p>
       <p>
-        <iframe
-          style="display:none;"
-          title="YouTube Video"
-          width="320"
-          height="180"
-          allow="fullscreen;"
-          bind:this={youtubevideoembed}
-          src={youtubelink}
-        />
+        {#if youtubelink != null}
+          <iframe
+            title="YouTube Video"
+            width="320"
+            height="180"
+            allow="fullscreen;"
+            bind:this={youtubevideoembed}
+            src={youtubelink}
+          ></iframe>
+        {/if}
       </p>
       <p>
-        <button bind:this={downloadButton} on:click={OnPressDownload}
+        <button bind:this={downloadButton} onclick={OnPressDownload}
           >{downloadStatus}</button
         >
-        <button on:click={() => window.open("#/modmarket", "_self")}
-          >Go back to Mod Market</button
+
+        <select
+          style="color:black;"
+          bind:value={selectedInstance}
+          oninput={() => SelectNewInstance()}
         >
+          {#each compatibleInstances as instance}
+            <option selected={instance === activeInstance} value={instance}
+              >{instance.gameConfig.uniqueID}</option
+            >
+          {/each}
+        </select>
+        <button onclick={() => window.open("#/modmarket", "_self")}
+          >Go back to Mod Market
+        </button>
       </p>
-      <p />
-      {#if localid == modInfo.Author}
-        <div bind:this={ownercontrols}>
-          <button
-            disabled={modInfo.RepositoryUrl == "legacy"}
-            title={modInfo.RepositoryUrl == "legacy"
-              ? "You must upgrade this mod to use Git before you can update."
-              : ""}
-            on:click={UpdateMod}>Update Mod</button
-          >
-          <button on:click={ChangeUrl}>Change Git Repository URL</button>
-          <button on:click={DeleteMod}>Delete Mod</button>
+      {#if localid === modInfo.Author}
+        <div
+          bind:this={ownercontrols}
+          style="background-color: rgb(21,21,21);padding:15px;border-radius: 5px;"
+        >
+          <span style="margin-right: 5px;color:yellow;">Owner Controls: </span>
+          <button onclick={UpdateMod}>Update Mod </button>
+          <button onclick={DeleteMod}>Delete Mod</button>
         </div>
       {/if}
       <p></p>
       <div
-        style="max-width:750px; word-wrap: break-word;padding:10px;border-radius:5px;background-color:rgb(20, 20, 20)"
+        style="max-width:750px; word-wrap: break-word;padding:10px;border-radius:5px;background-color:rgb(20, 20, 20);overflow-y:scroll;max-height: 600px;position:relative;"
       >
-        <span style="max-width:300px;"
-          >{@html DOMPurify.sanitize(parse(modInfo.Description))}</span
-        >
+        <span style="max-width:300px;">{@html formattedDescription}</span>
       </div>
     </div>
   </div>
@@ -577,44 +463,17 @@
         <span style="color:yellow;"
           >This mod has not been published yet and is only visible to you.</span
         >
-        <button style="margin-left:10px;" on:click={PublishMod}>Publish</button>
+        <button style="margin-left:10px;" onclick={PublishMod}>Publish</button>
       </p></span
     >
   {/if}
 {/if}
 
-{#if selectRegion}
-  <div class="selectregion">
-    <span style="position:relative;top:250px;">
-      <span>Select region to download to</span>
-      <p></p>
-      <div
-        style="background-color: rgb(38 38 38); width:20%; height:30%;  border-radius:10px; margin:auto; filter:drop-shadow(0 0 5px black)"
-      >
-        {#each allRegions as region}
-          {#if region.installed != "installed"}
-            <button style="width:100%;" on:click={() => Download(region)}
-              >{region.region}</button
-            >
-          {:else}
-            <button style="width:100%;" disabled>{region.region}</button>
-          {/if}
-          <br />
-        {/each}
-      </div>
-      <p>
-        <button on:click={() => CloseRegion()} class="hyperlinkbutton"
-          >Back</button
-        >
-      </p></span
-    >
-  </div>
-{/if}
-
 <style>
   .commentBox::-webkit-scrollbar {
-    width: 0px;
+    width: 0;
   }
+
   .sendComment {
     background-color: white;
     height: 16px;
@@ -629,6 +488,7 @@
     justify-content: center;
     transition-duration: 0.4s;
   }
+
   .selectregion {
     width: 100%;
     height: 100%;

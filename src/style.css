@@ -1,18 +1,25 @@
-body{
-  background: rgb(2,0,36);
-background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 0%, rgba(29,29,29,1) 0%, rgba(62,62,62,1) 100%);
+body {
+  background: rgb(2, 0, 36);
+  background: linear-gradient(
+    90deg,
+    rgba(2, 0, 36, 1) 0%,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(29, 29, 29, 1) 0%,
+    rgba(62, 62, 62, 1) 100%
+  );
 }
 
 dialog {
-  background-color: rgb(50,50,50);
-  border:none;
-  border-radius:10px;
-  z-index:30;
-  max-width:50vw;
-  backdrop-filter: drop-shadow(1px 1px 5px black)
+  background-color: rgb(50, 50, 50);
+  border: none;
+  border-radius: 10px;
+  z-index: 30;
+  max-width: 50vw;
+  backdrop-filter: drop-shadow(1px 1px 5px black);
 }
+
 dialog:backdrop {
-  opacity:0.75;
+  opacity: 0.75;
   background-color: black;
 }
 
@@ -21,57 +28,82 @@ dialog:backdrop {
   src: url(/fonts/norm.ttf);
 }
 
-.hyperlinkbutton{
+.hyperlinkbutton {
   font-size: 15px;
-  border:none;
+  border: none;
   background-color: transparent;
   text-decoration: underline;
   padding: 0px;
 }
-.hyperlinkbutton:hover{
-  cursor:grab;
+
+.hyperlinkbutton:hover {
+  cursor: grab;
   background-color: transparent;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+h2 {
+  font-size: 20px;
 }
 
 * {
   font-family: normalfont;
-  color:white;
+  color: white;
+  font-size: 15px;
 }
 
 *:disabled {
   font-family: normalfont;
-  color:gray;
-}
-.dropdown{
-background-color: black;
+  color: gray;
 }
 
-button{
+.dropdown select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: black;
+  padding: 10px;
+}
+
+.dropdown {
+  position: relative;
+  margin-right: 30px;
+  color: black;
+}
+
+button {
   border: 1px solid;
   border-color: rgb(138, 138, 138);
   background-color: rgb(82, 82, 82);
   transition-duration: 0.1s;
 }
-.spanHyperLink{
-  cursor:pointer;
+
+.spanHyperLink {
+  cursor: pointer;
   text-decoration: underline;
 }
-input{
+
+input {
   border: 1px solid;
   border-color: rgb(138, 138, 138);
   background-color: rgb(82, 82, 82);
   transition-duration: 0.1s;
 }
-textarea{
+
+textarea {
   border: 1px solid;
   border-color: rgb(138, 138, 138);
   background-color: rgb(82, 82, 82);
   transition-duration: 0.1s;
 }
-button:hover{
-  cursor:grab;
+
+button:hover {
+  cursor: grab;
   background-color: rgb(43, 43, 43);
 }
-button:hover:disabled{
+
+button:hover:disabled {
   cursor: not-allowed;
 }

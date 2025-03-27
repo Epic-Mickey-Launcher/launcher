@@ -1,19 +1,17 @@
 use crate::dolphin;
+use anyhow::{anyhow, Result};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub fn game(dolphin: String, exe: String) -> std::io::Result<()> {
+pub fn game(dolphin: String, exe: String) -> Result<()> {
     let config_path = dolphin::find_dir(&PathBuf::new());
 
     dolphin::auto_set_custom_textures();
 
     let os = env::consts::OS;
     if !Path::new(&dolphin).exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "Dolphin does not exist.",
-        ));
+        return Err(anyhow!("Dolphin Directory does not exist.",));
     }
 
     if os == "windows" {
@@ -38,9 +36,8 @@ pub fn game(dolphin: String, exe: String) -> std::io::Result<()> {
             .spawn()?;
     } else if os == "linux" {
         Command::new("chmod").arg("+x").arg(&dolphin).output()?;
-
         Command::new(dolphin)
-            .env("WAYLAND_DISPLAY", "0")
+            .env("WAYLAND_DISPLAY", "0") // Dolphin doesn't support Wayland yet...
             .arg("-b")
             .arg("-e")
             .arg(&exe)
@@ -49,5 +46,5 @@ pub fn game(dolphin: String, exe: String) -> std::io::Result<()> {
             .spawn()?;
     }
 
-    return Ok(());
+    Ok(())
 }

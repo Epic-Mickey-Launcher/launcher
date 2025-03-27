@@ -1,17 +1,10 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
   import { onMount } from "svelte";
   import { listen } from "@tauri-apps/api/event";
 
-  export let modName = "";
-  export let modIcon = "";
-
-  let progress = "0";
-  let MBTotal = 0;
-  let MBDownloaded = 0;
-
-  export let showDownloadProgression = false;
+  let progress = $state("0");
+  let MBTotal = $state(0);
+  let MBDownloaded = $state(0);
 
   function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) return "0 Bytes";
@@ -51,25 +44,40 @@
       MBDownloaded = event.payload.download_remaining;
       if (MBTotal > 0 && MBDownloaded > 0) {
         progress = ((MBDownloaded / MBTotal) * 100).toString();
-        showDownloadProgression = true 
-      }
-      else{
-        showDownloadProgression = false
+        showDownloadProgression = true;
+      } else {
+        showDownloadProgression = false;
       }
 
       if (event.payload.action != "") {
-        action = event.payload.action
+        action = event.payload.action;
       }
 
       if (event.payload.description != "") {
-        description = event.payload.description
+        description = event.payload.description;
       }
     });
   });
 
-  export let action = "Downloading";
-  export let description =
-    "This might take a while depending on your internet speed.";
+  interface Props {
+    modName?: string;
+    modIcon?: string;
+    showDownloadProgression?: boolean;
+    action?: string;
+    description?: string;
+  }
+
+  let {
+    modName = "",
+    modIcon = "",
+    showDownloadProgression = $bindable(false),
+    action = $bindable("Downloading"),
+    description = $bindable(
+      "This might take a while depending on your internet speed.",
+    ),
+  }: Props = $props();
+
+  export { modName, modIcon, showDownloadProgression, action, description };
 </script>
 
 <div class="installing">
@@ -78,17 +86,20 @@
   >
     <div style="position: relative;">
       <img
-        class="loading-spinner"
         alt=""
+        class="loading-spinner"
         src="/img/Loading_indicator_circle.svg"
       />
-      <img class="installingmodlogo" alt="" src={modIcon} />
+      <img alt="" class="installingmodlogo" src={modIcon} />
     </div>
-    <plaintext>{action} {modName}</plaintext>
-    <plaintext>{description}</plaintext>
+    <p></p>
+    <span>{action} {modName}</span>
+    <p></p>
+    <span>{description}</span>
     {#if showDownloadProgression}
-      <plaintext>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</plaintext
-      >
+      <p></p>
+      <span>{formatBytes(MBDownloaded)} / {formatBytes(MBTotal)}</span>
+      <p></p>
       <progress value={progress} max="100"></progress>
     {/if}
   </div>

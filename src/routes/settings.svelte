@@ -1,17 +1,23 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import {
-    DeleteAllConfigFiles,
-    FileExists,
-    ReadJSON,
-    WriteToJSON,
-    ConfigFile,
-  } from "./library/configfiles.js";
-  import { open } from "@tauri-apps/api/dialog";
-  import { invoke } from "@tauri-apps/api/tauri";
+  import { mount, onMount, unmount } from "svelte";
+  import { DeleteAllConfigFiles, FileExists } from "./library/configfiles.js";
+  import { open } from "@tauri-apps/plugin-dialog";
+  import { invoke } from "@tauri-apps/api/core";
   import ModInstall from "./components/ModInstall.svelte";
-  import { removeFile } from "@tauri-apps/api/fs";
-  import { getTauriVersion } from "@tauri-apps/api/app";
+  import { copyFile, remove } from "@tauri-apps/plugin-fs";
+  import { type ConfigFile, Game, Platform } from "./library/types.js";
+  import { LoadConfig, LoadGamesConfig, SaveConfig } from "./library/config";
+  import { RetrieveFileByAlias } from "./library/filealias";
+  import { DownloadDolphin } from "./library/dolphin";
+
+  let config: ConfigFile = $state();
+  let modTemplateGenerator: HTMLDialogElement = $state();
+
+  let title: string = $state("");
+  let description: string = $state("");
+  let iconPath: string = $state("");
+  let game: Game = $state(Game.EM1);
+  let platform: Platform = $state(Platform.Wii);
 
   async function SetDolphinPath() {
     const selectedPath = await open({
@@ -25,104 +31,169 @@
       selectedPath.includes("Dolphin.app") ||
       selectedPath.includes("dolphin-emu")
     ) {
-      let dat = await ReadJSON("conf.json");
-      dat.dolphinPath = selectedPath;
-      await WriteToJSON(JSON.stringify(dat), "conf.json");
-      SetCurrentPaths();
+      config.dolphinPath = selectedPath;
+      await SaveConfig(config);
     }
   }
 
-  let currentDolphinPath = "";
-  let currentWITPath = "";
-  let currentNkitPath = "";
-  let os = "";
-  let dolphin_button: HTMLButtonElement;
-  let version = "";
-
-  const DOLPHIN_LINK_WINDOWS = "https://kalsvik.no/res/dolphin_windows64.tar.gz";
-  const DOLPHIN_LINK_LINUX = "https://kalsvik.no/res/dolphin_linux.tar.gz";
-  const DOLPHIN_LINK_MACOS = "https://kalsvik.no/res/dolphin_mac.zip";
-
-  async function DownloadDolphin() {
-    let modInstallElement = new ModInstall({
+  async function DownloadDolphinEmu() {
+    let modInstallElement = mount(ModInstall, {
       target: document.body,
     });
     modInstallElement.modName = "Dolphin";
     modInstallElement.modIcon = "img/dolphin.png";
     modInstallElement.showDownloadProgression = true;
-    let url = "";
-    if (os == "windows") url = DOLPHIN_LINK_WINDOWS;
-    else if (os == "macos") url = DOLPHIN_LINK_MACOS;
-    else if (os == "linux") url = DOLPHIN_LINK_LINUX;
-    invoke("download_tool", { url: url, foldername: "Dolphin" }).then(
-      async (path) => {
-        let dat = await ReadJSON("conf.json");
-
-        if (os == "windows") dat.dolphinPath = path + "/Dolphin.exe";
-        else if (os == "macos") dat.dolphinPath = path + "/Dolphin.app";
-        else if (os == "linux") dat.dolphinPath = path + "/dolphin-emu";
-
-        await invoke("create_portable", { dolphinpath: dat.dolphinPath });
-        await WriteToJSON(JSON.stringify(dat), "conf.json");
-        SetCurrentPaths();
-        modInstallElement.$destroy();
-      },
-    );
+    await DownloadDolphin();
+    await unmount(modInstallElement);
   }
 
   onMount(async () => {
-    os = await invoke("get_os");
-    version = await getTauriVersion();
     await SetCurrentPaths();
   });
 
+  async function OpenDolphinFolder() {
+    await invoke("open_dolphin", { path: config.dolphinPath });
+  }
+
   async function SetCurrentPaths() {
-    let config: ConfigFile = await ReadJSON("conf.json");
-    currentDolphinPath = config.dolphinPath;
-    currentWITPath = config.WITPath;
-    currentNkitPath = config.NkitPath;
+    config = await LoadConfig();
   }
 
   async function DeleteModCache() {
     await invoke("delete_mod_cache_all");
   }
 
+  async function SetIcon() {
+    iconPath = await open({
+      multiple: false,
+      directory: false,
+      filters: [
+        {
+          extensions: ["png"],
+          name: "PNG File",
+        },
+      ],
+    });
+  }
+
+  async function CreateModTemplate() {
+    if (game == Game.EMR && platform != Platform.PC) {
+      console.log("EMR Mod Template can only be generated for PC.");
+      return;
+    }
+    if (game == Game.EM1 && platform != Platform.Wii) {
+      console.log("EM1 Mod Template can only be generated for Wii.");
+      return;
+    }
+
+    if (iconPath == "") {
+      console.log("Please set an icon.");
+      return;
+    }
+
+    const selected = await open({
+      multiple: false,
+      directory: true,
+    });
+
+    await invoke("generate_mod_project", {
+      game: game,
+      platform: platform,
+      path: selected,
+      name: title,
+      description: description,
+    });
+
+    await copyFile(iconPath, selected + "/icon.png");
+    await invoke("open_link", { url: selected });
+    modTemplateGenerator.close();
+  }
+
   async function RemoveAllConfFiles() {
-    let confirmation = await confirm("Are you sure?");
+    let confirmation = confirm("Are you sure?");
     if (confirmation) {
-      let delete_docs_folder = await confirm(
+      let delete_docs_folder = confirm(
         "Do you want to delete the EML documents folder? This can fix issues with iso extraction but will also delete all of your games and tools.",
       );
       if (delete_docs_folder) {
         await invoke("delete_docs_folder");
       }
-      let c = await ReadJSON("games.json");
-      c.forEach(async (d: { path: string }) => {
-        let path = d.path + "/EMLMods.json";
+      let games = await LoadGamesConfig();
+      for (const game of games) {
+        let path = await RetrieveFileByAlias("eml-mods-json", game);
         let fileExists = await FileExists(path);
         if (fileExists) {
-          await removeFile(path);
+          await remove(path);
         }
-      });
+      }
       await DeleteAllConfigFiles();
       window.open("#/Games", "_self");
     }
   }
 </script>
 
-<h1>Settings</h1>
-<hr />
-<p />
-<button on:click={SetDolphinPath}>Assign Dolphin Path</button>
-<span style="display:inline"><em>{currentDolphinPath}</em></span>
-<p></p>
-<h2>Automatically Download & Assign</h2>
-<button bind:this={dolphin_button} on:click={DownloadDolphin}
-  >Download Dolphin</button
->
-<h2>Factory Reset</h2>
-<button on:click={RemoveAllConfFiles}>Remove all config files</button>
-<br />
-<button on:click={DeleteModCache}>Delete mod cache</button>
-<p></p>
-<span>© 2024 Jonas Kalsvik</span>
+{#if config != null}
+  <dialog bind:this={modTemplateGenerator}>
+    <h2>Mod Template Generator</h2>
+
+    <input placeholder="Mod Title" style="width:100%;" bind:value={title} />
+    <p></p>
+    <textarea
+      placeholder="Description (formatted in markdown)"
+      style="width: 100%;min-height: 20vw;"
+      bind:value={description}
+    ></textarea>
+    <p></p>
+    <span>Game: </span>
+    <select bind:value={game} style="color: black">
+      <option value={Game.EM1}>EM1</option>
+      <option value={Game.EM2}>EM2</option>
+      <option value={Game.EMR}>EMR</option>
+    </select>
+    <p></p>
+    <span>Platform: </span>
+    <select bind:value={platform} style="color: black">
+      <option value={Platform.Wii}>Wii</option>
+      <option value={Platform.PC}>PC</option>
+    </select>
+    <p></p>
+    <button style="width:100%;" onclick={SetIcon}>
+      {#if iconPath === ""}
+        Set Icon
+      {:else}
+        Icon Set!
+      {/if}
+    </button>
+    <p></p>
+    <button style="width:100%;" onclick={CreateModTemplate}>Generate</button>
+    <br />
+    <button style="width:100%;" onclick={() => modTemplateGenerator.close()}
+      >Exit</button
+    >
+  </dialog>
+
+  <h1>Settings</h1>
+  <hr />
+  <h2>Client Settings</h2>
+  <button onclick={() => modTemplateGenerator.showModal()}
+    >Create Mod Template</button
+  >
+  <p></p>
+  <h2>Dolphin Settings</h2>
+  <button onclick={DownloadDolphinEmu}>
+    {config.dolphinPath === "" ? "Download" : "Redownload"}
+  </button>
+  {#if config.dolphinPath !== ""}<span style="font-size:7px;color:lime;"
+      >*Downloaded</span
+    >{/if}
+  <br />
+  <button disabled={config.dolphinPath === ""} onclick={OpenDolphinFolder}
+    >Open Dolphin
+  </button>
+  <h2>Factory Reset</h2>
+  <button onclick={RemoveAllConfFiles}>Remove all config files</button>
+  <br />
+  <button onclick={DeleteModCache}>Delete mod cache</button>
+  <p></p>
+{/if}
+<span>© 2025 Jonas Kalsvik</span>

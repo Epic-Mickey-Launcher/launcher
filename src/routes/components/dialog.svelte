@@ -1,11 +1,9 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
   import { onMount } from "svelte";
 
   let index = 0;
-  let currentDialog = "";
-  export let content = [];
+  let currentDialog = $state("");
+  let { content = [] } = $props();
 
   onMount(() => {
     currentDialog = content[0];
@@ -20,14 +18,16 @@
 
     currentDialog = content[index];
   }
+
+  export { content };
 </script>
 
 <div style="display:flex;width:100%;">
   <div style="display:flex;position:relative;text-align:center;margin:auto;">
-    <img style="opacity:0.6" src="img/dialog.png" />
+    <img src="img/dialog.png" style="opacity:0.6" />
     <img
-      style="position:absolute;left:0px;bottom:0px;width:60px;"
       src="img/gus.png"
+      style="position:absolute;left:0px;bottom:0px;width:60px;"
     />
     <span
       style="font-family: highlander;position:absolute;text-align:left; left:60px;top:5px;filter:drop-shadow(0 0 2px black);width:300px;"
@@ -41,7 +41,7 @@
       <img
         alt=""
         src="img/abutton.png"
-        on:click={IncrementDialog}
+        onclick={IncrementDialog}
         style="position:absolute; width:24px; right:-5px;bottom:0px;"
       />
     {/if}

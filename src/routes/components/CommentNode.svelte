@@ -1,16 +1,20 @@
-<svelte:options accessors />
-
 <script lang="ts">
   import { onMount } from "svelte";
-  import { POST, GetId, CommentData, GetToken } from "../library/networking";
+  import { GetId, GetToken, POST } from "../library/networking";
   import User from "./User.svelte";
-  let date: string;
-  let isCommentAuthor: boolean;
-  export let content: string;
-  export let commentID: string;
-  export let id: string;
-  export let onDelete: any;
-  let deleted = false;
+
+  let date: string = $state();
+  let isCommentAuthor: boolean = $state();
+
+  interface Props {
+    content: string;
+    commentID: string;
+    id: string;
+    onDelete: any;
+  }
+
+  let { content, commentID, id, onDelete }: Props = $props();
+  let deleted = $state(false);
 
   export function InitCommentNode() {
     let timestamp = parseInt(commentID);
@@ -43,6 +47,8 @@
   onMount(() => {
     InitCommentNode();
   });
+
+  export { content, commentID, id, onDelete };
 </script>
 
 {#if !deleted}
@@ -68,19 +74,15 @@
     <br />
   </div>
 
-  <div
-    style="width:100%;height:20px;background-color: black;background-color: rgb(35 35 35);"
-  >
+  <div style="width:100%;height:20px;background-color: rgb(35 35 35);">
     {#if isCommentAuthor}
       <button
-        on:click={Delete}
+        onclick={Delete}
         class="hyperlinkbutton"
-        style="font-size:10px;color:red;float:right;margin-left:5px;margin-top:4px;"
-        >Delete</button
-      >
+        style="font-size:10px;color:red;float:right;margin-left:5px;"
+        >Delete
+      </button>
     {/if}
-
-    
 
     <span style="font-size:6px;">Sent on: {date}</span>
   </div>

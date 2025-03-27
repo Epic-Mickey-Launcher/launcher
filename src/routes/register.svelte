@@ -2,19 +2,17 @@
   import { onMount } from "svelte";
   import Dialog from "./components/dialog.svelte";
   import { Subscribe } from "./library/callback";
-  import { POST, Register, SignIn, UserInfo } from "./library/networking";
+  import { POST, Register, SignIn, type UserInfo } from "./library/networking";
   import { GetBackgroundLogin } from "./library/background";
-  import Loading from "./components/loading.svelte";
-  import { invoke } from "@tauri-apps/api";
 
-  let user: any;
-  let pass: any;
-  let loadingDialog: HTMLDialogElement;
-  let background: HTMLDivElement;
-  let email: any;
-  let forgotPasswordDialog: HTMLDialogElement;
+  let user: any = $state();
+  let pass: any = $state();
+  let loadingDialog: HTMLDialogElement = $state();
+  let background: HTMLDivElement = $state();
+  let email: any = $state();
+  let forgotPasswordDialog: HTMLDialogElement = $state();
   onMount(() => {
-    background.style.backgroundImage = `url(${GetBackgroundLogin()})`;
+    background.style.backgroundImage = `url(${GetBackgroundLogin().path})`;
   });
 
   async function SendEmail() {
@@ -36,26 +34,27 @@
 
     let userInfo: UserInfo = { username: user, password: pass };
 
-    try {
-      if (type == 1) {
-       //login
-        await SignIn(userInfo);
-      } else {
-        //register
-       await Register(userInfo);
+    if (type == 1) {
+      //login
+      await SignIn(userInfo);
+    } else {
+      //register
+      if (user.includes("@")) {
+        await alert(
+          "You can only log in with an E-Mail. Please enter a username instead and then bind your E-Mail later when you've registered.",
+        );
+        return;
       }
+      await Register(userInfo);
     }
-    catch {
-      loadingDialog.close();
-    }
-    
+
     loadingDialog.close();
   }
 </script>
 
 <div
   bind:this={background}
-  style="background-attachment:fixed;position: fixed;width:100vw;height:100vh;top:0px;z-index:-1;background-image:url(img/backgrounds/back1.webp);background-position:center;background-size:cover;"
+  style="background-attachment:fixed;position: fixed;width:100vw;height:100vh;top:0px;z-index:-1;background-position:center;background-size:cover;"
 ></div>
 
 <main>
@@ -63,14 +62,14 @@
     <h1 style="filter:drop-shadow(0 0 3px black)">Register / Login</h1>
     <hr />
     <input
-      class="inputfield"
       bind:value={user}
+      class="inputfield"
       placeholder="Username / E-Mail"
     />
     <p style="margin-top: 2px;">
       <input
-        class="inputfield"
         bind:value={pass}
+        class="inputfield"
         placeholder="Password"
         type="password"
       />
@@ -86,24 +85,25 @@
         Password.</span
       >
       <p>
-        <input placeholder="E-Mail" class="inputfield" bind:value={email} />
+        <input bind:value={email} class="inputfield" placeholder="E-Mail" />
       </p>
 
-      <button on:click={SendEmail}>Send Request</button>
-      <button on:click={() => forgotPasswordDialog.close()}>Back</button>
+      <button onclick={SendEmail}>Send Request</button>
+      <button onclick={() => forgotPasswordDialog.close()}>Back</button>
     </dialog>
     <button
-      on:click={() => forgotPasswordDialog.showModal()}
-      class="hyperlinkbutton">Forgot your password?</button
-    >
+      class="hyperlinkbutton"
+      onclick={() => forgotPasswordDialog.showModal()}
+      >Forgot your password?
+    </button>
     <p>
-      <button class="registerbutton" on:click={() => Login(2)}>Register</button>
-      <button class="registerbutton" on:click={() => Login(1)}>Sign In</button>
+      <button class="registerbutton" onclick={() => Login(2)}>Register</button>
+      <button class="registerbutton" onclick={() => Login(1)}>Sign In</button>
     </p>
     <div style="margin-top:10vh;">
       <Dialog
         content={[
-          "Make sure to use a unique password from your other accounts for optimal security!",
+          "Make sure to use a unique password for optimal security!",
           "All password are hashed with the Bcrypt algorithm in our database!",
           "Our server source code is completely open for anyone to view and use!",
         ]}
@@ -118,6 +118,7 @@
     padding: 10px 20px;
     border-radius: 5px;
   }
+
   .inputfield {
     border: none;
     font-size: 20px;

@@ -1,129 +1,130 @@
 import {
   exists,
-  writeTextFile,
-  readTextFile,
-  createDir,
-  removeFile,
-  removeDir
-} from "@tauri-apps/api/fs"
-import {
-  appLocalDataDir
-} from '@tauri-apps/api/path';
-import { invoke } from "@tauri-apps/api/tauri";
-import app from "src/main";
+  mkdir,
+  readFile,
+  remove,
+  writeFile,
+} from "@tauri-apps/plugin-fs";
+import { appLocalDataDir } from "@tauri-apps/api/path";
+import { invoke } from "@tauri-apps/api/core";
+import { SaveConfig, SaveGamesConfig } from "./config";
+import { RetrieveFileByAlias } from "./filealias";
 
-let configPath: string;
+export let configPath: string;
 
-export async function GetPath() {
-  configPath = await invoke("get_frontend_config_path", { npath: await appLocalDataDir() })
+export async function GetPath(): Promise<string> {
+  configPath = await invoke("get_frontend_config_path", {
+    npath: await appLocalDataDir(),
+  });
+  return configPath;
 }
 
 //todo: what kind of fuckin name is this? fix!
 async function DataFolderExists() {
-  await GetPath()
+  await GetPath();
   let path = configPath;
   let pathExists = await exists(path);
   if (!pathExists) {
-    await createDir(path)
+    await mkdir(path);
   }
 }
 
 export async function ReadOneTimeNoticeBlacklist(): Promise<string> {
   await DataFolderExists();
-  let appdir = configPath
-  return await FileExists(appdir + "otn") ? await readTextFile(appdir + "otn") : ""
+  let path = await RetrieveFileByAlias("eml-one-time-notices", configPath);
+  return (await FileExists(path)) ? await ReadFile(path) : "";
 }
-export async function CheckOneTimeNoticeBlacklist(id: string): Promise<boolean> {
-  let buffer = await ReadOneTimeNoticeBlacklist()
-  return buffer.includes(id)
+
+export async function CheckOneTimeNoticeBlacklist(
+  id: string,
+): Promise<boolean> {
+  let buffer = await ReadOneTimeNoticeBlacklist();
+  return buffer.includes(id);
 }
+
 export async function WriteOneTimeNoticeBlacklist(id: string) {
   await DataFolderExists();
-  let appdir = configPath
-  let buffer = await ReadOneTimeNoticeBlacklist()
-  buffer += id + ","
-  await writeTextFile(appdir + "otn", buffer)
+  let buffer = await ReadOneTimeNoticeBlacklist();
+  buffer += id + ",";
+  await WriteFile(
+    buffer,
+    await RetrieveFileByAlias("eml-one-time-notices", configPath),
+  );
 }
 
 export async function WriteToJSON(content: string, file: string) {
-  await DataFolderExists()
-  let path = configPath
-  await writeTextFile({
-    path: path + file,
-    contents: content
-  })
+  await DataFolderExists();
+  await WriteFile(configPath + file, content);
 }
 
 export async function ReadJSON(file: string): Promise<any> {
-  await DataFolderExists()
-  let path = configPath
-  let content = await readTextFile(path + file)
+  await DataFolderExists();
+  let content = await ReadFile(configPath + file);
   return JSON.parse(content);
 }
 
 export async function WriteFile(content: any, file: string) {
-  await writeTextFile({
-    path: file,
-    contents: content
-  })
+  await writeFile(file, new TextEncoder().encode(content));
 }
 
 export async function ReadFile(file: string) {
-  let content = await readTextFile(file)
-  return content;
+  //this is dumb
+  return new TextDecoder().decode(await readFile(file));
+}
+
+export async function ConfigFileExists(path: string) {
+  console.log(configPath + path);
+  return await exists(configPath + path);
 }
 
 export async function FileExists(path: string) {
-  return await exists(path)
-}
-
-export function GetFullName(name: string) {
-  switch (name) {
-    case "EM1":
-      return "Epic Mickey 1";
-
-    case "EM2":
-      return "Epic Mickey 2";
-  }
+  return await exists(path);
 }
 
 export async function WriteToken(token: string) {
-  await WriteFile(token, configPath + "TOKEN")
+  await WriteFile(token, configPath + "TOKEN");
 }
 
 export async function ReadToken(): Promise<string> {
   await DataFolderExists();
-  let appdir = configPath
+  let appDir = configPath;
 
-  if (await FileExists(appdir + "TOKEN")) {
-    let token = await ReadFile(appdir + "TOKEN")
-    return token
+  if (await FileExists(appDir + "TOKEN")) {
+    let token = await ReadFile(appDir + "TOKEN");
+    return token;
   } else {
-    return ""
+    return "";
   }
 }
 
 export async function DeleteAllConfigFiles() {
-  await DataFolderExists()
-  let appdir = configPath;
-  removeDir(appdir, {
-    recursive: true
-  })
+  await DataFolderExists();
+  await remove(configPath, {
+    recursive: true,
+  });
 }
 
 export async function InitConfFiles() {
-  await DataFolderExists()
-  let path = configPath
-  let gamesJsonExists = await exists(path + "games.json");
-  let confJsonExists = await exists(path + "conf.json");
+  await DataFolderExists();
+
+  console.log(configPath);
+
+  let gamesJsonExists = await exists(
+    await RetrieveFileByAlias("eml-tracked-games", configPath),
+  );
+  let confJsonExists = await exists(
+    await RetrieveFileByAlias("eml-config", configPath),
+  );
 
   if (!gamesJsonExists) {
-    WriteToJSON("[]", "games.json")
+    await SaveGamesConfig([]);
   }
 
   if (!confJsonExists) {
-    WriteToJSON(JSON.stringify({
-      dolphinPath: "", WITPath: "", NkitPath: ""
-    }), "conf.json")
+    await SaveConfig({
+      dolphinPath: "",
+      dolphinConfigPath: "",
+      developerMode: false,
+    });
   }
 }

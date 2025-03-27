@@ -1,18 +1,22 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
   import { onMount } from "svelte";
 
-  export let timestamp: string;
-  export let content: string;
-  export let hash: string;
-  export let author: string;
+  interface Props {
+    timestamp: string;
+    content: string;
+    hash: string;
+    author: string;
+  }
 
-  let time: string;
+  let { timestamp, content, hash, author }: Props = $props();
+
+  let time: string = $state();
   onMount(() => {
     let converted = Number(timestamp);
     time = new Date(converted).toLocaleString();
   });
+
+  export { timestamp, content, hash, author };
 </script>
 
 <div class="commitDiv">

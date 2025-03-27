@@ -1,0 +1,27 @@
+[
+  {
+    "Name": "eml-mods-json",
+    "CurrentAlias": "eml-mods.json",
+    "OtherAliases": ["EMLMods.json"]
+  },
+  {
+    "Name": "eml-version-lock",
+    "CurrentAlias": "eml-version.lock",
+    "OtherAliases": ["version.lock"]
+  },
+  {
+    "Name": "eml-config",
+    "CurrentAlias": "eml-config.json",
+    "OtherAliases": ["conf.json"]
+  },
+  {
+    "Name": "eml-tracked-games",
+    "CurrentAlias": "eml-tracked-games.json",
+    "OtherAliases": ["games.json"]
+  },
+  {
+    "Name": "eml-one-time-notices",
+    "CurrentAlias": "eml-one-time-notices.json",
+    "OtherAliases": ["otn"]
+  }
+]

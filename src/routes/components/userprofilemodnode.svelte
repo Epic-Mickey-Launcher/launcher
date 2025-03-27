@@ -1,10 +1,12 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
   import { SetData } from "../library/datatransfer";
   import { GetImagePath, ImageType } from "../library/networking";
 
-  export let mod: any;
+  interface Props {
+    mod: any;
+  }
+
+  let { mod }: Props = $props();
 
   function OnClick() {
     SetData("modpage_id", mod.ID);
@@ -16,16 +18,18 @@
 
     return buffer.substring(0, 100).trim() + "...";
   }
+
+  export { mod };
 </script>
 
 <div class="modNode">
   <img
-    src={GetImagePath(mod.ID, ImageType.Mod, false)}
     alt=""
+    src={GetImagePath(mod.ID, ImageType.Mod, false)}
     style="width:200px;border-radius:10px;"
   />
   <p>
-    <button on:click={OnClick} class="hyperlinkbutton">{mod.Name}</button>
+    <button class="hyperlinkbutton" onclick={OnClick}>{mod.Name}</button>
     <br />
     <span style="font-size:10px;">{ShortenDescription(mod.Description)}</span>
   </p>
@@ -42,6 +46,7 @@
     filter: drop-shadow(1px 1px 5px black);
     transition-duration: 0.1s;
   }
+
   .modNode:hover {
     transform: translateY(-5px);
   }

@@ -1,44 +1,51 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
-  import { GetData, SetData } from "../library/datatransfer";
+  import { SetData } from "../library/datatransfer";
+  import { InternetModToUnifiedMod } from "../library/gameid";
   import { GetImagePath, ImageType, POST } from "../library/networking";
-  import { GameConfig, Mod } from "../library/types";
+  import { type Mod, ModState } from "../library/types";
   import User from "./User.svelte";
   import DownloadMod from "./downloadMod.svelte";
+  import type { GameInstance } from "../library/instance.svelte";
+  import { activeInstance, SetActiveGameInstance } from "../library/config";
+  import { mount, unmount } from "svelte";
+  import ModInstall from "./ModInstall.svelte";
 
-  export let gameData: GameConfig;
-  export let modData: Mod;
-  let downloadStatus = "Download";
-  export let modNodeDiv: HTMLDivElement;
+  let downloadStatus = $state("Download");
+
+  interface Props {
+    gameInstance: GameInstance;
+    modData: Mod;
+  }
+
+  let modNodeDiv: HTMLDivElement = $state();
+
+  let { gameInstance, modData = $bindable() }: Props = $props();
   let downloadMod: DownloadMod;
-  $: innerWidth = 0;
-  let downloadButton: HTMLButtonElement;
+  let innerWidth = $state(0);
 
-  let downloadButtonDisabled = false;
-  let visible = true;
-  let comments = [];
-  let likes = 0;
-  let description = "";
-  let loaded = false;
+  let downloadButton: HTMLButtonElement = $state();
+
+  let downloadButtonDisabled = $state(false);
+  let visible = $state(true);
+  let comments = $state([]);
+  let likes = $state(0);
+  let description = $state("");
+  let loaded = $state(false);
 
   function ViewPage() {
     SetData("modpage_id", modData.ID);
-    SetData("modpage_dumploc", gameData.path);
+    SetActiveGameInstance(gameInstance);
     window.open("#/modpage", "_self");
   }
 
-  export async function Init() {
-    downloadMod = new DownloadMod({
-      target: modNodeDiv,
-    });
+  export async function Unload() {
+    //lmao, fix.
+    console.log("unloading");
+    visible = false;
+  }
 
-    downloadMod.Initialize(gameData, false, modData);
-    downloadMod.updatecb = () => {
-      downloadButtonDisabled = downloadMod.downloadButtonDisabled;
-      downloadStatus = downloadMod.downloadButtonStatus;
-    };
-
+  export async function Load() {
+    console.log("Loading Mod: " + modData.Name);
     let response = await POST("comment/count", { PageID: modData.ID }, false);
     if (response.error) return;
     comments = response.body;
@@ -59,12 +66,44 @@
       description = newDesc;
     }
 
+    await UpdateState();
+
     loaded = true;
   }
 
-  async function Download() {
-    await downloadMod.Download();
+  async function UpdateState() {
+    let modState = await activeInstance.CheckMod(
+      InternetModToUnifiedMod(modData),
+    );
+    if (modState == ModState.Installed) {
+      downloadStatus = "Installed";
+      downloadButtonDisabled = true;
+    } else if (modState == ModState.Incompatible) {
+      downloadStatus = "Incompatible";
+      downloadButtonDisabled = true;
+    } else if (modState == ModState.UpdateAvailable) {
+      downloadStatus = "Update";
+      downloadButtonDisabled = false;
+    } else {
+      downloadStatus = "Download";
+      downloadButtonDisabled = false;
+    }
   }
+
+  async function Download() {
+    let modInstallElement = mount(ModInstall, {
+      target: document.body,
+    });
+    modInstallElement.modIcon = GetImagePath(modData.ID, ImageType.Mod);
+    modInstallElement.modName = modData.Name;
+    modInstallElement.action = "Downloading";
+    modInstallElement.description = "This might take a while...";
+    await gameInstance.AddMod(InternetModToUnifiedMod(modData));
+    await UpdateState();
+    await unmount(modInstallElement);
+  }
+
+  export { modData, modNodeDiv };
 </script>
 
 <svelte:window bind:innerWidth />
@@ -74,7 +113,7 @@
       <div>
         <span
           class="spanHyperLink"
-          on:click={ViewPage}
+          onclick={ViewPage}
           style="font-weight:bold;text-overflow: ellipsis;">{modData.Name}</span
         >
 
@@ -104,7 +143,7 @@
         <span style="font-size:8px;">Comments: {comments}</span>
         <button
           bind:this={downloadButton}
-          on:click={Download}
+          onclick={Download}
           disabled={downloadButtonDisabled}>{downloadStatus}</button
         >
         <br />
@@ -143,6 +182,7 @@
     text-align: right;
     justify-content: right;
   }
+
   .modNodeImg {
     width: 80px;
     height: 80px;

@@ -1,0 +1,105 @@
+[
+  {
+    "name": "Disney Epic Mickey Rebrushed",
+    "id": "EMR",
+    "steamID": "1522160",
+    "releases": [
+      {
+        "platform": "PC",
+        "identifier": "Rebrushed.exe"
+      }
+    ],
+    "resources": {
+      "cardImageUrl": "img/emrbanner.png",
+      "logoImageUrl": "img/emrlogo.png",
+      "iconImageUrl": "img/emricon.png"
+    }
+  },
+  {
+    "name": "Disney Epic Mickey 2",
+    "id": "EM2",
+    "steamID": "245300",
+    "releases": [
+      {
+        "platform": "PC",
+        "identifier": "DEM2.exe"
+      },
+      {
+        "platform": "Wii",
+        "identifier": "sys/boot.bin",
+        "regions": [
+          {
+            "id": "SERE4Q",
+            "region": "NTSC_U"
+          },
+          {
+            "id": "SERJ91",
+            "region": "NTSC_J"
+          },
+          {
+            "id": "SERK8M",
+            "region": "NTSC_K"
+          },
+          {
+            "id": "SERF4Q",
+            "region": "PAL_FR_DE_IT"
+          },
+          {
+            "id": "SERV4Q",
+            "region": "PAL_SE_DK_NO"
+          },
+          {
+            "id": "SERP4Q",
+            "region": "PAL_EN_FR_ES_NL_PT_TR"
+          }
+        ]
+      }
+    ],
+    "resources": {
+      "iconImageUrl": "img/em2icon.png",
+      "cardImageUrl": "img/em2banner.png",
+      "logoImageUrl": "img/em2logo.png"
+    }
+  },
+  {
+    "name": "Disney Epic Mickey",
+    "id": "EM1",
+    "releases": [
+      {
+        "platform": "Wii",
+        "identifier": "sys/boot.bin",
+        "regions": [
+          {
+            "id": "SEME4Q",
+            "region": "NTSC_U"
+          },
+          {
+            "id": "SEMJ01",
+            "region": "NTSC_J"
+          },
+          {
+            "id": "SEMX4Q",
+            "region": "PAL_DE_ES_IT"
+          },
+          {
+            "id": "SEMY4Q",
+            "region": "PAL_EN_SE_DK"
+          },
+          {
+            "id": "SEMZ4Q",
+            "region": "PAL_SE_DK_NO"
+          },
+          {
+            "id": "SEMP4Q",
+            "region": "PAL_EN_FR_NL"
+          }
+        ]
+      }
+    ],
+    "resources": {
+      "iconImageUrl": "img/emicon.png",
+      "cardImageUrl": "img/em1banner.png",
+      "logoImageUrl": "img/emlogo.png"
+    }
+  }
+]

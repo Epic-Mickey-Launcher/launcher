@@ -5,9 +5,13 @@
     WriteOneTimeNoticeBlacklist,
   } from "../library/configfiles";
 
-  export let id: string;
-  export let content: string;
-  let visible = false;
+  interface Props {
+    id: string;
+    content: string;
+  }
+
+  let { id, content }: Props = $props();
+  let visible = $state(false);
 
   onMount(async () => {
     visible = !(await CheckOneTimeNoticeBlacklist(id));
@@ -33,7 +37,7 @@
       <button
         style="position:absolute;bottom:15px;left:15px;"
         class="hyperlinkbutton"
-        on:click={() => Hide()}>OK</button
+        onclick={() => Hide()}>OK</button
       >
     </div>
   {/if}

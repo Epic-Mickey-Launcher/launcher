@@ -1,29 +1,91 @@
 <script lang="ts">
-  let header: any;
+  import SelectGameForMod from "./routes/components/SelectGameForMod.svelte";
   import Header from "./routes/components/header.svelte";
   import {
-    InitConfFiles,
-    ReadJSON,
-    ReadToken,
     GetPath,
+    InitConfFiles,
+    ReadToken,
   } from "./routes/library/configfiles";
   import Router from "svelte-spa-router";
   import Games from "./routes/games.svelte";
-  import AddGame from "./routes/addgame.svelte";
   import QuickStart from "./routes/quickstart.svelte";
   import Register from "./routes/register.svelte";
   import Settings from "./routes/settings.svelte";
-  import uploadmod from "./routes/uploadmod.svelte";
+  import UploadMod from "./routes/uploadmod.svelte";
   import LevelLoader from "./routes/levelloader.svelte";
   import ModMarket from "./routes/modmarket.svelte";
   import ProfilePage from "./routes/profilepage.svelte";
-  import modpage from "./routes/modpage.svelte";
-  import accountsettings from "./routes/accountsettings.svelte";
-  import { Login, UserInfo } from "./routes/library/networking";
+  import ModPage from "./routes/modpage.svelte";
+  import AccountSettings from "./routes/accountsettings.svelte";
+  import {
+    Login,
+    SetServerURL,
+    type UserInfo,
+  } from "./routes/library/networking";
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
-  import { invoke } from "@tauri-apps/api/tauri";
-  import { exit } from "@tauri-apps/api/process";
+  import { invoke } from "@tauri-apps/api/core";
+  import { exit } from "@tauri-apps/plugin-process";
+  import { getMatches } from "@tauri-apps/plugin-cli";
+  import { onOpenUrl, register } from "@tauri-apps/plugin-deep-link";
+  import { onMount } from "svelte";
+  import DownloadMod from "./routes/components/downloadMod.svelte";
+  import { ConvertGamesConfigToTrackedGames } from "./routes/library/legacy";
+  import {
+    LoadConfig,
+    LoadGameInstancesFromTrackingFile,
+    SetHeader,
+    SetOS,
+  } from "./routes/library/config";
+
+  let DownloadModComponent = $state(DownloadMod);
+  let SelectGameForModComponent = $state(SelectGameForMod);
+  let HeaderComponent = $state(Header);
+  let RouterComponent = $state(Router);
+  let initialConfigLoaded = $state(false);
+  let header: any = $state();
+
+  ErrorCatcher();
+  ListenLoop();
+
+  register("eml");
+
+  onMount(async () => {
+    await SetOS();
+    await GetPath();
+    let config = await LoadConfig();
+
+    await InitConfFiles();
+    await ConvertGamesConfigToTrackedGames();
+    await LoadGameInstancesFromTrackingFile();
+
+    if (config == null) {
+      window.open("#/quickstart", "_self");
+    }
+
+    initialConfigLoaded = true;
+  });
+
+  onOpenUrl(async (urls) => {
+    alert(urls[0]);
+    console.log("catched url call");
+    let url = new URL(urls[0]);
+    console.log(url.hostname);
+    switch (url.hostname) {
+      case "gb":
+        break;
+    }
+  });
+
+  onMount(async () => {
+    SetHeader(header);
+  });
+
+  getMatches().then(async (matches) => {
+    if (matches.args["server"].value != null) {
+      await SetServerURL(matches.args["server"].value as string);
+    }
+  });
 
   async function RouteLoaded() {
     await GetPath();
@@ -37,7 +99,6 @@
       Login(userInfo);
     } else {
       Invoke("SignedIn", { error: 1 });
-      header.ForceSetPFP("img/loggedoutpfp.jpeg");
     }
   }
 
@@ -50,7 +111,7 @@
       );
 
       if (res) {
-        exit(0);
+        await exit(0);
       }
     });
   }
@@ -62,27 +123,23 @@
       window.open("#/modpage", "_self");
     });
   }
-  ErrorCatcher();
 
   let routes = {
     "/": Games,
     "/levelloader": LevelLoader,
     "/modmarket": ModMarket,
-    "/addgame": AddGame,
-    "/uploadmod": uploadmod,
+    "/uploadmod": UploadMod,
     "/settings": Settings,
     "/quickstart": QuickStart,
     "/register": Register,
-    "/modpage": modpage,
+    "/modpage": ModPage,
     "/profilepage": ProfilePage,
-    "/accountsettings": accountsettings,
+    "/accountsettings": AccountSettings,
     "/*": Games,
   };
 
-  InitConfFiles();
-  ListenLoop();
-
   let funcKeyDown: boolean;
+
   function keyDown(e: KeyboardEvent) {
     if (e.code == "17" || e.code == "ControlLeft" || e.code == "ControlRight") {
       funcKeyDown = true;
@@ -94,8 +151,7 @@
       funcKeyDown = false;
     }
 
-    if (funcKeyDown) { 
-      console.log(e.code)
+    if (funcKeyDown) {
       switch (e.code) {
         case "KeyY":
         case "85":
@@ -103,7 +159,7 @@
           break;
         case "KeyD":
         case "68":
-          ReadJSON("conf.json").then((d) => {
+          LoadConfig().then((d) => {
             invoke("open_dolphin", { path: d.dolphinPath });
           });
           break;
@@ -112,9 +168,14 @@
   }
 </script>
 
+<SelectGameForModComponent />
+<DownloadModComponent />
+
 <main>
-  <Header bind:this={header} />
-  <Router {routes} on:routeLoaded={RouteLoaded} />
+  <HeaderComponent bind:this={header} />
+  {#if initialConfigLoaded}
+    <RouterComponent on:routeLoaded={RouteLoaded} {routes} />
+  {/if}
 </main>
 
-<svelte:window on:keydown={keyDown} on:keyup={keyUp} />
+<svelte:window onkeydown={keyDown} onkeyup={keyUp} />

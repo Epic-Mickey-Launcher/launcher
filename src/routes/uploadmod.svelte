@@ -1,79 +1,96 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/tauri";
-  import {
-    GetId,
-    GetToken,
-    POST,
-    UploadMod,
-    outdated,
-  } from "./library/networking";
-  import { open } from "@tauri-apps/api/dialog";
-  import ModInstall from "./components/ModInstall.svelte";
-  import { onMount } from "svelte";
+  import { mount, onMount, unmount } from "svelte";
+  import { open } from "@tauri-apps/plugin-dialog";
+  import { invoke } from "@tauri-apps/api/core";
+  import { GetToken, POST, serverLink } from "./library/networking";
   import { GetData, SetData } from "./library/datatransfer";
-  import { readBinaryFile } from "@tauri-apps/api/fs";
-  import { Invoke, Subscribe } from "./library/callback";
-  import Loading from "./components/loading.svelte";
-
-  let gitRepositoryURL: string;
-  let gitVerifiedRepositoryURL: string;
-  let gitBranches: any = [];
-  let gitVerified: boolean;
+  import ModInstall from "./components/ModInstall.svelte";
+  import { remove } from "@tauri-apps/plugin-fs";
 
   let modVerified: boolean;
   let modIconData: string;
   let modName: string;
-  let replacingMod: string;
-  let automaticallyPublish: HTMLInputElement;
-  let uploadModDiv: HTMLDivElement;
-  let waitDiv: HTMLDivElement;
-  let resultDiv: HTMLDivElement;
-  let largeMod: HTMLDivElement;
 
-  function modIsLarge() {
-    uploadModDiv.style.display = "none";
-    largeMod.style.display = "block";
-  }
-
-  async function getBranches() {
-    let res = await POST("git/branches", { GitUrl: gitRepositoryURL }, false);
-    gitVerifiedRepositoryURL = gitRepositoryURL;
-    if (res.error) {
-      gitVerified = false;
-      gitVerifiedRepositoryURL = "";
-      return;
-    }
-    gitBranches = res.body.split(" ");
-    gitVerified = true;
-  }
+  let updatingID = null;
 
   async function UploadMod() {
-    let result = await POST("mod/publish", {
-      GitRepositoryUrl: gitVerifiedRepositoryURL,
-      Name: modName,
-      Token: await GetToken(),
-      Publish: true,
+    const selected = await open({
+      multiple: false,
+      filters: [
+        {
+          name: "Archive",
+          extensions: ["zip", "tar", "7z", "rar", "tar.gz"],
+        },
+      ],
     });
-    if (result.error) return;
+
+    let modInstallElement = mount(ModInstall, {
+      target: document.body,
+      props: {
+        modIcon: "img/emicon.png",
+        action: "Verifying your Mod...",
+        modName: "",
+        description: "This could take a while...",
+      },
+    });
+
+    let validation: any = await invoke("validate_mod", {
+      url: selected.toString(),
+      destination: "",
+      mode: "local",
+    });
+
+    if (!validation.validated) {
+      await alert("Mod could not be validated!: " + validation.result);
+      await unmount(modInstallElement);
+      return;
+    }
+
+    modInstallElement.action = "Uploading";
+    modInstallElement.modIcon = validation.modicon;
+    modInstallElement.modName = validation.modname;
+
+    let path: string = await invoke("package_mod_for_publish", {});
+    console.log(await GetToken());
+    let modTunnelID = await POST(
+      "mod/publish",
+      {
+        Token: await GetToken(),
+        ID: updatingID,
+      },
+      false,
+    );
+    console.log(modTunnelID);
+
+    await invoke("upload_file_chunks", {
+      inputFile: path,
+      chunkSizeMb: 5,
+      serverUrl: serverLink,
+      tunnelId: modTunnelID.body,
+    });
+
+    await remove(path);
+
+    await unmount(modInstallElement);
+
+    await alert(
+      "Upload Request Sent Successfully! You'll get a message when the mod is published.",
+    );
+
+    window.open("#/modmarket", "_self");
   }
 
-  async function VerifyMod() {
-    let validationInfo: any = await invoke("validate_mod", {
-      url: gitVerifiedRepositoryURL,
-      local: false,
-    });
-    modVerified = validationInfo.validated;
-    modIconData = validationInfo.modicon;
-    modName = validationInfo.modname;
-  }
+  async function VerifyMod() {}
 
   onMount(async () => {
     if (false) {
-      await alert(
-        "You are on an outdated version! Please update to upload mods.",
-      );
+      alert("You are on an outdated version! Please update to upload mods.");
       window.open("#/", "_self");
       //return
+    }
+    if (GetData("moduploadid") != null) {
+      updatingID = GetData("moduploadid");
+      SetData("moduploadid", null);
     }
   });
 </script>
@@ -81,66 +98,14 @@
 <h1>Upload Mod</h1>
 
 <hr />
-
-<div style="" bind:this={uploadModDiv}>
-  <div></div>
-  <div bind:this={waitDiv} style="display:none;"><h1>Please Wait...</h1></div>
-  <div bind:this={resultDiv} style="display:none;">
-    <Loading></Loading>
-  </div>
-
-  <div bind:this={uploadModDiv}>
-    <br />
-    {#if !modVerified}
-      <span>Git Repository URL: </span>
-      <input
-        bind:value={gitRepositoryURL}
-        on:input={() => (gitVerified = false)}
-        placeholder="https://goobergit.xyz/supermod.git"
-      />
-      {#if gitVerified}<span style="font-size:10px;">Success!</span>{/if}
-      <br />
-      {#if gitVerified}
-        <span>Git Branch: </span><select class="dropdown">
-          {#each gitBranches as branch}
-            <option id={branch}>{branch}</option>
-          {/each}
-        </select>
-      {/if}
-
-      <p></p>
-      {#if !gitVerified}
-        <button on:click={getBranches}>Verify</button>
-      {:else}
-        <button on:click={VerifyMod}>Verify Locally then Upload</button>
-        <span style="font-size:10px;"
-          >EML will locally verify this repository by downloading it and
-          checking if all required files are present.
-        </span>
-      {/if}
-    {:else}
-      <img src={modIconData} style="width:128px" alt="" />
-      <span
-        style="font-size:40px;position: relative;bottom:60px;margin-left:5px;"
-        >{modName}</span
-      >
-      <br />
-      <span>Ready to upload.</span>
-      <br />
-      <span>De-list upon upload: </span><input type="checkbox" />
-
-      <br />
-      <span
-        >I have read the Mod Publishing Guidelines and accept its terms:
-      </span><input type="checkbox" />
-      <br />
-      <button on:click={UploadMod}>Publish</button>
-    {/if}
+<div>
+  {#if updatingID != null}
+    <span>Updating Mod: {updatingID}</span>
     <p></p>
-    <p>
-      <a href="https://emldocs.kalsvik.no">Guide</a>
-    </p>
-  </div>
+  {/if}
+  <button class="inputfile" onclick={UploadMod}
+    >Upload Mod Archive (.zip/.tar/.7z/.rar)</button
+  >
 </div>
 
 <style>

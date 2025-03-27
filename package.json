@@ -1,26 +1,40 @@
 {
   "name": "epic-mickey-launcher",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "format": "prettier --write src/"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.6.0",
-    "dompurify": "^3.1.6",
-    "marked": "^13.0.2",
-    "pnpm": "^9.6.0",
+    "@tauri-apps/api": "2.0.0-rc.4",
+    "@tauri-apps/plugin-cli": "2.0.0-rc.1",
+    "@tauri-apps/plugin-deep-link": "^2.2.0",
+    "@tauri-apps/plugin-dialog": "2.0.0-rc.1",
+    "@tauri-apps/plugin-fs": "2.0.0-rc.2",
+    "@tauri-apps/plugin-log": "2.0.0-rc.1",
+    "@tauri-apps/plugin-process": "2.0.0-rc.1",
+    "dompurify": "^3.2.4",
+    "i": "^0.3.7",
+    "marked": "^13.0.3",
+    "octokit": "^4.1.2",
+    "pnpm": "^9.15.9",
     "svelte-spa-router": "^3.3.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.8.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^2.5.3",
-    "@tauri-apps/cli": "^1.6.0",
-    "svelte": "^3.59.2",
-    "svelte-preprocess": "^5.1.4"
+    "@sveltejs/vite-plugin-svelte": "^4.0.4",
+    "@tauri-apps/cli": "2.0.0-rc.12",
+    "@types/node": "^22.13.10",
+    "prettier": "^3.5.3",
+    "prettier-plugin-svelte": "^3.3.3",
+    "svelte": "^5.23.1",
+    "svelte-preprocess": "^6.0.3",
+    "vite": "^5.4.14"
   }
 }

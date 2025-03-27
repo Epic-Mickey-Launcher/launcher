@@ -1,16 +1,19 @@
 use crate::debug;
+use anyhow::Error;
+use anyhow::Result;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
-use std::process::Command;
 
 #[derive(Serialize, Deserialize)]
 pub struct SmallArchiveValidationInfo {
     pub under_limit: bool,
 }
 
-pub fn validate(path: String) -> std::io::Result<SmallArchiveValidationInfo> {
+pub fn validate(path: String) -> Result<SmallArchiveValidationInfo> {
     let mut validation_info = SmallArchiveValidationInfo { under_limit: false };
     let mut f = File::open(&path)?;
     let size = f.metadata().unwrap().len();
@@ -19,45 +22,24 @@ pub fn validate(path: String) -> std::io::Result<SmallArchiveValidationInfo> {
 
     let mut buffer = [0; 262];
     f.read(&mut buffer)?;
-
     Ok(validation_info)
 }
-
-pub fn extract(
-    input_path: String,
-    output_path: &PathBuf,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn compress(input_path: &PathBuf, output_path: &PathBuf) -> Result<()> {
+    let file = File::create(output_path)?;
+    let mut encoder = GzEncoder::new(file, Compression::best());
+    {
+        let mut tar_file = tar::Builder::new(&mut encoder);
+        tar_file.append_dir_all(".", input_path)?;
+    }
+    encoder.finish()?;
+    Ok(())
+}
+pub fn extract(input_path: String, output_path: &PathBuf) -> Result<(), Error> {
     debug::log(&format!("Extracting Archive {}", input_path));
 
-    #[cfg(target_os = "windows")]
-    let mut result = Command::new("tar")
-        .arg("-xf")
-        .arg(&input_path)
-        .arg("-C")
-        .arg(&output_path)
-        .spawn()?;
+    let file = File::open(input_path)?;
 
-    #[cfg(target_os = "linux")]
-    let mut result = Command::new("tar")
-        .arg("-xf")
-        .arg(&input_path)
-        .arg("-C")
-        .arg(&output_path)
-        .spawn()?;
-
-    #[cfg(target_os = "macos")]
-    let mut result = Command::new("tar")
-        .arg("-xf")
-        .arg(&input_path)
-        .arg("-C")
-        .arg(&output_path)
-        .spawn()?;
-
-    let error = result.wait()?;
-
-    if error.code().unwrap() != 0 {
-        return Err("Archive did not extract successfully".into());
-    }
+    compress_tools::uncompress_archive(file, output_path, compress_tools::Ownership::Preserve)?;
 
     Ok(())
 }

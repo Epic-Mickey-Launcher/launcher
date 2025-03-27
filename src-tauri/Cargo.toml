@@ -1,38 +1,42 @@
 [package]
 name = "epic-mickey-launcher"
-version = "0.4.5"
+version = "0.5.1"
 description = "launcher"
 authors = ["Jonas Kalsvik"]
 license = "MIT"
 repository = "Epic-Mickey-Launcher"
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.75"
 
 [build-dependencies]
-tauri-build = { version = "1.5.2", features = [] }
-
+tauri-build = { version = "2.0.0-rc.9", features = [] }
 [dependencies]
-tokio-stream = "0.1.15"
-sevenz-rust = "0.6.0"
+tauri-plugin-process = "2.0.0-rc.1"
+tauri-plugin-dialog = "2.0.0-rc.5"
+tauri-plugin-cli = "2.0.0-rc.1"
+tauri-plugin-fs = "2.0.0-rc.3"
 dirs-next = "2.0.0"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.6.3", features = [ "api-all"] }
-zip-extract = "0.1.2"
-reqwest = {version = "0.12.4", features = ["stream"] }
+reqwest = { version = "0.12.4", features = ["stream", "json", "multipart"] }
 walkdir = "2.3.2"
 bytes = "1.4.0"
-json = "0.12.4"
 futures-util = "0.3.14"
 open = "5.1.2"
-registry = "1.2.3"
-shutil = "0.1.2"
-tauri-plugin-deep-link = "0.1.1"
-fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs" }
 chrono = "0.4.31"
-eml-validate = "0.1.0"
+eml-validate = "0.1.9"
 dataurl = "0.1.2"
-
+tauri = { version = "2.0.0-rc.10", features = ["devtools"] }
+tauri-plugin-log = "2.0.0-rc"
+tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
+tauri-plugin-deep-link = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
+compress-tools = "0.15.1"
+tauri-plugin-os = "2.0.0-rc"
+anyhow = "1.0.97"
+tar = "0.4.44"
+flate2 = "1.1.0"
 [features]
 default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
+custom-protocol = []
+
+
