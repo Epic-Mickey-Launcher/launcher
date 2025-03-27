@@ -1,6 +1,9 @@
 import { configPath, ReadFile, WriteFile } from "./configfiles";
 import { RetrieveFileByAlias } from "./filealias";
 import { type GameConfig } from "./types";
+import { LoadConfig } from "./config";
+import { exists } from "@tauri-apps/plugin-fs";
+import { DownloadDolphin } from "./dolphin";
 
 export async function ConvertModJsonToNew(_path) {
   //OBSOLETE
@@ -22,4 +25,19 @@ export async function ConvertGamesConfigToTrackedGames() {
     JSON.stringify(tracked_games, null, 4),
     await RetrieveFileByAlias("eml-tracked-games", configPath, true),
   );
+
+  // Check if dolphin is installed on the current config and ask to replace it because it probably wont work.
+
+  let config = await LoadConfig();
+  let dolphinExists = await exists(config.dolphinPath);
+  if (config.dolphinPath == "" || !dolphinExists) return;
+
+  let confirmMessage = await confirm(
+    "Your dolphin install is likely outdated! Would you like to update to the latest version? EML will probably not work with the currently installed build.",
+  );
+
+  if (confirmMessage) {
+    await DownloadDolphin();
+    await alert("Dolphin installed!");
+  }
 }
