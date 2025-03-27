@@ -67,7 +67,7 @@ npm run tauri dev
 
 # Roadmap
 
-IDK
+Coming Soon
 
 # Credits
 
