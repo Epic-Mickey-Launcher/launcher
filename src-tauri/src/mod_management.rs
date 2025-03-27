@@ -496,7 +496,7 @@ pub fn clean_temp_install_directory(destination: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn package_mod_for_publishing() -> Result<String> {
+pub async fn package_mod_for_publishing() -> Result<String> {
     let mut path = helper::get_config_path()?;
     path.push("localmod");
 

@@ -49,7 +49,6 @@
     modInstallElement.action = "Uploading";
     modInstallElement.modIcon = validation.modicon;
     modInstallElement.modName = validation.modname;
-
     let path: string = await invoke("package_mod_for_publish", {});
     console.log(await GetToken());
     let modTunnelID = await POST(
