@@ -101,6 +101,8 @@
 
     await unmount(modInstallElement);
 
+    noGamesNotice = false;
+
     setTimeout(() => {
       card.node.style.opacity = 1;
     }, 100);
