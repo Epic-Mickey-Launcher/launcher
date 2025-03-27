@@ -30,7 +30,7 @@
       "signingIdentity": null
     },
     "resources": [],
-    "shortDescription": "",
+    "shortDescription": "Mod Loader, Level Loader & Launcher for all Epic Mickey games.",
     "targets": "all",
     "windows": {
       "certificateThumbprint": null,
