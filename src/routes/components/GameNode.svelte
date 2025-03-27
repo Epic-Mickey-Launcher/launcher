@@ -256,7 +256,7 @@
             class="gamesettings"
             ><img src="img/settings.svg" style="width:16px;" /></button
           >
-          {#if gameInstance.gameConfig.game === Game.EM1}
+          {#if gameInstance.gameConfig.platform === Platform.Wii}
             <button
               title="Change Level"
               aria-label="Change Level"
