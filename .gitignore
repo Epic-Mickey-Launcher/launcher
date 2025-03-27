@@ -13,6 +13,7 @@ dist
 dist-ssr
 *.local
 src/*.js
+src-tauri/Cargo.lock
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
