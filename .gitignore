@@ -25,3 +25,4 @@ src-tauri/Cargo.lock
 *.sln
 *.sw?
 /install.sh
+src-tauri/gen/
