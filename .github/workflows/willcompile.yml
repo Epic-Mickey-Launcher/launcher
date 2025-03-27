@@ -11,7 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         platform: [ macos-latest, ubuntu-22.04, windows-latest ]
-
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +26,7 @@ jobs:
       - name: install brew packages (macos only)
         if: matrix.platform == 'macos-latest'
         run: |
-          brew install pkgconfig
+          brew install pkgconfi
           brew install libarchive
           echo PKG_CONFIG_PATH=$(brew ls libarchive | grep .pc$ | sed 's|/libarchive.pc||') >> $GITHUB_ENV
 
