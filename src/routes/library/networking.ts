@@ -1,4 +1,4 @@
-export let serverLink = "https://emlapi.kalsvik.no/"; //'http://localhost:8574/'
+export let serverLink = "http://localhost:8574/"; // "https://emlapi.kalsvik.no/";
 export const statusMessageLink =
   "https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus";
 export let loggedin = false;
@@ -72,6 +72,7 @@ export async function Register(userinfo: UserInfo) {
     {
       username: userinfo.username,
       password: userinfo.password,
+      email: userinfo.email,
     },
     false,
   );

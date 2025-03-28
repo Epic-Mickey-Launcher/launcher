@@ -1,20 +1,19 @@
 <script lang="ts">
   import { run } from "svelte/legacy";
-
-  import { onMount } from "svelte";
   import {
+    ClearInMemoryToken,
     GetId,
     GetImagePath,
     GetToken,
     ImageType,
+    loggedin,
     MultipartPOST,
     OnSignedIn,
     POST,
     SetLoggedIn,
-    loggedin,
-    ClearInMemoryToken,
   } from "./library/networking";
   import { WriteToken } from "./library/configfiles";
+  import { onMount } from "svelte";
 
   let currentUsername = "";
 
@@ -23,17 +22,23 @@
   let email: HTMLInputElement = $state();
   let bio: HTMLTextAreaElement = $state();
   let pfpUrl: string = $state("");
+  let emailVerifiedState = $state(null);
 
   let files: any = $state();
 
   async function ApplyChanges() {
     if (loggedin) {
       if (email.value.trim() != "") {
-        await POST(
+        let response = await POST(
           "user/set/email",
           { token: await GetToken(), email: email.value },
           false,
         );
+        if (!response.error) {
+          await alert(
+            "Check your E-Mail for a confirmation link to complete the process.",
+          );
+        }
       }
 
       if (
@@ -69,9 +74,9 @@
   }
 
   async function Logout() {
-    WriteToken("");
-    ClearInMemoryToken();
-    SetLoggedIn(false);
+    await WriteToken("");
+    await ClearInMemoryToken();
+    await SetLoggedIn(false);
     window.open("#/", "_self");
   }
 
@@ -84,8 +89,7 @@
       let res = await POST("user/delete", { Token: token }, false);
 
       if (!res.error) {
-        WriteToken("");
-        window.open("#/", "_self");
+        await Logout();
       }
     }
   }
@@ -104,6 +108,12 @@
     emailOptions.close();
   }
 
+  async function ResendEmailConfirm() {
+    let token = await GetToken();
+    await POST("user/email/resend", { Token: token });
+    await alert("E-Mail resent!");
+  }
+
   async function GetPfpData(file: File) {
     let token = await GetToken();
     let response = await MultipartPOST("user/set/pfp", {
@@ -118,7 +128,7 @@
     let token = await GetToken();
 
     pfpUrl = GetImagePath(id, ImageType.User);
-    OnSignedIn(async () => {
+    await OnSignedIn(async () => {
       let response = await POST("user/username", { ID: id }, false);
       if (response.error) return;
       username.value = response.body;
@@ -126,6 +136,10 @@
       response = await POST("user/bio", { ID: id }, false);
       if (response.error) return;
       bio.value = response.body;
+
+      response = await POST("user/email/verified", { Token: token });
+      if (response.error) return;
+      emailVerifiedState = response.body;
 
       response = await POST("user/email", { Token: token }, false);
       if (response.error) return;
@@ -149,26 +163,38 @@
 <p>
   <span style="display:flex;">
     <span style="margin:auto 0;">Change Bio:</span>
-    <textarea cols="30" bind:this={bio} placeholder="i like video games"
+    <textarea bind:this={bio} cols="30" placeholder="i like video games"
     ></textarea>
   </span>
 </p>
 <p>
   <span>Change Password:</span>
-  <input placeholder="••••••••••••••" bind:this={password} type="password" />
+  <input bind:this={password} placeholder="••••••••••••••" type="password" />
 </p>
 
 <p>
-  <span>Change E-Mail</span>
-  <input placeholder={placeholderEmail} bind:this={email} /><button
-    onclick={() => emailOptions.showModal()}>...</button
-  >
+  <span>Change E-Mail:</span>
+  {#if emailVerifiedState == null || emailVerifiedState.Verified === true}
+    <input bind:this={email} placeholder={placeholderEmail} /><button
+      onclick={() => emailOptions.showModal()}>...</button
+    >
+  {:else}
+    <span
+      style="background-color: yellow;color:black;padding:3px;border-radius: 3px;"
+      >Waiting for confirmation of email: {emailVerifiedState.Email}
+      <button
+        onclick={ResendEmailConfirm}
+        class="hyperlinkbutton"
+        style="color:black;margin-left:7px;">Resend</button
+      ></span
+    >
+  {/if}
 </p>
 
 <p>
   <span>Upload a new profile picture: </span>
   <input accept="image/*" bind:files type="file" />
-  <img src={pfpUrl} alt="" style="width:30px;margin-bottom:-10px;" />
+  <img alt="" src={pfpUrl} style="width:30px;margin-bottom:-10px;" />
 </p>
 <p>
   <button onclick={Logout}>Log Out</button>
@@ -176,7 +202,7 @@
 <p></p>
 <button onclick={DeleteAccount}>Delete Account</button>
 <p></p>
-<button style="width:30%;" onclick={ApplyChanges}>Apply Changes</button>
+<button onclick={ApplyChanges} style="width:30%;">Apply Changes</button>
 
 <dialog bind:this={emailOptions}>
   <p>
