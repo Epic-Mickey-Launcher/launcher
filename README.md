@@ -1,6 +1,6 @@
 <img src="https://kalsvik.no/res/eml.svg" width="400">
 
-### Easiest way to Play & Mod Epic Mickey on PC
+### Easiest way to Play & Mod Epic Mickey on Windows, Mac, and Linux
 
 ---
 
