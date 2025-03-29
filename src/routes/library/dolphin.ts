@@ -29,7 +29,7 @@ export async function DownloadDolphin() {
     config.dolphinPath = path + "/Dolphin.app";
   else if (currentOperatingSystem == OperatingSystemType.Linux)
     config.dolphinPath = path + "/dolphin-emu";
-
+  await invoke("dolphin_auto_set_custom_textures", {});
   await invoke("create_portable", { dolphinpath: config.dolphinPath });
   await SaveConfig(config);
 }

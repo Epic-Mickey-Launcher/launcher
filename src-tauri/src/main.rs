@@ -88,6 +88,7 @@ fn main() {
             upload_file_chunks,
             generate_mod_project,
             package_mod_for_publish,
+            dolphin_auto_set_custom_textures
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -108,7 +109,10 @@ fn play_steam_game(id: String) {
         .spawn()
         .unwrap();
 }
-
+#[tauri::command]
+fn dolphin_auto_set_custom_textures() {
+    dolphin::auto_set_custom_textures();
+}
 #[tauri::command]
 fn open_dolphin(path: String) {
     dolphin::open(path);

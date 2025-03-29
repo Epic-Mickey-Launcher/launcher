@@ -7,8 +7,6 @@ use std::process::Command;
 pub fn game(dolphin: String, exe: String) -> Result<()> {
     let config_path = dolphin::find_dir(&PathBuf::new());
 
-    dolphin::auto_set_custom_textures();
-
     let os = env::consts::OS;
     if !Path::new(&dolphin).exists() {
         return Err(anyhow!("Dolphin Directory does not exist.",));
