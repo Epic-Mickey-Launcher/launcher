@@ -1,4 +1,4 @@
-<img src="https://kalsvik.no/res/eml.svg" width="400">
+<img src="https://eml.kalsvik.no/eml.png" width="400">
 
 ### Easiest way to Play & Mod Epic Mickey on Windows, Mac, and Linux
 
