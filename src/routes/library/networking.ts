@@ -1,4 +1,4 @@
-export let serverLink = "https://emlapi.kalsvik.no/"; // "https://emlapi.kalsvik.no/";
+export let serverLink = "http://127.0.0.1:8574/"; // "https://emlapi.kalsvik.no/";
 export const statusMessageLink =
   "https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus";
 export let outdated = false;
@@ -104,13 +104,16 @@ export async function POST(
     body: JSON.stringify(data, null, 4),
   });
 
+  let content: any = null;
   if (res.status != 200 && !suppressError) {
     await alert(
       serverLink + route + '\nRequest Failed: "' + (await res.text()) + '"',
     );
   }
 
-  let content: any = toJson ? await res.json() : await res.text();
+  if (res.status == 200) {
+    content = toJson ? await res.json() : await res.text();
+  }
 
   return {
     error: res.status != 200,

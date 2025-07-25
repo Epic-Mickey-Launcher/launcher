@@ -55,6 +55,16 @@
       },
       false,
     );
+
+    console.log(modTunnelID);
+
+    if (modTunnelID.error) {
+      await remove(path);
+      await unmount(modInstallElement);
+      window.open("#/modmarket", "_self");
+      return;
+    }
+
     console.log(modTunnelID);
 
     await invoke("upload_file_chunks", {

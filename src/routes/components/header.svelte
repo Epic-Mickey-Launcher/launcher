@@ -408,8 +408,12 @@
                           SetData("modpage_id", element.Value);
                           window.open("#/modpage", "_self");
                         }}
-                        >{#await POST( "mod/get", { ID: element.Value }, ) then res}
-                          {res.body.Name}
+                        >{#await POST("mod/get", { ID: element.Value }, true, true) then res}
+                          {#if res.body != null}
+                            {res.body.Name}
+                          {:else}
+                            Unknown
+                          {/if}
                         {/await}</button
                       >
                     {/if}
