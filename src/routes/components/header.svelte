@@ -197,7 +197,7 @@
       if (connectionIssues) {
         console.log("couldn't ping server");
         let setOfflineMode = await confirm(
-          "The EML server failed to return respond! This could either be because the server is down, or because you don't have internet. Do you want to enable Offline Mode or quit?",
+          "The EML server failed to respond! This could either be because the server is down, or because you don't have internet. Do you want to enable Offline Mode or quit?",
         );
 
         if (setOfflineMode) {
