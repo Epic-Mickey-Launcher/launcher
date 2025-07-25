@@ -86,11 +86,11 @@
   >
     <div style="position: relative;">
       <img
-        alt=""
+        alt="Loading"
         class="loading-spinner"
         src="/img/Loading_indicator_circle.svg"
       />
-      <img alt="" class="installingmodlogo" src={modIcon} />
+      <img alt="Loading Icon" class="installingmodlogo" src={modIcon} />
     </div>
     <p></p>
     <span>{action} {modName}</span>

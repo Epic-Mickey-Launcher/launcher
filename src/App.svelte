@@ -17,11 +17,7 @@
   import ProfilePage from "./routes/profilepage.svelte";
   import ModPage from "./routes/modpage.svelte";
   import AccountSettings from "./routes/accountsettings.svelte";
-  import {
-    Login,
-    SetServerURL,
-    type UserInfo,
-  } from "./routes/library/networking";
+  import { SetServerURL, type UserInfo } from "./routes/library/networking";
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
   import { invoke } from "@tauri-apps/api/core";
@@ -37,6 +33,7 @@
     SetHeader,
     SetOS,
   } from "./routes/library/config";
+  import { LoginWithSession } from "./routes/library/account";
 
   let DownloadModComponent = $state(DownloadMod);
   let SelectGameForModComponent = $state(SelectGameForMod);
@@ -58,12 +55,13 @@
     await InitConfFiles();
     await ConvertGamesConfigToTrackedGames();
     await LoadGameInstancesFromTrackingFile();
-
+    SetHeader(header);
     if (config == null) {
       window.open("#/quickstart", "_self");
     }
-
     initialConfigLoaded = true;
+
+    LoginWithSession(); // attempt log in on application start up
   });
 
   onOpenUrl(async (urls) => {
@@ -77,10 +75,6 @@
     }
   });
 
-  onMount(async () => {
-    SetHeader(header);
-  });
-
   getMatches().then(async (matches) => {
     if (matches.args["server"].value != null) {
       await SetServerURL(matches.args["server"].value as string);
@@ -90,16 +84,6 @@
   async function RouteLoaded() {
     await GetPath();
     Invoke("OnNewWindow", null);
-    let token = await ReadToken();
-    if (token != "") {
-      let userInfo: UserInfo = {
-        token: token,
-      };
-
-      Login(userInfo);
-    } else {
-      Invoke("SignedIn", { error: 1 });
-    }
   }
 
   async function ErrorCatcher() {

@@ -57,7 +57,7 @@ export class GameInstance {
     if (!gameExists) {
       console.log(`Game at (${this.path}) does not exist.`);
       await RemoveTrackedGame(this.path);
-      return;
+      return false;
     }
 
     let identifyGame: IdentifyGameResult = await IdentifyGame(
@@ -79,7 +79,10 @@ export class GameInstance {
       );
 
       if (identifyGame == null) {
-        alert("Could not find a valid game in this directory.");
+        alert(
+          "Could not find a valid game in this directory... Deleting Game Entry...",
+        );
+        await RemoveTrackedGame(this.path);
         return false;
       } else {
         this.path += "/DATA";

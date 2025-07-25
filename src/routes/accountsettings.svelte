@@ -1,19 +1,13 @@
 <script lang="ts">
-  import { run } from "svelte/legacy";
   import {
-    ClearInMemoryToken,
-    GetId,
     GetImagePath,
-    GetToken,
     ImageType,
-    loggedin,
     MultipartPOST,
-    OnSignedIn,
     POST,
-    SetLoggedIn,
   } from "./library/networking";
   import { WriteToken } from "./library/configfiles";
   import { onMount } from "svelte";
+  import { loggedInAccount, LoginWithSession, Logout } from "./library/account";
 
   let currentUsername = "";
 
@@ -23,15 +17,18 @@
   let bio: HTMLTextAreaElement = $state();
   let pfpUrl: string = $state("");
   let emailVerifiedState = $state(null);
+  let emailOptions: HTMLDialogElement = $state();
+  let optionMessages: string = $state();
+  let placeholderEmail: string = $state("jimbob83@yahoo.com");
 
   let files: any = $state();
 
   async function ApplyChanges() {
-    if (loggedin) {
+    if (loggedInAccount != null) {
       if (email.value.trim() != "") {
         let response = await POST(
           "user/set/email",
-          { token: await GetToken(), email: email.value },
+          { token: loggedInAccount.token, email: email.value },
           false,
         );
         if (!response.error) {
@@ -47,7 +44,7 @@
       ) {
         await POST(
           "user/set/username",
-          { Token: await GetToken(), Username: username.value },
+          { Token: loggedInAccount.token, Username: username.value },
           false,
         );
       }
@@ -55,7 +52,7 @@
       if (bio.value.trim() != "") {
         await POST(
           "user/set/bio",
-          { Token: await GetToken(), Bio: bio.value },
+          { Token: loggedInAccount.token, Bio: bio.value },
           false,
         );
       }
@@ -63,20 +60,19 @@
       if (password.value.trim() != "") {
         await POST(
           "user/set/password",
-          { Token: await GetToken(), Password: password.value },
+          { Token: loggedInAccount.token, Password: password.value },
           false,
         );
       }
     }
 
+    await LoginWithSession(); // relogin to apply potentially new loggedInAccount info
     await alert("All changes applied!");
     window.open("#/profilepage", "_self");
   }
 
-  async function Logout() {
-    await WriteToken("");
-    await ClearInMemoryToken();
-    await SetLoggedIn(false);
+  async function SignOut() {
+    Logout();
     window.open("#/", "_self");
   }
 
@@ -85,7 +81,7 @@
       "Are you sure you want to delete your account? Any comments, mods & likes from your account will remain unless they are manually deleted.",
     );
     if (confirmation) {
-      let token = await GetToken();
+      let token = loggedInAccount.token;
       let res = await POST("user/delete", { Token: token }, false);
 
       if (!res.error) {
@@ -95,7 +91,7 @@
   }
 
   async function SaveMailOptions() {
-    let token = await GetToken();
+    let token = loggedInAccount.token;
     await POST(
       "user/set/email/options",
       {
@@ -109,13 +105,13 @@
   }
 
   async function ResendEmailConfirm() {
-    let token = await GetToken();
+    let token = loggedInAccount.token;
     await POST("user/email/resend", { Token: token });
     await alert("E-Mail resent!");
   }
 
   async function GetPfpData(file: File) {
-    let token = await GetToken();
+    let token = loggedInAccount.token;
     let response = await MultipartPOST("user/set/pfp", {
       image: file,
       token: token,
@@ -124,33 +120,33 @@
   }
 
   onMount(async () => {
-    let id = await GetId();
-    let token = await GetToken();
+    if (loggedInAccount == null) {
+      window.open("#/", "_self");
+      return;
+    }
+
+    let id = loggedInAccount.id;
+    let token = loggedInAccount.token;
 
     pfpUrl = GetImagePath(id, ImageType.User);
-    await OnSignedIn(async () => {
-      let response = await POST("user/username", { ID: id }, false);
-      if (response.error) return;
-      username.value = response.body;
-      currentUsername = response.body;
-      response = await POST("user/bio", { ID: id }, false);
-      if (response.error) return;
-      bio.value = response.body;
+    let response = await POST("user/username", { ID: id }, false);
+    if (response.error) return;
+    username.value = response.body;
+    currentUsername = response.body;
+    response = await POST("user/bio", { ID: id }, false);
+    if (response.error) return;
+    bio.value = response.body;
 
-      response = await POST("user/email/verified", { Token: token });
-      if (response.error) return;
-      emailVerifiedState = response.body;
+    response = await POST("user/email/verified", { Token: token });
+    if (response.error) return;
+    emailVerifiedState = response.body;
 
-      response = await POST("user/email", { Token: token }, false);
-      if (response.error) return;
-      if (response.body == "") return;
-      placeholderEmail = response.body;
-    });
+    response = await POST("user/email", { Token: token }, false);
+    if (response.error) return;
+    if (response.body == "") return;
+    placeholderEmail = response.body;
   });
-  let emailOptions = $state();
-  let optionMessages: string = $state();
-  let placeholderEmail = $state("jimbob83@yahoo.com");
-  run(() => {
+  $effect(() => {
     if (files) {
       let file = files[0];
       GetPfpData(file);
@@ -194,7 +190,7 @@
 <p>
   <span>Upload a new profile picture: </span>
   <input accept="image/*" bind:files type="file" />
-  <img alt="" src={pfpUrl} style="width:30px;margin-bottom:-10px;" />
+  <img alt="PFP Preview" src={pfpUrl} style="width:30px;margin-bottom:-10px;" />
 </p>
 <p>
   <button onclick={Logout}>Log Out</button>

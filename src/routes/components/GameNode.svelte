@@ -234,7 +234,12 @@
   >
     <div>
       <div style="">
-        <img class="gamelogo" src={imgLogoURL} alt="" />
+        <img
+          class="gamelogo"
+          src={imgLogoURL}
+          title={gameInstance.gameConfig.uniqueID}
+          alt={gameInstance.gameConfig.uniqueID}
+        />
       </div>
 
       <div
@@ -287,12 +292,12 @@
             src="img/Wii.svg"
           />
           <br />
-          {#if regionPath != ""}
+          {#if regionPath !== ""}
             <img
               style="height:10px;display:inline;;padding-top:5px;padding-right:2px;"
               src={regionPath}
               title={regionTitle}
-              alt=""
+              alt="region"
             />
           {/if}
         </div>

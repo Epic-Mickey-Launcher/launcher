@@ -1,21 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Userprofilemodnode from "./components/userprofilemodnode.svelte";
-  import {
-    GetId,
-    GetImagePath,
-    GetToken,
-    ImageType,
-    loggedin,
-    POST,
-  } from "./library/networking";
+  import { GetImagePath, ImageType, POST } from "./library/networking";
   import { GetData, SetData } from "./library/datatransfer";
   import { Subscribe } from "./library/callback";
   import Loading from "./components/loading.svelte";
+  import { loggedInAccount } from "./library/account";
 
   let profileDiv: HTMLElement = $state();
-  let isownerofprofile: boolean = $state();
-  let modNodeGroup: HTMLDivElement = $state();
+  let isOwnerOfProfile: boolean = $state();
   let username = $state("");
   let bio = $state("");
   let pfplink = $state("");
@@ -27,66 +20,69 @@
   let loaded = $state(false);
 
   onMount(async () => {
-    let cb = async () => {
-      loaded = false;
-      let selfID = await GetId();
-      let idofprofile = await GetData("profile_id");
-      SetData("profile_id", undefined);
-      if (idofprofile == undefined) {
-        console.log("loading own profile " + selfID);
-        idofprofile = selfID;
+    loaded = false;
+    let isLoggedIn = loggedInAccount != null;
+    let targetProfile = GetData("profile_id");
+    SetData("profile_id", undefined);
 
-        if (!loggedin) {
-          profilepage.style.display = "none";
-          err.style.display = "block";
-          return;
-        }
+    if (targetProfile == undefined && isLoggedIn) {
+      console.log("loading own profile " + loggedInAccount.id);
+      targetProfile = loggedInAccount.id;
+
+      if (!isLoggedIn) {
+        profilepage.style.display = "none";
+        err.style.display = "block";
+        return;
       }
+    } else if (!isLoggedIn) {
+      window.open("#/", "_self");
+    }
 
+    if (targetProfile != loggedInAccount.id) {
       let request = await POST(
         "user/username",
         {
-          id: idofprofile,
+          id: targetProfile,
         },
         false,
       );
       if (request.error) return;
       username = request.body;
+    } else {
+      username = loggedInAccount.username;
+    }
 
-      request = await POST(
-        "user/bio",
-        {
-          id: idofprofile,
-        },
-        false,
-      );
-      if (request.error) return;
-      bio = request.body;
+    let request = await POST(
+      "user/bio",
+      {
+        id: targetProfile,
+      },
+      false,
+    );
+    if (request.error) return;
+    bio = request.body;
 
-      pfplink = GetImagePath(idofprofile, ImageType.User);
+    pfplink = GetImagePath(targetProfile, ImageType.User);
 
-      isownerofprofile = selfID == idofprofile;
+    isOwnerOfProfile = loggedInAccount.id == targetProfile;
 
-      let timestamp = parseInt(idofprofile);
-      let d = new Date(timestamp);
-      joindate = d.toLocaleString();
+    let timestamp = parseInt(targetProfile);
+    let d = new Date(timestamp);
+    joindate = d.toLocaleString();
 
-      loaded = true;
-      profileDiv.style.opacity = "1";
+    loaded = true;
+    profileDiv.style.opacity = "1";
 
-      let query = await POST("mod/query", {
-        AuthorID: idofprofile,
-        Token: await GetToken(),
-      });
-      if (query.body.ModObjs != null) {
-        mods = query.body.ModObjs;
-        modLength = mods.length;
-      } else {
-        modLength = 0;
-      }
-    };
-
-    Subscribe("SignedIn", cb, false);
+    let query = await POST("mod/query", {
+      AuthorID: targetProfile,
+      Token: loggedInAccount != null ? loggedInAccount.token : "",
+    });
+    if (query.body.ModObjs != null) {
+      mods = query.body.ModObjs;
+      modLength = mods.length;
+    } else {
+      modLength = 0;
+    }
   });
 </script>
 
@@ -97,7 +93,7 @@
 {/if}
 <main bind:this={profileDiv} style="opacity: 0;">
   <div bind:this={profilepage} style="text-align:center;">
-    <img alt="" class="pfp" src={pfplink + "?"} />
+    <img alt="PFP" class="pfp" src={pfplink + "?"} />
     <br />
     <span style="font-size:30px;">{username}</span>
     <br />
@@ -109,7 +105,11 @@
           style="position:relative; display:flex;justify-content: center;"
         >
           <div style="">
-            <img src="img/emblem/linux.svg" style="width:30px;z-index: 3;" />
+            <img
+              alt="Emblem"
+              src="img/emblem/linux.svg"
+              style="width:30px;z-index: 3;"
+            />
           </div>
 
           <span
@@ -132,7 +132,6 @@
       <p></p>
       <div style="width:100%;display:flex;justify-content:center;">
         <div
-          bind:this={modNodeGroup}
           style="display:grid;justify-content:center;gap:5px;width:100%;grid-template-columns: repeat(5, 0fr);"
         >
           {#each mods as mod}
@@ -143,7 +142,7 @@
     {/if}
 
     <p>
-      {#if isownerofprofile}
+      {#if isOwnerOfProfile}
         <button
           onclick={() => window.open("#/accountsettings", "_self")}
           class="hyperlinkbutton"

@@ -247,7 +247,7 @@
           style="overflow:hidden; margin-right:256px;position:absolute;height:112px;width:256px;top:0px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
         >
           <img
-            alt=""
+            alt="Current Category Image"
             src={selectedCategoryImg}
             style="filter:blur(3px);height:112px;width:256px;"
           />

@@ -2,14 +2,11 @@
   import { mount, onMount, unmount } from "svelte";
   import { open } from "@tauri-apps/plugin-dialog";
   import { invoke } from "@tauri-apps/api/core";
-  import { GetToken, POST, serverLink } from "./library/networking";
+  import { POST, serverLink } from "./library/networking";
   import { GetData, SetData } from "./library/datatransfer";
   import ModInstall from "./components/ModInstall.svelte";
   import { remove } from "@tauri-apps/plugin-fs";
-
-  let modVerified: boolean;
-  let modIconData: string;
-  let modName: string;
+  import { loggedInAccount } from "./library/account";
 
   let updatingID = null;
 
@@ -50,11 +47,10 @@
     modInstallElement.modIcon = validation.modicon;
     modInstallElement.modName = validation.modname;
     let path: string = await invoke("package_mod_for_publish", {});
-    console.log(await GetToken());
     let modTunnelID = await POST(
       "mod/publish",
       {
-        Token: await GetToken(),
+        Token: loggedInAccount.token,
         ID: updatingID,
       },
       false,
@@ -79,13 +75,17 @@
     window.open("#/modmarket", "_self");
   }
 
-  async function VerifyMod() {}
-
   onMount(async () => {
+    if (loggedInAccount == null) {
+      alert("You are not logged into an account!");
+      window.open("#/", "_self");
+      return;
+    }
+
     if (false) {
       alert("You are on an outdated version! Please update to upload mods.");
       window.open("#/", "_self");
-      //return
+      return;
     }
     if (GetData("moduploadid") != null) {
       updatingID = GetData("moduploadid");

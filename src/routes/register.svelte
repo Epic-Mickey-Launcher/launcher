@@ -2,9 +2,9 @@
   import { onMount } from "svelte";
   import Dialog from "./components/dialog.svelte";
   import { Subscribe } from "./library/callback";
-  import { POST, Register, SignIn, type UserInfo } from "./library/networking";
+  import { POST } from "./library/networking";
+  import { LoginWithPassword, Register } from "./library/account";
   import { GetBackgroundLogin } from "./library/background";
-  import Question from "./components/Question.svelte";
 
   let user: string = $state();
   let pass: string = $state();
@@ -15,45 +15,41 @@
   let forgotPasswordDialog: HTMLDialogElement = $state();
   let registering: boolean = $state(false);
 
-  onMount(() => {
+  $effect(() => {
     background.style.backgroundImage = `url(${GetBackgroundLogin().path})`;
   });
 
   async function SendEmail() {
-    let response = await POST("user/otp", { email: resetPasswordEmail }, false);
-    if (response.error) return;
+    await POST("user/otp", { email: resetPasswordEmail }, false, true);
+    await alert("Request sent!");
+    forgotPasswordDialog.close();
   }
 
   async function Login(type: number) {
     loadingDialog.showModal();
-    Subscribe(
-      "SignedIn",
-      (c: { error: number }) => {
-        if (c.error != 1) {
-          window.open("#/profilepage", "_self");
-        }
-      },
-      false,
-    );
 
-    let userInfo: UserInfo = { username: user, password: pass, email: mail };
-
+    let result: boolean = false;
     if (type == 1) {
       //login
-      await SignIn(userInfo);
+      console.log(user + " " + pass);
+      result = await LoginWithPassword(user, pass);
     } else {
       //register
       if (user.includes("@")) {
-        await alert("You are not allowed to use your E-Mail as your username!");
+        await alert(
+          "You are not allowed to use your E-Mail as your username upon registration!",
+        );
         return;
       }
-      await Register(userInfo);
+      result = await Register(user, pass, mail);
       await alert(
-        "Check your E-Mail for a confirmation to properly bind it to your account.",
+        "Check your E-Mail for a confirmation to properly bind it to your account. Be sure to check your spam folder if its not in your inbox.",
       );
     }
 
-    loadingDialog.close();
+    if (result) {
+      window.open("#/profilepage", "_self");
+    } else loadingDialog.close();
   }
 </script>
 
@@ -95,17 +91,13 @@
           class="inputfield"
           placeholder={registering ? "Username" : "Username / E-Mail"}
         />
+
         {#if registering}
-          <span>
-            <input
-              bind:value={mail}
-              class="inputfield"
-              placeholder="E-Mail (Optional)"
-            />
-            <Question
-              content="Binding an E-Mail to your account gives you a way to recover your account in case you lose your password."
-            ></Question>
-          </span>
+          <input
+            bind:value={mail}
+            class="inputfield"
+            placeholder="E-Mail (Optional)"
+          />
         {/if}
         <input
           bind:value={pass}
@@ -127,6 +119,12 @@
       <p>
         <button class="hyperlinkbutton" onclick={() => (registering = true)}
           >Don't have an account? <b>Register!</b></button
+        >
+      </p>
+    {:else}
+      <p>
+        <button class="hyperlinkbutton" onclick={() => (registering = false)}
+          >Already have an account? <b>Login!</b></button
         >
       </p>
     {/if}

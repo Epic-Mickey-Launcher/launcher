@@ -134,7 +134,7 @@
       <div class="imgArea">
         <img
           class="modNodeImg"
-          alt=""
+          alt="Mod Image"
           src={GetImagePath(modData.ID, ImageType.Mod, false)}
         />
         <br />

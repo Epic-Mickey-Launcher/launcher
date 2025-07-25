@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GetToken, POST } from "./library/networking";
+  import { POST } from "./library/networking";
   import { mount, onMount } from "svelte";
   import ModNode from "./components/ModNode.svelte";
   import { SetData } from "./library/datatransfer.js";
@@ -13,6 +13,7 @@
     SetActiveGameInstance,
   } from "./library/config";
   import type { GameInstance } from "./library/instance.svelte";
+  import { loggedInAccount } from "./library/account";
 
   let load = $state(true);
 
@@ -80,7 +81,7 @@
       await element.Unload();
     }
     allSpawnedModNodes = [];
-    let token = await GetToken();
+    let token = loggedInAccount != null ? loggedInAccount.token : "";
     let d = {
       Game: currentSelectedGame.gameConfig.game,
       Platform: currentSelectedGame.gameConfig.platform,
@@ -150,7 +151,7 @@
       <img
         onclick={GoToFeaturedMod}
         class="featuredModBanner"
-        alt=""
+        alt="Featured Mod"
         style="border-radius:10px;filter: drop-shadow(1px 1px 4px black);"
         src={featuredModImage}
       />

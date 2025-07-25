@@ -19,6 +19,7 @@
   let game: Game = $state(Game.EM1);
   let platform: Platform = $state(Platform.Wii);
 
+  // Do not delete! Implement this later!
   async function SetDolphinPath() {
     const selectedPath = await open({
       title: "Select Dolphin.exe",
