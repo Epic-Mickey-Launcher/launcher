@@ -7,8 +7,8 @@
 </script>
 
 <img
+  alt="Information"
   src="img/question.svg"
-  alt=""
-  title={content}
   style="width:15px;cursor:help;"
+  title={content}
 />

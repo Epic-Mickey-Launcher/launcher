@@ -42,7 +42,8 @@ commands.allow = [
     "create_portable",
     "open_path_in_file_manager",
     "open_config_folder",
-    "get_frontend_config_path"
+    "get_frontend_config_path",
+    "dolphin_auto_set_custom_textures"
 ]
 
 [[scope.allow]]

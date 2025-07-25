@@ -39,7 +39,7 @@
     >
     {#if content.length > 1}
       <img
-        alt=""
+        alt="Proceed Button"
         src="img/abutton.png"
         onclick={IncrementDialog}
         style="position:absolute; width:24px; right:-5px;bottom:0px;"

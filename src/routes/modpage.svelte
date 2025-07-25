@@ -1,14 +1,7 @@
 <script lang="ts">
   import { mount, onMount, unmount } from "svelte";
   import { GetData, SetData } from "./library/datatransfer";
-  import {
-    GetId,
-    GetImagePath,
-    GetToken,
-    ImageType,
-    loggedin,
-    POST,
-  } from "./library/networking";
+  import { GetImagePath, ImageType, POST } from "./library/networking";
   import {
     Game,
     type GameConfig,
@@ -29,12 +22,10 @@
     GameInstance,
     GetAllInstancesWithSameGame,
   } from "./library/instance.svelte";
+  import { loggedInAccount } from "./library/account";
 
   let commentInput: HTMLTextAreaElement = $state();
-  let update = false;
   let downloadButton: HTMLButtonElement = $state();
-  let id = "";
-  let allRegions = $state([]);
   let downloads = $state(0);
   let likes = $state(0);
   let liked = $state(false);
@@ -46,13 +37,11 @@
   let commentsCount = 0;
   let comments = $state([]);
   let hearticon: SVGSVGElement = $state();
-  let selectRegion = $state(false);
   let youtubelink: string = $state();
   let downloadStatus = $state("Download");
   let modPublished = $state(true);
   let mainDiv: HTMLDivElement = $state();
   let sendButton: HTMLButtonElement = $state();
-  let gameInfo: GameConfig;
   let modInfo: Mod = $state();
   let formattedDescription = $state();
 
@@ -92,9 +81,9 @@
 
   async function Init() {
     let modid = GetData("modpage_id");
-    let id = await GetId();
+    let id = loggedInAccount.id;
     localid = id;
-    let token = await GetToken();
+    let token = loggedInAccount.token;
 
     let res = await POST("mod/get", { id: modid, token: token });
     if (res.error) return;
@@ -157,7 +146,7 @@
       commentInput.value.trim().length > 0 &&
       commentInput.value.trim().length < 300
     ) {
-      let token = await GetToken();
+      let token = loggedInAccount.token;
       let res = await POST(
         "comment/send",
         {
@@ -191,7 +180,7 @@
     );
 
     if (confirmed) {
-      let id = await GetToken();
+      let id = loggedInAccount.token;
       let res = await POST("mod/delete", { Token: id, ID: modInfo.ID }, false);
       if (!res.error) {
         window.open("#/modmarket", "_self");
@@ -205,7 +194,7 @@
   }
 
   async function PublishMod() {
-    let token = await GetToken();
+    let token = loggedInAccount.token;
     let res = await POST("publishmod", { token: token, id: modInfo.ID });
     if (res.body.finished === true) {
       window.open("#/modmarket", "_self");
@@ -213,11 +202,11 @@
   }
 
   async function LikeMod() {
-    if (!loggedin) {
+    if (loggedInAccount == null) {
       await alert("Please log in to like.");
       return;
     }
-    let token = await GetToken();
+    let token = loggedInAccount.token;
     let response = await POST("like/add", {
       Token: token,
       PageID: modInfo.ID,
@@ -250,7 +239,7 @@
   }
 
   async function Report() {
-    if (!loggedin) {
+    if (loggedInAccount == null) {
       await alert("Please log in to make a report.");
       return;
     }
@@ -264,7 +253,7 @@
       let res = await POST(
         "user/report",
         {
-          Token: await GetToken(),
+          Token: loggedInAccount.token,
           TargetID: modInfo.ID,
           ReportReason: reportReason,
         },
@@ -315,7 +304,7 @@
     <div style="display:flex;flex-direction:column;gap:0px;">
       <img
         src={GetImagePath(modInfo.ID, ImageType.Mod, false)}
-        alt=""
+        alt="Mod Icon"
         style="border-radius:20px 20px 0 0;margin-right:20px;width:200px;height:200px;z-index:1;"
       />
       <br />
@@ -340,7 +329,7 @@
               class="sendComment"
               ><img
                 src="img/send.svg"
-                alt=""
+                alt="Send Comment"
                 style="width:8px;margin:auto;z-index: 3;"
               /></button
             >
@@ -390,7 +379,7 @@
       ></span>
 
       <button onclick={Report} style="border:none;background-color:transparent">
-        <img src="img/report.svg" style="width:25px;" alt="" />
+        <img src="img/report.svg" style="width:25px;" alt="Report" />
       </button>
       <span style="margin-right:14px;"></span>
       <span

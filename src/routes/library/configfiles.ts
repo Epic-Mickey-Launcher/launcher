@@ -82,7 +82,8 @@ export async function FileExists(path: string) {
 }
 
 export async function WriteToken(token: string) {
-  await WriteFile(token, configPath + "TOKEN");
+  let appDir = configPath;
+  await WriteFile(token, appDir + "TOKEN");
 }
 
 export async function ReadToken(): Promise<string> {
@@ -92,9 +93,8 @@ export async function ReadToken(): Promise<string> {
   if (await FileExists(appDir + "TOKEN")) {
     let token = await ReadFile(appDir + "TOKEN");
     return token;
-  } else {
-    return "";
   }
+  return "";
 }
 
 export async function DeleteAllConfigFiles() {

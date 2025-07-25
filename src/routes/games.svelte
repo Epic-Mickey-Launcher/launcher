@@ -13,7 +13,7 @@
   import ModInstall from "./components/ModInstall.svelte";
   import Dialog from "./components/dialog.svelte";
 
-  let AddGameComponent;
+  let AddGameComponent: any;
   let addGameButton: HTMLDivElement = $state();
   let gameNodeDiv: HTMLDivElement = $state();
   let blackoutDiv: HTMLDivElement = $state();
@@ -128,7 +128,7 @@
 <div bind:this={blackoutDiv} class="blackout"></div>
 <div bind:this={bannerDiv} class="gamebanner">
   <img
-    alt=""
+    alt="Banner"
     src="img/{hoveredGame}bannerfull.png"
     style="width:65vw;margin:auto;overflow:hidden;"
   />

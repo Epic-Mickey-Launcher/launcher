@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { GetId, GetToken, POST } from "../library/networking";
+  import { POST } from "../library/networking";
   import User from "./User.svelte";
+  import { loggedInAccount } from "../library/account";
 
   let date: string = $state();
   let isCommentAuthor: boolean = $state();
@@ -24,7 +25,8 @@
   }
 
   async function CompareLocalID() {
-    let localID = await GetId();
+    if (loggedInAccount == null) return;
+    let localID = loggedInAccount.token;
 
     if (localID == id) {
       isCommentAuthor = true;
@@ -36,7 +38,7 @@
       "comment/delete",
       {
         ID: commentID,
-        Token: await GetToken(),
+        Token: loggedInAccount.token,
       },
       false,
     );

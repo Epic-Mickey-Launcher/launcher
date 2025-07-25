@@ -4,22 +4,22 @@
   import { getVersion } from "@tauri-apps/api/app";
   import {
     GET,
-    GETEXT,
-    SetLoggedIn,
-    loggedin,
+    GETExternal,
     SetOutdated,
-    GetId,
     GetImagePath,
     ImageType,
-    GetToken,
     POST,
     statusMessageLink,
+    SetOfflineMode,
+    offlineMode,
+    outdated,
   } from "../library/networking";
   import { Subscribe } from "../library/callback.js";
   import { invoke } from "@tauri-apps/api/core";
   import { SetData } from "../library/datatransfer";
   import Loading from "./loading.svelte";
-  import { SetHeader } from "../library/config";
+  import { loggedInAccount, LoginWithSession } from "../library/account";
+  import { exit } from "@tauri-apps/plugin-process";
   let pfp: string = $state();
   let serverNotice = false;
   let latestDownloadLink = "";
@@ -34,7 +34,7 @@
   let statusBannerColor = $state("");
   let statusText = $state("");
   let statusVisible = $state(false);
-
+  let offlineModeState = $state(false);
   export async function SetVisible(visible: boolean) {
     console.log("Header Visible: " + visible);
     header.style.display = visible ? "flex" : "none";
@@ -45,7 +45,7 @@
     let res = await POST(
       "user/deletemessage",
       {
-        Token: await GetToken(),
+        Token: loggedInAccount.token,
         ID: id,
       },
       false,
@@ -64,6 +64,7 @@
   }
 
   function ParseMessage(message: string): MessageLinkElement[] {
+    // it might be time to learn regex
     let declareType = 0;
     let declareValue = 0;
     let rangeIndex = [0, 0];
@@ -152,9 +153,9 @@
   }
 
   async function GetMessages() {
-    if (!loggedin) return;
+    if (loggedInAccount == null) return;
     drawMessages = false;
-    let res = await POST("user/messages", { Token: await GetToken() });
+    let res = await POST("user/messages", { Token: loggedInAccount.token });
     if (res.error) return;
     if (res.body != null) {
       messagesList = res.body;
@@ -163,13 +164,13 @@
   }
 
   async function GetMessageCount() {
-    if (!loggedin) return;
+    if (loggedInAccount == null) return;
     if (messagesOpen) {
       return;
     }
     let res = await POST(
       "user/messagecount",
-      { Token: await GetToken() },
+      { Token: loggedInAccount.token },
       false,
     );
     if (res.body == null || res.error) return;
@@ -185,14 +186,36 @@
   onMount(async () => {
     version = await getVersion();
     let callbackOnEnterNewWindow = async () => {
-      let res = await GET("server/ping");
-      connectionIssues = res.error;
+      if (offlineMode) return;
+      console.log("pinging server");
+      try {
+        await GET("server/ping");
+      } catch {
+        connectionIssues = true;
+      }
 
-      if (connectionIssues) return;
+      if (connectionIssues) {
+        console.log("couldn't ping server");
+        let setOfflineMode = await confirm(
+          "The EML server failed to return respond! This could either be because the server is down, or because you don't have internet. Do you want to enable Offline Mode or quit?",
+        );
 
-      res = await GETEXT(statusMessageLink);
+        if (setOfflineMode) {
+          await alert(
+            "Offline Mode has been enabled. To turn it off, you must restart EML.",
+          );
+          offlineModeState = true;
+          SetOfflineMode();
+          window.open("#/", "_self");
+        } else {
+          await exit(0);
+        }
+        return;
+      }
+
+      let res = await GETExternal(statusMessageLink);
       //todo: rough, remove this
-      if (res.message.includes("FOR OUTDATED CLIENTS:")) {
+      if (res.message.includes("FOR OUTDATED CLIENTS:") && outdated == false) {
         statusVisible = false;
         return;
       }
@@ -200,27 +223,11 @@
       statusBannerColor = res.bannerColor;
       statusTextColor = res.textColor;
       statusVisible = res.visible;
+      await refreshAccount();
     };
 
-    let cb = async () => {
-      let id = await GetId();
-      if (loggedin) {
-        SetLoggedIn(true);
-        pfp = GetImagePath(id, ImageType.User);
-        if (!getMessagesRoutineStarted) {
-          getMessagesRoutineStarted = true;
-          await GetMessageCount();
-        }
-      } else {
-        SetLoggedIn(false);
-        pfp = "img/loggedoutpfp.jpeg";
-      }
-    };
-
-    // @ts-ignore
-    Subscribe("SignedIn", cb, true);
     Subscribe("OnNewWindow", callbackOnEnterNewWindow, true);
-    let info = await GETEXT(
+    let info = await GETExternal(
       "https://api.github.com/repos/Epic-Mickey-Launcher/launcher/releases",
     );
     let info_stable = info.filter(
@@ -234,10 +241,26 @@
       updateHyperLink.style.display = "block";
       newVersion = newest_release.tag_name;
     }
-  });
 
+    await refreshAccount();
+  });
+  async function refreshAccount() {
+    if (loggedInAccount == null) {
+      LoginWithSession(); // attempt login if not already logged in
+    }
+
+    if (loggedInAccount != null) {
+      pfp = GetImagePath(loggedInAccount.id, ImageType.User);
+      if (!getMessagesRoutineStarted) {
+        getMessagesRoutineStarted = true;
+        await GetMessageCount();
+      }
+    } else {
+      pfp = "img/loggedoutpfp.jpeg";
+    }
+  }
   async function openMessage() {
-    if (!loggedin) {
+    if (loggedInAccount == null) {
       await alert("You need an account to view messages.");
       return;
     }
@@ -272,7 +295,7 @@
   });
 
   async function PfpButton() {
-    if (loggedin) {
+    if (loggedInAccount != null) {
       OpenPage("profilepage");
     } else {
       OpenPage("register");
@@ -293,17 +316,26 @@
   <div class="header" bind:this={header}>
     <img
       src="/img/eml.svg"
-      alt=""
+      alt="EML Logo"
       title={version}
       style="width:300px;padding:5px 0px;position:relative;right:30px;"
     />
 
     <p style="margin-right:20px"></p>
 
-    <button
-      onclick={() => OpenPage("modmarket")}
-      class="headerButton startheaderbuttons">Mods</button
-    >
+    {#if !offlineModeState}
+      <button
+        onclick={() => OpenPage("modmarket")}
+        class="headerButton startheaderbuttons">Mods</button
+      >
+    {:else}
+      <button
+        disabled
+        title="Cannot enter mod index when in offline mode!"
+        style="color:red;"
+        class="headerButton startheaderbuttons">Mods</button
+      >
+    {/if}
 
     <button onclick={() => OpenPage("games")} class="headerButton">Games</button
     >
@@ -321,12 +353,14 @@
       >Update Available!<br />({version}->{newVersion})</button
     >
 
-    {#if connectionIssues}
+    {#if connectionIssues || offlineMode}
       <img
-        alt=""
+        alt="Connection Warning"
         style="width:32px;margin-left:12px;"
         src="img/warning.svg"
-        title="Cannot connect to online services!"
+        title={offlineMode
+          ? "Offline Mode Enabled."
+          : "Cannot connect to online services!"}
       />
     {/if}
     <div class="pfpbutton">
@@ -339,7 +373,7 @@
           <h1 style="text-align: center;">Messages</h1>
           <hr />
 
-          {#if drawMessages}
+          {#if drawMessages && !offlineModeState}
             {#if messagesList.length == 0}
               <span style="text-align: center;">
                 <h2>):</h2>
@@ -387,34 +421,39 @@
             <Loading></Loading>
           {/if}
         </div>
-        <button
-          class="notifications"
-          style="background-color: transparent;border:none;margin-top: 20px;position: relative;"
-          onclick={() => openMessage()}
-        >
-          <img
-            src="img/notifications.svg"
-            style="width:16px;margin-right: 12px;"
-          />
 
-          {#if messagesCount > 0}
-            <div
-              style="position:absolute;background-color: red;border-radius:100%;width:16px;height:16px;bottom:20px;right:9px;"
-            >
-              <span style="letter-spacing:-2px;"
-                >{messagesCount > 9 ? "+9" : messagesCount}</span
+        {#if !offlineModeState}
+          <button
+            class="notifications"
+            style="background-color: transparent;border:none;margin-top: 20px;position: relative;"
+            onclick={() => openMessage()}
+          >
+            <img
+              src="img/notifications.svg"
+              style="width:16px;margin-right: 12px;"
+            />
+
+            {#if messagesCount > 0}
+              <div
+                style="position:absolute;background-color: red;border-radius:100%;width:16px;height:16px;bottom:20px;right:9px;"
               >
-            </div>
-          {/if}
-        </button>
+                <span style="letter-spacing:-2px;"
+                  >{messagesCount > 9 ? "+9" : messagesCount}</span
+                >
+              </div>
+            {/if}
+          </button>
+        {/if}
       </div>
-      <button
-        onclick={() => PfpButton()}
-        style="border:none;background-color: Transparent;"
-        class="pfphover"
-      >
-        <img src={pfp} alt="" title="Sign Up" class="pfp" />
-      </button>
+      {#if !offlineModeState}
+        <button
+          onclick={() => PfpButton()}
+          style="border:none;background-color: Transparent;"
+          class="pfphover"
+        >
+          <img src={pfp} alt="Sign Up" title="Sign Up" class="pfp" />
+        </button>
+      {/if}
     </div>
   </div>
   {#if serverNotice}

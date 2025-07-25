@@ -59,5 +59,9 @@
 {/if}
 
 {#if showPfp}
-  <img alt="" src={pfpUrl} style="border-radius: 100%; width:{imageSize}px;" />
+  <img
+    alt="Profile Picture"
+    src={pfpUrl}
+    style="border-radius: 100%; width:{imageSize}px;"
+  />
 {/if}

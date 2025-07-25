@@ -88,6 +88,7 @@ fn main() {
             upload_file_chunks,
             generate_mod_project,
             package_mod_for_publish,
+            dolphin_auto_set_custom_textures,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -107,6 +108,10 @@ fn play_steam_game(id: String) {
         .arg(format!("steam://rungameid/{}", id))
         .spawn()
         .unwrap();
+}
+#[tauri::command]
+fn dolphin_auto_set_custom_textures() {
+    dolphin::auto_set_custom_textures();
 }
 
 #[tauri::command]
@@ -150,7 +155,7 @@ fn get_bootbin_id(path: String) -> String {
     let mut id_bytes = [0; 6];
     f.read_exact(&mut id_bytes).unwrap();
     let id = std::str::from_utf8(&id_bytes[0..6]).unwrap().to_uppercase();
-    return id;
+    id
 }
 
 #[tauri::command]
@@ -345,11 +350,13 @@ async fn generate_mod_project(
         })
 }
 #[tauri::command]
-fn package_mod_for_publish(window: Window) -> String {
-    mod_management::package_mod_for_publishing().unwrap_or_else(|error| {
-        helper::handle_error(error, &window);
-        "".to_string()
-    })
+async fn package_mod_for_publish(window: Window) -> String {
+    mod_management::package_mod_for_publishing()
+        .await
+        .unwrap_or_else(|error| {
+            helper::handle_error(error, &window);
+            "".to_string()
+        })
 }
 
 #[tauri::command]

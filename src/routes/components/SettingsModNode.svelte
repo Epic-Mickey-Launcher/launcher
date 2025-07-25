@@ -52,21 +52,26 @@
   }
 </script>
 
-<div style="background-color:rgb(22, 22, 22);padding:10px;">
+<div
+  style="background-color:rgb(22, 22, 22);padding:10px;width:50%;margin-top: 6px;margin-bottom: 6px;border-radius: 8px;"
+>
   <span>{modData.name}</span>
+  <button
+    onclick={DeleteMod}
+    style="background-color:red;float:right;bottom:2.5px;position: relative;border:none;border-radius: 4px;"
+    >Delete</button
+  >
+
   {#if setStateAllowed}
-    <span> | Enabled: </span>
     <input
       bind:this={checkBox}
+      style="float:right;margin-right:16px;"
       id="check"
       onclick={ToggleMod}
       type="checkbox"
     />
+    <span style="float:right;">Enabled: |</span>
   {:else}
     <span> | <span style="color:darkgray;">Local Mod</span></span>
   {/if}
-
-  <button onclick={DeleteMod} style="background-color:red;float:right;"
-    >Delete</button
-  >
 </div>

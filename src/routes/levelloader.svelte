@@ -32,6 +32,7 @@
   let selectedCategoryName = $state("");
   let selectedCategoryImg = $state("");
 
+  let levelLoaderOpen = $state(false);
   function SelectCategory(category: any) {
     selectedCategoryImg = category.banner;
     currentLevelsToShow = category.levels;
@@ -39,9 +40,19 @@
   }
 
   function OpenLevelLoader() {
-    mainSettings.style.display = "none";
-    levelLoader.style.display = "block";
     selectedLevel = cmdline.substring(0, levelEndIndex);
+    levelLoaderOpen = true;
+  }
+
+  async function ExitLevelLoader(type: number) {
+    cmdline = unsavedCmdline;
+    await WriteFile(cmdline, data.path + "/files/cmdline.txt");
+
+    if (type == 1) {
+      levelLoaderOpen = false;
+    } else {
+      window.open("#/", "_self");
+    }
   }
 
   function OpenDirectory() {
@@ -142,127 +153,156 @@
     window.open("#/", "_self");
   }
 
-  async function ExitLevelLoader(type: number) {
-    cmdline = unsavedCmdline;
-
-    await WriteFile(cmdline, data.path + "/files/cmdline.txt");
-
-    if (type == 1) {
-      mainSettings.style.display = "block";
-      levelLoader.style.display = "none";
-    } else {
-      window.open("#/", "_self");
-    }
-  }
-
   function GoBackToGames() {
     window.open("#/", "_self");
   }
 </script>
 
 <main>
-  <div bind:this={mainSettings}>
-    <h2>
-      Settings for <i
-        >{activeInstance.gameIdentity.name +
-          " (" +
-          activeInstance.gameConfig.platform.toUpperCase() +
-          (activeInstance.gameConfig.region !== Region.None
-            ? ", " + activeInstance.gameConfig.region
-            : "") +
-          ")"}</i
-      >
-    </h2>
-    <hr />
-    <p></p>
-    {#if currentLevelJSON.length > 0}
-      <button onclick={OpenLevelLoader}>Change Level</button>
-    {/if}
-    <button onclick={OpenDirectory}>Open Directory</button>
-    <button onclick={DeleteFromGameList}>Delete from Game List</button>
-    <button onclick={GoBackToGames}>Back</button>
-
-    <h1>Mods</h1>
-    <hr />
-    <p></p>
-    {#if currentInstance != null}
-      <div>
-        {#each currentInstance.mods as mod}
-          <SettingsModNode modData={mod} gameInstance={currentInstance}
-          ></SettingsModNode>
-        {/each}
-      </div>
-    {/if}
-    <p>
-      <button onclick={InstallLocalMod}>Install Local Mod</button>
-    </p>
-  </div>
-
-  <div bind:this={levelLoader} style="display:none;">
-    <h1 style="text-align:center;">Level Loader</h1>
-    <p></p>
-    <div
-      style="display:flex;align-items:center;justify-content:center;position:relative;"
-    >
-      <div
-        style="overflow:hidden; margin-right:256px;position:absolute;height:112px;width:256px;top:0px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
-      >
-        <img
-          alt=""
-          src={selectedCategoryImg}
-          style="filter:blur(3px);height:112px;width:256px;"
-        />
-        <span
-          style="z-index:5;font-size:50px;position:relative;bottom:80px;;left:0px;width:112px;font-size:25px;text-align:center;"
-          >{selectedCategoryName}</span
+  {#if !levelLoaderOpen}
+    <div bind:this={mainSettings}>
+      <h1>
+        Settings for <i style="font-size: 30px;color:green;"
+          >{activeInstance.gameIdentity.name +
+            " (" +
+            activeInstance.gameConfig.platform.toUpperCase() +
+            (activeInstance.gameConfig.region !== Region.None
+              ? ", " + activeInstance.gameConfig.region
+              : "") +
+            ")"}</i
         >
-      </div>
-      <br />
+      </h1>
+      <hr />
+      <p></p>
+      {#if currentLevelJSON.length > 0}
+        <button onclick={OpenLevelLoader}>Change Level</button>
+      {/if}
+      <button onclick={OpenDirectory}>Open Directory</button>
+      <button onclick={DeleteFromGameList}>Delete from Game List</button>
+      <button onclick={GoBackToGames}>Back</button>
+
+      <h1>Mods</h1>
+      <hr />
+      <p></p>
+      {#if currentInstance != null}
+        <div>
+          {#if currentInstance.mods.length > 0}
+            {#each currentInstance.mods as mod}
+              <SettingsModNode modData={mod} gameInstance={currentInstance}
+              ></SettingsModNode>
+            {/each}
+          {:else}
+            <h1 style="background-color:rgb(22, 22, 22); padding: 5px;">
+              Go to the <button
+                class="hyperlinkbutton"
+                onclick={() => window.open("#/modmarket", "_self")}
+                style="font-size: 30px;font-weight: bold">Mod Market</button
+              > to start downloading mods!
+            </h1>
+          {/if}
+        </div>
+      {/if}
+      <p>
+        <button onclick={InstallLocalMod}>Install Local Mod</button>
+      </p>
+      {#if activeInstance != null}
+        <h1>Info</h1>
+        <hr />
+        <span> ID: <i><b>{activeInstance.gameConfig.uniqueID}</b> </i></span><br
+        />
+        <span> Mods: <i><b>{activeInstance.mods.length}</b> </i></span><br />
+        <span> Path: <i><b>{activeInstance.gameConfig.path}</b> </i></span><br
+        />
+        <span>
+          Platform: <i><b>{activeInstance.gameConfig.platform}</b> </i></span
+        ><br />
+        <span>
+          Game Type: <i><b>{activeInstance.gameConfig.game}</b> </i></span
+        ><br />
+        {#if activeInstance.gameConfig.region !== Region.None}
+          <span>
+            Region: <i><b>{activeInstance.gameConfig.region}</b> </i></span
+          ><br />
+        {/if}
+        {#if activeInstance.gameConfig.platform === Platform.PC}
+          <span>
+            Steam Version: <i
+              ><b>{activeInstance.gameConfig.steamVersion}</b>
+            </i></span
+          ><br />
+        {/if}
+        <span>
+          Shortname: <i><b>{activeInstance.GetShortName(false)}</b> </i></span
+        ><br />
+      {/if}
+    </div>
+  {:else}
+    <div bind:this={levelLoader}>
+      <h1 style="text-align:center;">Level Loader</h1>
+      <p></p>
       <div
-        style="width:256px;height:400px; margin-top:112px; border-radius:0px 0px 0px 10px; overflow: scroll;background-color:#1f1f1f;"
+        style="display:flex;align-items:center;justify-content:center;position:relative;"
       >
         <div
-          style="position:relative;display:grid;width:256px;height:400px;grid-auto-flow: row; rows:2em;"
+          style="overflow:hidden; margin-right:256px;position:absolute;height:112px;width:256px;top:0px;overflow:hidden;border-radius:10px 0px 0px 0px;text-align:center;"
         >
-          {#each currentLevelJSON as category}
-            <button
-              onclick={() => SelectCategory(category)}
-              style="width:100%;height:100%;">{category.name}</button
-            >
-          {/each}
+          <img
+            alt="Current Category Image"
+            src={selectedCategoryImg}
+            style="filter:blur(3px);height:112px;width:256px;"
+          />
+          <span
+            style="z-index:5;font-size:50px;position:relative;bottom:80px;;left:0px;width:112px;font-size:25px;text-align:center;"
+            >{selectedCategoryName}</span
+          >
+        </div>
+        <br />
+        <div
+          style="width:256px;height:400px; margin-top:112px; border-radius:0px 0px 0px 10px; overflow: scroll;background-color:#1f1f1f;"
+        >
+          <div
+            style="position:relative;display:grid;width:256px;height:400px;grid-auto-flow: row; rows:2em;"
+          >
+            {#each currentLevelJSON as category}
+              <button
+                onclick={() => SelectCategory(category)}
+                style="width:100%;height:100%;">{category.name}</button
+              >
+            {/each}
+          </div>
+        </div>
+
+        <div
+          style="width:256px;height:512px;border-radius:0px 10px 10px 0px; overflow:hidden;background-color:#1f1f1f;overflow-y: scroll;"
+        >
+          <div style="position:relative;width:256px;display:grid;">
+            {#each currentLevelsToShow as lvl}
+              <button onclick={() => SetLevel(lvl)} style="">{lvl.name}</button>
+            {/each}
+          </div>
         </div>
       </div>
 
-      <div
-        style="width:256px;height:512px;border-radius:0px 10px 10px 0px; overflow:hidden;background-color:#1f1f1f;overflow-y: scroll;"
-      >
-        <div style="position:relative;width:256px;display:grid;">
-          {#each currentLevelsToShow as lvl}
-            <button onclick={() => SetLevel(lvl)} style="">{lvl.name}</button>
-          {/each}
-        </div>
-      </div>
+      <p>Selected Level: {selectedLevel}</p>
+
+      <hr />
+
+      <p>
+        <button class="play" onclick={() => PlayGame()}>Play</button>
+        <button
+          class="play"
+          onclick={() => ExitLevelLoader(1)}
+          style="        border-radius: 0px 10px 10px 0px;"
+          >Save Level and Return
+        </button>
+      </p>
+      <p>
+        <span
+          >Level Loader Data <s>stolen</s> borrowed from RampantLeaf & SlayCap</span
+        >
+      </p>
     </div>
-
-    <p>Selected Level: {selectedLevel}</p>
-
-    <hr />
-
-    <p>
-      <button class="play" onclick={() => PlayGame()}>Play</button>
-      <button
-        class="play"
-        onclick={() => ExitLevelLoader(1)}
-        style="        border-radius: 0px 10px 10px 0px;"
-        >Save Level and Return
-      </button>
-    </p>
-    <p>
-      <span
-        >Level Loader Data <s>stolen</s> borrowed from RampantLeaf & SlayCap</span
-      >
-    </p>
-  </div>
+  {/if}
 </main>
 
 <style>

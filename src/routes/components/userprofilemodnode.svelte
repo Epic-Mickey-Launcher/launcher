@@ -24,7 +24,7 @@
 
 <div class="modNode">
   <img
-    alt=""
+    alt="Mod Image"
     src={GetImagePath(mod.ID, ImageType.Mod, false)}
     style="width:200px;border-radius:10px;"
   />

@@ -65,7 +65,7 @@
   style="width:100vw;height:100vh;position:absolute;top:0;left:0;display: flex;justify-content: center;transition-duration: 1s;"
 >
   <img
-    alt=""
+    alt="Mickey Logo"
     bind:this={mickeyLogo}
     class="MickeyLogo MickeyLogoFinished MickeyLogoFinishedDisappear"
     src="img/emsvg.svg"

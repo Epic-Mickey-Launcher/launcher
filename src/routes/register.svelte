@@ -2,53 +2,54 @@
   import { onMount } from "svelte";
   import Dialog from "./components/dialog.svelte";
   import { Subscribe } from "./library/callback";
-  import { POST, Register, SignIn, type UserInfo } from "./library/networking";
+  import { POST } from "./library/networking";
+  import { LoginWithPassword, Register } from "./library/account";
   import { GetBackgroundLogin } from "./library/background";
 
-  let user: any = $state();
-  let pass: any = $state();
+  let user: string = $state();
+  let pass: string = $state();
+  let mail: string = $state();
   let loadingDialog: HTMLDialogElement = $state();
   let background: HTMLDivElement = $state();
-  let email: any = $state();
+  let resetPasswordEmail: any = $state();
   let forgotPasswordDialog: HTMLDialogElement = $state();
-  onMount(() => {
+  let registering: boolean = $state(false);
+
+  $effect(() => {
     background.style.backgroundImage = `url(${GetBackgroundLogin().path})`;
   });
 
   async function SendEmail() {
-    let response = await POST("user/otp", { email: email }, false);
-    if (response.error) return;
+    await POST("user/otp", { email: resetPasswordEmail }, false, true);
+    await alert("Request sent!");
+    forgotPasswordDialog.close();
   }
 
   async function Login(type: number) {
     loadingDialog.showModal();
-    Subscribe(
-      "SignedIn",
-      (c: { error: number }) => {
-        if (c.error != 1) {
-          window.open("#/profilepage", "_self");
-        }
-      },
-      false,
-    );
 
-    let userInfo: UserInfo = { username: user, password: pass };
-
+    let result: boolean = false;
     if (type == 1) {
       //login
-      await SignIn(userInfo);
+      console.log(user + " " + pass);
+      result = await LoginWithPassword(user, pass);
     } else {
       //register
       if (user.includes("@")) {
         await alert(
-          "You can only log in with an E-Mail. Please enter a username instead and then bind your E-Mail later when you've registered.",
+          "You are not allowed to use your E-Mail as your username upon registration!",
         );
         return;
       }
-      await Register(userInfo);
+      result = await Register(user, pass, mail);
+      await alert(
+        "Check your E-Mail for a confirmation to properly bind it to your account. Be sure to check your spam folder if its not in your inbox.",
+      );
     }
 
-    loadingDialog.close();
+    if (result) {
+      window.open("#/profilepage", "_self");
+    } else loadingDialog.close();
   }
 </script>
 
@@ -58,47 +59,82 @@
 ></div>
 
 <main>
-  <div style="text-align:center;">
-    <h1 style="filter:drop-shadow(0 0 3px black)">Register / Login</h1>
-    <hr />
-    <input
-      bind:value={user}
-      class="inputfield"
-      placeholder="Username / E-Mail"
-    />
-    <p style="margin-top: 2px;">
+  <dialog bind:this={loadingDialog}>
+    <span>Logging in...</span>
+  </dialog>
+  <dialog bind:this={forgotPasswordDialog}>
+    <span
+      >If you have an E-Mail linked to your account, you can request a
+      One-Time-Password so that you may log into your account and change your
+      Password.</span
+    >
+    <p>
       <input
-        bind:value={pass}
+        bind:value={resetPasswordEmail}
         class="inputfield"
-        placeholder="Password"
-        type="password"
+        placeholder="E-Mail"
       />
     </p>
 
-    <dialog bind:this={loadingDialog}>
-      <span>Logging in...</span>
-    </dialog>
-    <dialog bind:this={forgotPasswordDialog}>
-      <span
-        >If you have an E-Mail linked to your account, you can request a
-        One-Time-Password so that you may log into your account and change your
-        Password.</span
+    <button onclick={SendEmail}>Send Request</button>
+    <button onclick={() => forgotPasswordDialog.close()}>Back</button>
+  </dialog>
+  <h1 style="text-align: center;">{registering ? "Register" : "Sign In"}</h1>
+  <hr />
+  <div style="text-align:center;width:100%;">
+    <div style="display:flex; justify-content: center;">
+      <div
+        style="display:flex;  flex-direction: column;width:30%;justify-self:center;justify-items:center;gap:3px;"
       >
-      <p>
-        <input bind:value={email} class="inputfield" placeholder="E-Mail" />
-      </p>
+        <input
+          bind:value={user}
+          class="inputfield"
+          placeholder={registering ? "Username" : "Username / E-Mail"}
+        />
 
-      <button onclick={SendEmail}>Send Request</button>
-      <button onclick={() => forgotPasswordDialog.close()}>Back</button>
-    </dialog>
-    <button
-      class="hyperlinkbutton"
-      onclick={() => forgotPasswordDialog.showModal()}
-      >Forgot your password?
-    </button>
+        {#if registering}
+          <input
+            bind:value={mail}
+            class="inputfield"
+            placeholder="E-Mail (Optional)"
+          />
+        {/if}
+        <input
+          bind:value={pass}
+          class="inputfield"
+          placeholder="Password"
+          type="password"
+        />
+      </div>
+    </div>
+
+    {#if !registering}
+      <p>
+        <button
+          class="hyperlinkbutton"
+          onclick={() => forgotPasswordDialog.showModal()}
+          >Forgot your password?
+        </button>
+      </p>
+      <p>
+        <button class="hyperlinkbutton" onclick={() => (registering = true)}
+          >Don't have an account? <b>Register!</b></button
+        >
+      </p>
+    {:else}
+      <p>
+        <button class="hyperlinkbutton" onclick={() => (registering = false)}
+          >Already have an account? <b>Login!</b></button
+        >
+      </p>
+    {/if}
     <p>
-      <button class="registerbutton" onclick={() => Login(2)}>Register</button>
-      <button class="registerbutton" onclick={() => Login(1)}>Sign In</button>
+      {#if registering}
+        <button class="registerbutton" onclick={() => Login(2)}>Register</button
+        >
+      {:else}
+        <button class="registerbutton" onclick={() => Login(1)}>Sign In</button>
+      {/if}
     </p>
     <div style="margin-top:10vh;">
       <Dialog

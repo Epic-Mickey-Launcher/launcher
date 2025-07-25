@@ -40,10 +40,12 @@ export async function AddTrackedGame(path: string): Promise<GameInstance> {
   await SaveGamesConfig(trackedGames);
 
   let instance = new GameInstance(path);
-  await instance.Load();
-  loadedInstances.push(instance);
+  if (await instance.Load()) {
+    loadedInstances.push(instance);
+    return instance;
+  }
 
-  return instance;
+  return null;
 }
 
 export async function RemoveTrackedGame(path: string) {
@@ -63,8 +65,7 @@ export async function LoadGameInstancesFromTrackingFile() {
 
   for (const trackedGame of trackedGames) {
     let instance = new GameInstance(trackedGame);
-    loadedInstances.push(instance);
-    await instance.Load();
+    if (await instance.Load()) loadedInstances.push(instance);
   }
 }
 

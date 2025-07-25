@@ -1,19 +1,9 @@
-export let serverLink = "https://emlapi.kalsvik.no/"; //'http://localhost:8574/'
+export let serverLink = "https://emlapi.kalsvik.no/"; // "https://emlapi.kalsvik.no/";
 export const statusMessageLink =
   "https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus";
-export let loggedin = false;
 export let outdated = false;
-import { ReadToken, WriteToken } from "./configfiles.js";
-import { Invoke, Subscribe } from "./callback.js";
-
-let token = "";
-let id = "";
-
-export interface CommentData {
-  accountid: string;
-  commentid: string;
-  pageid: string;
-}
+export let offlineMode = false;
+import { loggedInAccount } from "./account.js";
 
 export interface UserInfo {
   username?: string;
@@ -54,150 +44,13 @@ export function SetOutdated() {
   outdated = true;
 }
 
-export async function SignIn(userinfo: UserInfo) {
-  await Login(userinfo);
+export function SetOfflineMode() {
+  offlineMode = true;
 }
 
-export async function ClearInMemoryToken() {
-  token = "";
-}
-
-export async function SetLoggedIn(value: boolean) {
-  loggedin = value;
-}
-
-export async function Register(userinfo: UserInfo) {
-  let response = await POST(
-    "user/register",
-    {
-      username: userinfo.username,
-      password: userinfo.password,
-    },
-    false,
-  );
-  if (response.error) {
-    return;
-  }
-  userinfo.token = response.body;
-  Login(userinfo);
-}
-
-function isNullOrWhitespace(input: string): boolean {
-  return input == input.trim();
-}
-
-export function UploadMod(
-  modfile: File,
-  replacing: string,
-  extension: string,
-  autoPublish: boolean,
-) {
-  if (!loggedin) return;
-
-  MultipartPOST("mod/publish", {
-    token: token,
-    modfile: modfile,
-    extension: extension,
-    replacing: replacing,
-    automaticPublish: autoPublish,
-  }).then((response) => {
-    JSON.parse(response.body).then((res: any) => {
-      Invoke("onModUpload", res.id);
-    });
-  });
-}
-
-export async function GetToken(): Promise<string> {
-  if (token === "") {
-    token = await ReadToken();
-  }
-  return token;
-}
-
-export async function GetId(): Promise<string> {
-  await GetToken();
-  if (token === "") return "";
-  if (id != "") return id;
-  let response = await POST(
-    "user/idfromtoken",
-    {
-      token: token,
-    },
-    false,
-  );
-  if (response.error) return "";
-  id = response.body;
-  return response.body;
-}
-
-export async function OnSignedIn(callback: any) {
-  if (loggedin) {
-    callback();
-  } else {
-    Subscribe("SignedIn", callback, true);
-  }
-}
-
-export async function Login(userinfo: UserInfo) {
-  loggedin = false;
-  let response: Response;
-  if (userinfo.token === "") {
-    if (
-      isNullOrWhitespace(userinfo.username!) ||
-      isNullOrWhitespace(userinfo.password!)
-    ) {
-      await alert("You forgot to enter your username or password, doofus.");
-      return;
-    }
-  }
-
-  let tokenLogin = false;
-  if (userinfo.token != null) {
-    response = await POST(
-      "user/login",
-      {
-        token: userinfo.token,
-      },
-      false,
-    );
-    await WriteToken(userinfo.token);
-    token = userinfo.token;
-    tokenLogin = true;
-    id = "";
-
-    loggedin = true;
-    Invoke("SignedIn", {
-      error: 0,
-    });
-
-    return;
-  } else {
-    response = await POST(
-      "user/login",
-      {
-        username: userinfo.username,
-        password: userinfo.password,
-      },
-      false,
-    );
-  }
-
-  if (!response.error) {
-    if (!tokenLogin) {
-      await WriteToken(response.body);
-      token = response.body;
-    }
-    loggedin = true;
-    Invoke("SignedIn", {
-      error: 0,
-    });
-  } else {
-    loggedin = false;
-
-    Invoke("SignedIn", {
-      error: 1,
-    });
-  }
+// DEPRECATED: use loggedInAccount.id instead.
+export function GetId(): string {
+  return loggedInAccount.id;
 }
 
 export async function SetServerURL(url: string) {
@@ -228,12 +81,10 @@ export async function MultipartPOST(
     );
   }
 
-  const response: Response = {
+  return {
     body: await res.text(),
     error: res.status != 200,
   };
-
-  return response;
 }
 
 export async function POST(
@@ -261,22 +112,18 @@ export async function POST(
 
   let content: any = toJson ? await res.json() : await res.text();
 
-  let response: Response = {
+  return {
     error: res.status != 200,
     body: content,
   };
-
-  return response;
 }
 
 export async function GET(route: string): Promise<any> {
   const res = await fetch(serverLink + route);
-  const content = await res.json();
-  return content;
+  return await res.json();
 }
 
-export async function GETEXT(route: string): Promise<any> {
+export async function GETExternal(route: string): Promise<any> {
   const res = await fetch(route);
-  const content = await res.json();
-  return content;
+  return await res.json();
 }
