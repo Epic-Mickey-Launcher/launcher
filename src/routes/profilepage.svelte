@@ -3,7 +3,6 @@
   import Userprofilemodnode from "./components/userprofilemodnode.svelte";
   import { GetImagePath, ImageType, POST } from "./library/networking";
   import { GetData, SetData } from "./library/datatransfer";
-  import { Subscribe } from "./library/callback";
   import Loading from "./components/loading.svelte";
   import { loggedInAccount } from "./library/account";
 
@@ -75,6 +74,7 @@
 
     let query = await POST("mod/query", {
       AuthorID: targetProfile,
+      QuerySize: 100,
       Token: loggedInAccount != null ? loggedInAccount.token : "",
     });
     if (query.body.ModObjs != null) {
