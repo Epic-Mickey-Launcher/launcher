@@ -193,7 +193,7 @@
   <img alt="PFP Preview" src={pfpUrl} style="width:30px;margin-bottom:-10px;" />
 </p>
 <p>
-  <button onclick={Logout}>Log Out</button>
+  <button onclick={SignOut}>Log Out</button>
 </p>
 <p></p>
 <button onclick={DeleteAccount}>Delete Account</button>

@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import Dialog from "./components/dialog.svelte";
-  import { Subscribe } from "./library/callback";
   import { POST } from "./library/networking";
   import { LoginWithPassword, Register } from "./library/account";
   import { GetBackgroundLogin } from "./library/background";
@@ -128,6 +126,7 @@
         >
       </p>
     {/if}
+
     <p>
       {#if registering}
         <button class="registerbutton" onclick={() => Login(2)}>Register</button
