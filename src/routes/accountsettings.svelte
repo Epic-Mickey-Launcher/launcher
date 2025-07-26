@@ -84,7 +84,7 @@
       let res = await POST("user/delete", { Token: token }, false);
 
       if (!res.error) {
-        await Logout();
+        await SignOut();
       }
     }
   }

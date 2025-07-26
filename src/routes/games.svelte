@@ -153,7 +153,7 @@
   >
     <span style="position: absolute;top:3px;">+</span>
     <button class="addgamesubbutton" onclick={() => AddGame(true)}
-      >Add Game via Image
+      >Add Game via ROM
     </button>
     <button class="addgamesubbutton" onclick={() => AddGame(false)}
       >Add Game via Files

@@ -1,8 +1,9 @@
 <script lang="ts">
   import Dialog from "./components/dialog.svelte";
-  import { POST } from "./library/networking";
+  import { POST, securitySettings } from "./library/networking";
   import { LoginWithPassword, Register } from "./library/account";
   import { GetBackgroundLogin } from "./library/background";
+  import Captcha from "./components/captcha.svelte";
 
   let user: string = $state();
   let pass: string = $state();
@@ -12,6 +13,7 @@
   let resetPasswordEmail: any = $state();
   let forgotPasswordDialog: HTMLDialogElement = $state();
   let registering: boolean = $state(false);
+  let captcha: Captcha;
 
   $effect(() => {
     background.style.backgroundImage = `url(${GetBackgroundLogin().path})`;
@@ -24,12 +26,20 @@
   }
 
   async function Login(type: number) {
+    let token = "";
+    if (securitySettings.RegistrationRequiresCaptcha && registering) {
+      token = captcha.GetToken();
+      if (token == "") {
+        await alert("Please complete the captcha before proceeding.");
+        return;
+      }
+    }
+
     loadingDialog.showModal();
 
     let result: boolean = false;
     if (type == 1) {
       //login
-      console.log(user + " " + pass);
       result = await LoginWithPassword(user, pass);
     } else {
       //register
@@ -39,10 +49,14 @@
         );
         return;
       }
-      result = await Register(user, pass, mail);
-      await alert(
-        "Check your E-Mail for a confirmation to properly bind it to your account. Be sure to check your spam folder if its not in your inbox.",
-      );
+      result = await Register(user, pass, mail, token);
+      if (result == true) {
+        await alert(
+          "Check your E-Mail for a confirmation to properly bind it to your account. Be sure to check your spam folder if its not in your inbox.",
+        );
+      } else if (securitySettings.RegistrationRequiresCaptcha) {
+        captcha.Refresh();
+      }
     }
 
     if (result) {
@@ -125,6 +139,9 @@
           >Already have an account? <b>Login!</b></button
         >
       </p>
+    {/if}
+    {#if securitySettings.RegistrationRequiresCaptcha && registering}
+      <Captcha bind:this={captcha}></Captcha>
     {/if}
 
     <p>

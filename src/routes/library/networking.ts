@@ -5,6 +5,16 @@ export let outdated = false;
 export let offlineMode = false;
 import { loggedInAccount } from "./account.js";
 
+export let securitySettings: SecuritySettings;
+
+export interface SecuritySettings {
+  AllowRegistration: boolean;
+  AllowMods: boolean;
+  ModManualReviewRequired: boolean;
+  RegistrationRequiresCaptcha: boolean;
+  ModUploadRequiresCaptcha: boolean;
+}
+
 export interface UserInfo {
   username?: string;
   password?: string;
@@ -56,6 +66,9 @@ export function GetId(): string {
 
 export async function SetServerURL(url: string) {
   serverLink = url;
+  securitySettings = await GET("server/security");
+  console.log("Loaded Server Security Settings:");
+  console.log(securitySettings);
 }
 
 export async function MultipartPOST(

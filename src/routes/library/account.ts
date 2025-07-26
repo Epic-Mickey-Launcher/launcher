@@ -104,6 +104,7 @@ export async function Register(
   username: string,
   password: string,
   email: string,
+  captcha: string,
 ): Promise<boolean> {
   let response = await POST(
     "user/register",
@@ -111,11 +112,12 @@ export async function Register(
       username: username,
       password: password,
       email: email,
+      captcha: captcha,
     },
     false,
   );
   if (response.error) {
-    return;
+    return false;
   }
-  Login(response.body);
+  return (await Login(response.body)) == 200;
 }

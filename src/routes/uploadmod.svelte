@@ -2,15 +2,27 @@
   import { mount, onMount, unmount } from "svelte";
   import { open } from "@tauri-apps/plugin-dialog";
   import { invoke } from "@tauri-apps/api/core";
-  import { POST, serverLink } from "./library/networking";
+  import { POST, securitySettings, serverLink } from "./library/networking";
   import { GetData, SetData } from "./library/datatransfer";
   import ModInstall from "./components/ModInstall.svelte";
   import { remove } from "@tauri-apps/plugin-fs";
   import { loggedInAccount } from "./library/account";
+  import Captcha from "./components/captcha.svelte";
 
   let updatingID = null;
-
+  let captcha: Captcha;
   async function UploadMod() {
+    let token = "";
+
+    if (captcha != null) {
+      token = captcha.GetToken();
+      console.log(token);
+      if (token == "") {
+        await alert("Please complete the captcha before proceeding.");
+        return;
+      }
+    }
+
     const selected = await open({
       multiple: false,
       filters: [
@@ -52,6 +64,7 @@
       {
         Token: loggedInAccount.token,
         ID: updatingID,
+        Captcha: token,
       },
       false,
     );
@@ -107,10 +120,13 @@
 <h1>Upload Mod</h1>
 
 <hr />
-<div>
+<div style="display:flex; flex-direction: column;">
   {#if updatingID != null}
     <span>Updating Mod: {updatingID}</span>
     <p></p>
+  {/if}
+  {#if securitySettings.ModUploadRequiresCaptcha}
+    <Captcha bind:this={captcha}></Captcha>
   {/if}
   <button class="inputfile" onclick={UploadMod}
     >Upload Mod Archive (.zip/.tar/.7z/.rar)</button
@@ -119,20 +135,10 @@
 
 <style>
   .inputfile {
-    margin: auto;
-    display: block;
-    width: 500px;
-    height: 500px;
-    text-align: center;
+    width: 400px;
+    height: 100px;
     background-color: rgb(52, 52, 52);
     border: 1px solid gray;
     border-radius: 30px;
-  }
-
-  .dropdown {
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: black;
-    padding: 2px;
   }
 </style>
