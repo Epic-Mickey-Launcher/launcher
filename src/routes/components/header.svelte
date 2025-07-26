@@ -526,7 +526,7 @@
     columns: 1rem 1;
     width: 100%;
     backdrop-filter: blur(2px);
-    --webkit-backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     padding: 5px 0;
     justify-content: left;
   }

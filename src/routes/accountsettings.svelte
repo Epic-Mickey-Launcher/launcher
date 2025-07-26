@@ -5,7 +5,6 @@
     MultipartPOST,
     POST,
   } from "./library/networking";
-  import { WriteToken } from "./library/configfiles";
   import { onMount } from "svelte";
   import { loggedInAccount, LoginWithSession, Logout } from "./library/account";
 
