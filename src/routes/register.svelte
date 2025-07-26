@@ -13,15 +13,28 @@
   let resetPasswordEmail: any = $state();
   let forgotPasswordDialog: HTMLDialogElement = $state();
   let registering: boolean = $state(false);
-  let captcha: Captcha;
+  let captcha: Captcha = $state();
+  let captchaForgotPassword: Captcha = $state();
 
   $effect(() => {
     background.style.backgroundImage = `url(${GetBackgroundLogin().path})`;
   });
 
   async function SendEmail() {
-    await POST("user/otp", { email: resetPasswordEmail }, false, true);
-    await alert("Request sent!");
+    if (captchaForgotPassword.GetToken() == "") {
+      await alert("please complete the captcha before proceeding.");
+      return;
+    }
+
+    let res = await POST(
+      "user/otp",
+      { email: resetPasswordEmail, captcha: captchaForgotPassword.GetToken() },
+      false,
+      false,
+    );
+    if (!res.error) {
+      await alert("Request sent!");
+    }
     forgotPasswordDialog.close();
   }
 
@@ -87,7 +100,8 @@
         placeholder="E-Mail"
       />
     </p>
-
+    <Captcha bind:this={captchaForgotPassword}></Captcha>
+    <br />
     <button onclick={SendEmail}>Send Request</button>
     <button onclick={() => forgotPasswordDialog.close()}>Back</button>
   </dialog>
