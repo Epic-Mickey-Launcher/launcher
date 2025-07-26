@@ -358,7 +358,7 @@
         alt="Connection Warning"
         style="width:32px;margin-left:12px;"
         src="img/warning.svg"
-        title={offlineMode
+        title={offlineModeState
           ? "Offline Mode Enabled."
           : "Cannot connect to online services!"}
       />

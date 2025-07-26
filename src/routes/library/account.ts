@@ -43,14 +43,14 @@ export async function LoginWithPassword(
 
   await WriteToken(response.body);
 
-  if (!(await Login(response.body))) {
+  if ((await Login(response.body)) != 200) {
     console.log("Failed to retrieve data about logged-in account.");
     return false;
   }
   return true;
 }
 
-async function Login(token: string): Promise<boolean> {
+async function Login(token: string): Promise<number> {
   let response = await POST(
     "user/idfromtoken",
     {
@@ -62,11 +62,11 @@ async function Login(token: string): Promise<boolean> {
   if (response.error) {
     console.log("failed to log in with token!");
     await alert("failed to log in with provided token.");
-    return false;
+    return response.code;
   }
   let id = response.body;
   response = await POST("user/username", { id: id }, false, true);
-  if (response.error) return false;
+  if (response.error) return response.code;
   let username = response.body;
 
   loggedInAccount = {
@@ -76,7 +76,7 @@ async function Login(token: string): Promise<boolean> {
   };
   await WriteToken(token);
 
-  return true;
+  return response.code;
 }
 
 export async function LoginWithSession(): Promise<boolean> {
@@ -86,10 +86,14 @@ export async function LoginWithSession(): Promise<boolean> {
     console.log("client does not have a login token");
     return false;
   }
+  let loginResult = await Login(token);
 
-  if (!(await Login(token))) {
+  if (loginResult != 200) {
     console.log("Failed to retrieve data about logged-in account.");
-    await WriteToken("");
+    if (loginResult == 403) {
+      console.log("Server returned 403 on login. Erasing stored token.");
+      await WriteToken("");
+    }
     return false;
   }
 

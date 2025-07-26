@@ -1,4 +1,4 @@
-export let serverLink = "http://127.0.0.1:8574/"; // "https://emlapi.kalsvik.no/";
+export let serverLink = "https://emlapi.kalsvik.no/"; //"http://127.0.0.1:8574/" // "https://emlapi.kalsvik.no/";
 export const statusMessageLink =
   "https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus";
 export let outdated = false;
@@ -15,6 +15,7 @@ export interface UserInfo {
 export interface Response {
   error: boolean;
   body: any;
+  code: number;
 }
 
 export enum ImageType {
@@ -83,6 +84,7 @@ export async function MultipartPOST(
 
   return {
     body: await res.text(),
+    code: res.status,
     error: res.status != 200,
   };
 }
@@ -117,6 +119,7 @@ export async function POST(
 
   return {
     error: res.status != 200,
+    code: res.status,
     body: content,
   };
 }
