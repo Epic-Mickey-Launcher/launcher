@@ -43,7 +43,8 @@ commands.allow = [
     "open_path_in_file_manager",
     "open_config_folder",
     "get_frontend_config_path",
-    "dolphin_auto_set_custom_textures"
+    "dolphin_auto_set_custom_textures",
+    "get_server_url"
 ]
 
 [[scope.allow]]

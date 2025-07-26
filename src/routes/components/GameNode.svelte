@@ -1,7 +1,12 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
   import { mount, onMount, unmount } from "svelte";
-  import { GetImagePath, ImageType, POST } from "../library/networking";
+  import {
+    GetImagePath,
+    ImageType,
+    offlineMode,
+    POST,
+  } from "../library/networking";
   import {
     Game,
     OperatingSystemType,
@@ -34,6 +39,7 @@
   let playButton: HTMLButtonElement = $state();
 
   async function CheckForUpdate() {
+    if (offlineMode) return;
     let mods = [];
     try {
       let instance = gameInstance as GameInstance;

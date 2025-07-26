@@ -1,9 +1,19 @@
-export let serverLink = "https://emlapi.kalsvik.no/"; // "https://emlapi.kalsvik.no/";
+export let serverLink = "https://emlapi.kalsvik.no/"; //"http://127.0.0.1:8574/" // "https://emlapi.kalsvik.no/";
 export const statusMessageLink =
   "https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus";
 export let outdated = false;
 export let offlineMode = false;
 import { loggedInAccount } from "./account.js";
+
+export let securitySettings: SecuritySettings;
+
+export interface SecuritySettings {
+  AllowRegistration: boolean;
+  AllowMods: boolean;
+  ModManualReviewRequired: boolean;
+  RegistrationRequiresCaptcha: boolean;
+  ModUploadRequiresCaptcha: boolean;
+}
 
 export interface UserInfo {
   username?: string;
@@ -15,6 +25,7 @@ export interface UserInfo {
 export interface Response {
   error: boolean;
   body: any;
+  code: number;
 }
 
 export enum ImageType {
@@ -55,6 +66,9 @@ export function GetId(): string {
 
 export async function SetServerURL(url: string) {
   serverLink = url;
+  securitySettings = await GET("server/security");
+  console.log("Loaded Server Security Settings:");
+  console.log(securitySettings);
 }
 
 export async function MultipartPOST(
@@ -83,6 +97,7 @@ export async function MultipartPOST(
 
   return {
     body: await res.text(),
+    code: res.status,
     error: res.status != 200,
   };
 }
@@ -104,16 +119,20 @@ export async function POST(
     body: JSON.stringify(data, null, 4),
   });
 
+  let content: any = null;
   if (res.status != 200 && !suppressError) {
     await alert(
       serverLink + route + '\nRequest Failed: "' + (await res.text()) + '"',
     );
   }
 
-  let content: any = toJson ? await res.json() : await res.text();
+  if (res.status == 200) {
+    content = toJson ? await res.json() : await res.text();
+  }
 
   return {
     error: res.status != 200,
+    code: res.status,
     body: content,
   };
 }

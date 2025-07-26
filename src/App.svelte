@@ -17,12 +17,10 @@
   import ProfilePage from "./routes/profilepage.svelte";
   import ModPage from "./routes/modpage.svelte";
   import AccountSettings from "./routes/accountsettings.svelte";
-  import { SetServerURL, type UserInfo } from "./routes/library/networking";
   import { Invoke } from "./routes/library/callback";
   import { listen } from "@tauri-apps/api/event";
   import { invoke } from "@tauri-apps/api/core";
   import { exit } from "@tauri-apps/plugin-process";
-  import { getMatches } from "@tauri-apps/plugin-cli";
   import { onOpenUrl, register } from "@tauri-apps/plugin-deep-link";
   import { onMount } from "svelte";
   import DownloadMod from "./routes/components/downloadMod.svelte";
@@ -72,12 +70,6 @@
     switch (url.hostname) {
       case "gb":
         break;
-    }
-  });
-
-  getMatches().then(async (matches) => {
-    if (matches.args["server"].value != null) {
-      await SetServerURL(matches.args["server"].value as string);
     }
   });
 

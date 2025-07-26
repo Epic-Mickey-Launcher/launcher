@@ -80,5 +80,6 @@ Coming Soon
 - Dolphin Project: Emulates & Extracts Wii versions of the games. (https://github.com/dolphin-emu/dolphin)
 - RE-UE4SS: Used by EMR for script mods. (https://github.com/UE4SS-RE/RE-UE4SS)
 - Function Point: Awesome Edition. (https://www.youtube.com/@function_point)
+- Warren Spector: Director _(or creative director)_ for all of the games & also the face of the loading screens where I don't have an image to show.   
 - All EML users: At age 14, I did not expect my tiny dinky project to take off and do so well. It's been a really fun
   learning project, and I have way more in store for the future. Thank you all.

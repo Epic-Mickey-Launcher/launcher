@@ -5,7 +5,6 @@
     MultipartPOST,
     POST,
   } from "./library/networking";
-  import { WriteToken } from "./library/configfiles";
   import { onMount } from "svelte";
   import { loggedInAccount, LoginWithSession, Logout } from "./library/account";
 
@@ -85,7 +84,7 @@
       let res = await POST("user/delete", { Token: token }, false);
 
       if (!res.error) {
-        await Logout();
+        await SignOut();
       }
     }
   }
@@ -193,7 +192,7 @@
   <img alt="PFP Preview" src={pfpUrl} style="width:30px;margin-bottom:-10px;" />
 </p>
 <p>
-  <button onclick={Logout}>Log Out</button>
+  <button onclick={SignOut}>Log Out</button>
 </p>
 <p></p>
 <button onclick={DeleteAccount}>Delete Account</button>

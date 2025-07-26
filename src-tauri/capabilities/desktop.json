@@ -13,7 +13,6 @@
     "deep-link:default",
     "deep-link:allow-register",
     "dialog:default",
-    "cli:default",
     "fs:default",
     "fs:allow-resource-read-recursive",
     "fs:allow-resource-write-recursive",

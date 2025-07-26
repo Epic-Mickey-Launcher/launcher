@@ -11,7 +11,7 @@ pub async fn extract(isopath: String, gamename: String, dolphin: String) -> Resu
     let mut destination = helper::get_config_path()?;
     destination.push("Games");
     destination.push(gamename);
-
+    println!("pee");
     let mut dolphin_tool = PathBuf::from(dolphin);
     dolphin_tool.pop();
 

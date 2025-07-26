@@ -56,15 +56,6 @@
     ]
   },
   "plugins": {
-    "cli": {
-      "args": [
-        {
-          "name": "server",
-          "short": "s",
-          "takesValue": true
-        }
-      ]
-    },
     "deep-link": {
       "desktop": {
         "schemes": [

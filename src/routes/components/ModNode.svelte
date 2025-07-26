@@ -9,6 +9,7 @@
   import { activeInstance, SetActiveGameInstance } from "../library/config";
   import { mount, unmount } from "svelte";
   import ModInstall from "./ModInstall.svelte";
+  import { loggedInAccount } from "../library/account";
 
   let downloadStatus = $state("Download");
 
@@ -111,10 +112,13 @@
   <div bind:this={modNodeDiv} class="modNodeDiv">
     {#if loaded}
       <div>
-        <span
-          class="spanHyperLink"
+        <button
+          class="hyperlinkbutton"
           onclick={ViewPage}
-          style="font-weight:bold;text-overflow: ellipsis;">{modData.Name}</span
+          style="font-weight:bold;text-overflow: ellipsis;color:{!modData.Verified ||
+          !modData.Published
+            ? 'yellow'
+            : 'white'};">{modData.Name}</button
         >
 
         {#if modData.Version > 0}
@@ -134,10 +138,39 @@
       <div class="imgArea">
         <img
           class="modNodeImg"
-          alt="Mod Image"
+          alt="Mod Icon"
           src={GetImagePath(modData.ID, ImageType.Mod, false)}
         />
         <br />
+
+        {#if loggedInAccount != null}
+          {#if !modData.Verified}
+            <img
+              title="Manual Review Ongoing... Mod is not visible to public."
+              alt="manual review ongoing"
+              style="width:8px;padding-right: 5px;"
+              src="img/manualreviewongoing.svg"
+            />
+          {/if}
+
+          {#if !modData.Published}
+            <img
+              alt="not published"
+              title="Mod is not published and is not visible to public."
+              style="width:8px;padding-right: 5px;"
+              src="img/notpublished.svg"
+            />
+          {/if}
+
+          {#if modData.Author == loggedInAccount.id}
+            <img
+              alt="mod owner"
+              title="You own this mod."
+              style="width:16px;padding-right: 5px;"
+              src="img/modowner.svg"
+            />
+          {/if}
+        {/if}
         <span style="font-size:8px;">Likes: {likes}</span>
         <span style="font-size:8px;">Downloads: {modData.Downloads}</span>
         <span style="font-size:8px;">Comments: {comments}</span>

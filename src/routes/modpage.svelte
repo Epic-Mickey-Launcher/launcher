@@ -444,9 +444,22 @@
     </div>
   </div>
 
+  {#if !modInfo.Verified}
+    <span
+      style="display:flex;width:100%;align-items:center;justify-content:center;"
+    >
+      <p>
+        <span style="color:yellow;"
+          >This mod has not been manually reviewed by our team yet and is only
+          visible to you.</span
+        >
+      </p></span
+    >
+  {/if}
+
   {#if !modPublished}
     <span
-      style="display:flex;width:100;align-items:center;justify-content:center;"
+      style="display:flex;width:100%;align-items:center;justify-content:center;"
     >
       <p>
         <span style="color:yellow;"

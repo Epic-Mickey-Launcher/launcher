@@ -197,7 +197,7 @@
       if (connectionIssues) {
         console.log("couldn't ping server");
         let setOfflineMode = await confirm(
-          "The EML server failed to return respond! This could either be because the server is down, or because you don't have internet. Do you want to enable Offline Mode or quit?",
+          "The EML server failed to respond! This could either be because the server is down, or because you don't have internet. Do you want to enable Offline Mode or quit?",
         );
 
         if (setOfflineMode) {
@@ -358,7 +358,7 @@
         alt="Connection Warning"
         style="width:32px;margin-left:12px;"
         src="img/warning.svg"
-        title={offlineMode
+        title={offlineModeState
           ? "Offline Mode Enabled."
           : "Cannot connect to online services!"}
       />
@@ -408,8 +408,12 @@
                           SetData("modpage_id", element.Value);
                           window.open("#/modpage", "_self");
                         }}
-                        >{#await POST( "mod/get", { ID: element.Value }, ) then res}
-                          {res.body.Name}
+                        >{#await POST("mod/get", { ID: element.Value }, true, true) then res}
+                          {#if res.body != null}
+                            {res.body.Name}
+                          {:else}
+                            Unknown
+                          {/if}
                         {/await}</button
                       >
                     {/if}
@@ -522,7 +526,7 @@
     columns: 1rem 1;
     width: 100%;
     backdrop-filter: blur(2px);
-    --webkit-backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     padding: 5px 0;
     justify-content: left;
   }

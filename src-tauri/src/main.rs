@@ -30,6 +30,8 @@ pub mod mod_management;
 pub mod play;
 mod upload;
 
+const EML_SERVER_URL: &str = "https://emlapi.kalsvik.no/";
+
 fn main() {
     debug::init().expect("Failed to initialize Debug.");
 
@@ -42,7 +44,6 @@ fn main() {
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
             app.get_webview_window("main")
@@ -89,10 +90,20 @@ fn main() {
             generate_mod_project,
             package_mod_for_publish,
             dolphin_auto_set_custom_textures,
+            get_server_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[tauri::command]
+fn get_server_url() -> String {
+    match env::var("SERVER") {
+        Ok(url) => return url,
+        Err(_) => return EML_SERVER_URL.to_owned(),
+    }
+}
+
 fn show_window(app: &AppHandle) {
     let windows = app.webview_windows();
     windows

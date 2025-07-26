@@ -9,6 +9,7 @@
   import { LoadConfig, LoadGamesConfig, SaveConfig } from "./library/config";
   import { RetrieveFileByAlias } from "./library/filealias";
   import { DownloadDolphin } from "./library/dolphin";
+  import { offlineMode } from "./library/networking.js";
 
   let config: ConfigFile = $state();
   let modTemplateGenerator: HTMLDialogElement = $state();
@@ -181,7 +182,13 @@
   >
   <p></p>
   <h2>Dolphin Settings</h2>
-  <button onclick={DownloadDolphinEmu}>
+  <button
+    disabled={offlineMode}
+    title={offlineMode
+      ? "You cannot download Dolphin when in offline mode."
+      : ""}
+    onclick={DownloadDolphinEmu}
+  >
     {config.dolphinPath === "" ? "Download" : "Redownload"}
   </button>
   {#if config.dolphinPath !== ""}<span style="font-size:7px;color:lime;"

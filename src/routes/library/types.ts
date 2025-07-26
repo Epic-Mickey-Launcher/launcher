@@ -43,6 +43,7 @@ export interface Mod {
   Description: string;
   Dependencies: string[];
   CachedLikes: number;
+  Verified: boolean;
 }
 
 export interface FileAliasEntry {
