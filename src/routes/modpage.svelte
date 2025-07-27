@@ -81,9 +81,9 @@
 
   async function Init() {
     let modid = GetData("modpage_id");
-    let id = loggedInAccount.id;
+    let id = loggedInAccount != null ? loggedInAccount.id : "";
     localid = id;
-    let token = loggedInAccount.token;
+    let token = loggedInAccount != null ? loggedInAccount.token : "";
 
     let res = await POST("mod/get", { id: modid, token: token });
     if (res.error) return;
