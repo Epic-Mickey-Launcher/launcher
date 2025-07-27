@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { currentOperatingSystem, LoadConfig, SaveConfig } from "./config";
 import { serverLink } from "./networking";
-import { OperatingSystemType } from "./types";
+import { DolphinType, OperatingSystemType } from "./types";
 
 export const DOLPHIN_LINK_WINDOWS =
   serverLink + "tool/download?tool=dolphin&target=windows";
@@ -9,6 +9,23 @@ export const DOLPHIN_LINK_LINUX =
   serverLink + "tool/download?tool=dolphin&target=linux";
 export const DOLPHIN_LINK_MACOS =
   serverLink + "tool/download?tool=dolphin&target=macos";
+
+export async function DownloadDolphinFlatpak() {
+  await invoke("download_dolphin_flatpak");
+  await UseFlatpak();
+}
+
+export async function UseBundled() {
+  let config = await LoadConfig();
+  config.dolphinType = DolphinType.Bundled;
+  await SaveConfig(config);
+}
+
+export async function UseFlatpak() {
+  let config = await LoadConfig();
+  config.dolphinType = DolphinType.Flatpak;
+  await SaveConfig(config);
+}
 
 export async function DownloadDolphin() {
   let config = await LoadConfig();
@@ -32,4 +49,6 @@ export async function DownloadDolphin() {
   await invoke("dolphin_auto_set_custom_textures", {});
   await invoke("create_portable", { dolphinpath: config.dolphinPath });
   await SaveConfig(config);
+
+  await UseBundled();
 }

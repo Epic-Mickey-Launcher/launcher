@@ -71,6 +71,12 @@ export enum OperatingSystemType {
   Windows = "windows",
 }
 
+export enum DolphinType {
+  Linked = "linked", // dolphin is symlinked to /usr/bin/dolphin-emu
+  Bundled = "bundled", // using dolpin downloaded & provided by EML
+  Flatpak = "flatpak", // using dolphin from flatpak (mostly just for Steam Deck support)
+}
+
 export interface PublisherModData {
   projectPath: string;
   sshKey: string;
@@ -94,6 +100,7 @@ export interface PublisherMod {
 
 export interface ConfigFile {
   dolphinPath: string;
+  dolphinType: DolphinType;
   dolphinConfigPath: string;
   developerMode: boolean;
 }

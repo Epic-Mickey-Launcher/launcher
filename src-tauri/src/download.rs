@@ -43,20 +43,9 @@ pub async fn tool(
     Ok(to_pathbuf)
 }
 
-pub async fn zip(
-    url: String,
-    foldername: &PathBuf,
-    local: bool,
-    window: &Window,
-) -> Result<(), Error> {
-    debug::log(&format!("Downloading Archive {}", url));
-    fs::create_dir_all(&foldername)?;
-
-    let mut temporary_archive_path_buf = foldername.clone();
-
-    temporary_archive_path_buf.push("temp");
-
-    let temporary_archive_path = temporary_archive_path_buf.to_str().unwrap().to_string();
+pub async fn file(url: String, path: &PathBuf, local: bool, window: &Window) -> Result<(), Error> {
+    let dir_path = PathBuf::from(&path);
+    fs::create_dir_all(dir_path.parent().unwrap())?;
 
     let mut buffer;
 
@@ -81,7 +70,7 @@ pub async fn zip(
         buffer = reqwest::get(&url).await?.bytes_stream();
 
         let mut download_bytes_count = 0;
-        let mut f = File::create(&temporary_archive_path)?;
+        let mut f = File::create(&path)?;
         let mut next_update_count = 0;
 
         while let Some(item) = buffer.next().await {
@@ -98,8 +87,8 @@ pub async fn zip(
                     ));
                     buffer = reqwest::get(&url).await?.bytes_stream();
                     download_bytes_count = 0;
-                    fs::remove_file(&temporary_archive_path)?;
-                    f = File::create(&temporary_archive_path)?;
+                    fs::remove_file(&path)?;
+                    f = File::create(&path)?;
 
                     buf
                 }
@@ -127,8 +116,22 @@ pub async fn zip(
             f.write_all(buf)?;
         }
     } else {
-        fs::copy(&url, &temporary_archive_path)?;
+        fs::copy(&url, &path)?;
     }
+
+    Ok(())
+}
+
+pub async fn zip(
+    url: String,
+    foldername: &PathBuf,
+    local: bool,
+    window: &Window,
+) -> Result<(), Error> {
+    debug::log(&format!("Downloading Archive {}", url));
+
+    let tmp_file: PathBuf = [foldername.to_str().unwrap(), "tmp"].iter().collect();
+    file(url, &tmp_file, local, window).await?;
     window.emit(
         "download-stat",
         ModDownloadStats {
@@ -138,7 +141,7 @@ pub async fn zip(
             description: "This might take a while depending on your drive speed.".to_string(),
         },
     )?;
-    archive::extract(temporary_archive_path.clone(), foldername)?;
+    archive::extract(tmp_file.to_str().unwrap().to_string(), foldername)?;
     window.emit(
         "download-stat",
         ModDownloadStats {
@@ -148,7 +151,7 @@ pub async fn zip(
             description: "This shouldn't take too long.".to_string(),
         },
     )?;
-    fs::remove_file(temporary_archive_path)?;
+    fs::remove_file(&tmp_file)?;
     debug::log("Finished archive download");
     Ok(())
 }

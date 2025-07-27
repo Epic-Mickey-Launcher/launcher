@@ -1,4 +1,5 @@
 import {
+  DolphinType,
   Game,
   type GameConfig,
   type GameIdentity,
@@ -177,6 +178,7 @@ export class GameInstance {
         dolphin: config.dolphinPath,
         exe: this.gameConfig.path + "/sys/main.dol",
         id: id,
+        flatpak: config.dolphinType == DolphinType.Flatpak,
       }).then((res) => {
         if (res == 1) {
           alert(
@@ -201,6 +203,7 @@ export class GameInstance {
             this.gameConfig.path,
             gameRelease.identifier,
           ),
+          flatpak: false,
           exe: "",
           id: "",
         }).then((res) => {

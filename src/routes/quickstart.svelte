@@ -1,13 +1,21 @@
 <script lang="ts">
   import { mount, onMount, unmount } from "svelte";
-  import { SetHeaderVisible } from "./library/config";
+  import { currentOperatingSystem, SetHeaderVisible } from "./library/config";
   import ModInstall from "./components/ModInstall.svelte";
-  import { DownloadDolphin } from "./library/dolphin";
+  import {
+    DownloadDolphin,
+    DownloadDolphinFlatpak,
+    UseFlatpak,
+  } from "./library/dolphin";
+  import { readFile } from "@tauri-apps/plugin-fs";
+  import { OperatingSystemType } from "./library/types";
+  import { invoke } from "@tauri-apps/api/core";
 
   let mickeyLogo: HTMLDivElement = $state();
   let initialSetup: HTMLDivElement = $state();
   let background: HTMLDivElement = $state();
   let installDolphin = $state(true);
+  let installFlatpakDolphin = $state(false);
   onMount(async () => {
     SetHeaderVisible(false);
 
@@ -15,6 +23,13 @@
     mickeyLogo.classList.toggle("MickeyLogoFinished");
     mickeyLogo.classList.toggle("MickeyLogoFinishedDisappear");
     initialSetup.classList.toggle("InitialSetupFinished");
+
+    if (currentOperatingSystem == OperatingSystemType.Linux) {
+      let os_release: string = await invoke("get_os_release");
+      if (os_release.includes("SteamOS") || os_release.includes("Bazzite")) {
+        installFlatpakDolphin = true;
+      }
+    }
 
     setTimeout(() => {
       mickeyLogo.classList.toggle("MickeyLogoFinished");
@@ -40,7 +55,18 @@
       modInstallElement.modName = "Dolphin";
       modInstallElement.modIcon = "img/dolphin.png";
       modInstallElement.showDownloadProgression = true;
-      await DownloadDolphin();
+      if (installFlatpakDolphin) {
+        let confirmDownload = await confirm(
+          "Do you want EML to automatically download the Dolphin flatpak? This is not necessary if you already have it installed.",
+        );
+        if (confirmDownload) {
+          await DownloadDolphinFlatpak();
+        } else {
+          await UseFlatpak();
+        }
+      } else {
+        await DownloadDolphin();
+      }
       await unmount(modInstallElement);
     }
 
@@ -82,6 +108,18 @@
       Extraction):
     </span>
     <input bind:checked={installDolphin} type="checkbox" />
+
+    {#if installDolphin && currentOperatingSystem == OperatingSystemType.Linux}
+      <p></p>
+      <span
+        >• Install Dolphin with Flatpak <b
+          >(REQUIRED FOR STEAM DECK OR OTHER IMMUTABLE DISTROS, NOT RECOMMENDED
+          OTHERWISE)</b
+        >:
+      </span>
+      <input bind:checked={installFlatpakDolphin} type="checkbox" />
+    {/if}
+
     <p></p>
     <span style="width: 100%;justify-content: center;display: flex;">
       <button onclick={Proceed} style="text-align: center;">Get Started!</button

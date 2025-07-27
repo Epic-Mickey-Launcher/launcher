@@ -32,6 +32,7 @@
     SetOS,
   } from "./routes/library/config";
   import { LoginWithSession } from "./routes/library/account";
+  import { DolphinType } from "./routes/library/types";
 
   let DownloadModComponent = $state(DownloadMod);
   let SelectGameForModComponent = $state(SelectGameForMod);
@@ -136,7 +137,10 @@
         case "KeyD":
         case "68":
           LoadConfig().then((d) => {
-            invoke("open_dolphin", { path: d.dolphinPath });
+            invoke("open_dolphin", {
+              path: d.dolphinPath,
+              flatpak: d.dolphinType == DolphinType.Flatpak,
+            });
           });
           break;
       }

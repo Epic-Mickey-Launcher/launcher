@@ -44,7 +44,9 @@ commands.allow = [
     "open_config_folder",
     "get_frontend_config_path",
     "dolphin_auto_set_custom_textures",
-    "get_server_url"
+    "get_server_url",
+    "download_dolphin_flatpak",
+    "get_os_release"
 ]
 
 [[scope.allow]]

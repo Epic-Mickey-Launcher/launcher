@@ -4,9 +4,15 @@ use anyhow::Result;
 use anyhow::{anyhow, Error};
 use std::fs;
 use std::path::PathBuf;
+use std::process::Output;
 use std::process::{Command, Stdio};
 
-pub async fn extract(isopath: String, gamename: String, dolphin: String) -> Result<String, Error> {
+pub async fn extract(
+    isopath: String,
+    gamename: String,
+    dolphin: String,
+    flatpak: bool,
+) -> Result<String, Error> {
     debug::log("beginning ISO extraction");
     let mut destination = helper::get_config_path()?;
     destination.push("Games");
@@ -24,7 +30,7 @@ pub async fn extract(isopath: String, gamename: String, dolphin: String) -> Resu
 
     fs::create_dir_all(&destination)?;
 
-    if !dolphin_tool.exists() {
+    if !dolphin_tool.exists() && !flatpak {
         return Err(anyhow!("dolphin tool does not exist"));
     }
 
@@ -32,20 +38,32 @@ pub async fn extract(isopath: String, gamename: String, dolphin: String) -> Resu
         fs::remove_dir_all(&destination)?;
     }
 
-    Command::new(dolphin_tool)
-        .arg("extract")
-        .arg("-i")
-        .arg(isopath)
-        .arg("-o")
-        .arg(&destination)
-        .output()?;
+    if flatpak {
+        Command::new("flatpak")
+            .arg("run")
+            .arg("--command=dolphin-tool")
+            .arg("org.DolphinEmu.dolphin-emu")
+            .arg("extract")
+            .arg("-i")
+            .arg(isopath)
+            .arg("-o")
+            .arg(&destination)
+            .output()?;
+    } else {
+        Command::new(dolphin_tool)
+            .arg("extract")
+            .arg("-i")
+            .arg(isopath)
+            .arg("-o")
+            .arg(&destination)
+            .output()?;
+    }
 
     let output = destination.to_str().unwrap();
-
     Ok(output.to_string())
 }
 
-pub fn check(path: String, dolphin: String) -> Result<String, Error> {
+pub fn check(path: String, dolphin: String, flatpak: bool) -> Result<String, Error> {
     debug::log("Checking Game ID");
 
     let mut dolphin_tool = PathBuf::from(dolphin);
@@ -57,12 +75,27 @@ pub fn check(path: String, dolphin: String) -> Result<String, Error> {
     #[cfg(target_os = "macos")]
     dolphin_tool.push("dolphin-tool");
 
-    let dolphin = Command::new(dolphin_tool)
-        .arg("header")
-        .arg("-i")
-        .arg(path)
-        .stdout(Stdio::piped())
-        .output()?;
+    let dolphin: Output;
+
+    if flatpak {
+        dolphin = Command::new("flatpak")
+            .arg("run")
+            .arg("--command=dolphin-tool")
+            .arg("org.DolphinEmu.dolphin-emu")
+            .arg("header")
+            .arg("-i")
+            .arg(path)
+            .stdout(Stdio::piped())
+            .output()?;
+    } else {
+        dolphin = Command::new(dolphin_tool)
+            .arg("header")
+            .arg("-i")
+            .arg(path)
+            .stdout(Stdio::piped())
+            .output()?;
+    }
+
     let stdout = String::from_utf8(dolphin.stdout)?;
     let mut s = stdout.split("\n");
 
