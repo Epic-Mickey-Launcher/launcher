@@ -64,9 +64,11 @@
       }
       result = await Register(user, pass, mail, token);
       if (result == true) {
-        await alert(
-          "Check your E-Mail for a confirmation to properly bind it to your account. Be sure to check your spam folder if its not in your inbox.",
-        );
+        if (mail != "") {
+          await alert(
+            "Check your E-Mail for a confirmation to properly bind it to your account. Be sure to check your spam folder if its not in your inbox.",
+          );
+        }
       } else if (securitySettings.RegistrationRequiresCaptcha) {
         captcha.Refresh();
       }
