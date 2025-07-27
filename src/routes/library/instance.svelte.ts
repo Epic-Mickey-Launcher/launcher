@@ -169,7 +169,10 @@ export class GameInstance {
   async Play() {
     let config = await LoadConfig();
     if (this.gameConfig.platform.toUpperCase() == Platform.Wii) {
-      if (config.dolphinPath == "") {
+      if (
+        config.dolphinPath == "" &&
+        config.dolphinType != DolphinType.Flatpak
+      ) {
         alert("Dolphin is required for this game to work!");
         return;
       }
