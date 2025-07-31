@@ -7,7 +7,6 @@ permissions = [
     "fs:read_all",
     "cli:default",
     "deep-link:default",
-    "core:webview:allow-internal-toggle-devtools",
     "allow-default"
 ]
 

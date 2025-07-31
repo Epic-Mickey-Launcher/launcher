@@ -37,7 +37,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let _ = show_window(app);
         }))
         .plugin(tauri_plugin_log::Builder::new().build())

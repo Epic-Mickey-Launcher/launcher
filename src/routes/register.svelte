@@ -22,7 +22,7 @@
 
   async function SendEmail() {
     if (captchaForgotPassword.GetToken() == "") {
-      await alert("please complete the captcha before proceeding.");
+      await alert("Please complete the captcha before proceeding.");
       return;
     }
 

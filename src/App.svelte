@@ -21,18 +21,26 @@
   import { listen } from "@tauri-apps/api/event";
   import { invoke } from "@tauri-apps/api/core";
   import { exit } from "@tauri-apps/plugin-process";
-  import { onOpenUrl, register } from "@tauri-apps/plugin-deep-link";
+  import {
+    getCurrent,
+    isRegistered,
+    onOpenUrl,
+    register,
+  } from "@tauri-apps/plugin-deep-link";
   import { onMount } from "svelte";
   import DownloadMod from "./routes/components/downloadMod.svelte";
   import { ConvertGamesConfigToTrackedGames } from "./routes/library/legacy";
   import {
+    activeInstance,
     LoadConfig,
     LoadGameInstancesFromTrackingFile,
+    SetActiveGameInstance,
     SetHeader,
     SetOS,
   } from "./routes/library/config";
   import { LoginWithSession } from "./routes/library/account";
   import { DolphinType } from "./routes/library/types";
+  import { SetData } from "./routes/library/datatransfer";
 
   let DownloadModComponent = $state(DownloadMod);
   let SelectGameForModComponent = $state(SelectGameForMod);
@@ -44,9 +52,8 @@
   ErrorCatcher();
   ListenLoop();
 
-  register("eml");
-
   onMount(async () => {
+    await register("eml");
     await SetOS();
     await GetPath();
     let config = await LoadConfig();
@@ -61,18 +68,33 @@
     initialConfigLoaded = true;
 
     LoginWithSession(); // attempt log in on application start up
+
+    const urls = await getCurrent();
+    urls.forEach((u) => handleUrl(u));
+
+    console.log("deep link registered: " + (await isRegistered("eml")));
+
+    await onOpenUrl(async (urls) => {
+      urls.forEach((u) => handleUrl(u));
+    });
   });
 
-  onOpenUrl(async (urls) => {
-    alert(urls[0]);
-    console.log("catched url call");
-    let url = new URL(urls[0]);
-    console.log(url.hostname);
+  function handleUrl(_url: string) {
+    const url = new URL(_url);
+    const params = url.searchParams;
+
     switch (url.hostname) {
-      case "gb":
+      case "openmod":
+        if (!params.has("id")) {
+          break;
+        }
+
+        SetData("modpage_id", params.get("id"));
+        SetActiveGameInstance(activeInstance);
+        window.open("#/modpage", "_self");
         break;
     }
-  });
+  }
 
   async function RouteLoaded() {
     await GetPath();
