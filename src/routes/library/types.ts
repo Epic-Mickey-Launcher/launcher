@@ -41,6 +41,7 @@ export interface Mod {
   Published: boolean;
   Name: string;
   Description: string;
+  ShortDescription: string;
   Dependencies: string[];
   CachedLikes: number;
   Verified: boolean;

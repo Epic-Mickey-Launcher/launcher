@@ -59,7 +59,7 @@
       len += 1;
     }
 
-    description = modData.Description;
+    description = modData.ShortDescription;
 
     if (modData.Description.length > len) {
       let newDesc = modData.Description.substring(0, len).trim();
