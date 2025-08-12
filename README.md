@@ -63,11 +63,13 @@ installed via [yay](https://github.com/Jguer/yay) with `yay -S epicmickeylaunche
 - Git
 
 ```
-git clone https://github.com/KjubDusJub/Epic-Mickey-Launcher.git
-cd Epic-Mickey-Launcher
+git clone https://github.com/Epic-Mickey-Launcher/launcher.git eml-source
+cd eml-source
 pnpm install
 npm run tauri dev
 ```
+
+To use a custom EML Server instance, use this environment variable: `SERVER=http://host:42069/`
 
 # Roadmap
 

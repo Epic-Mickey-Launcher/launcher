@@ -23,7 +23,7 @@ bytes = "1.10.1"
 futures-util = "0.3.31"
 open = "5.1.2"
 chrono = "0.4.31"
-eml-validate = "0.1.9"
+eml-validate = {git = "https://github.com/Epic-Mickey-Launcher/validate"}
 dataurl = "0.1.2"
 tauri = { version = "2.0.0-rc.10", features = ["devtools"] }
 tauri-plugin-log = "2.0.0-rc"

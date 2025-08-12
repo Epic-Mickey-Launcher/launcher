@@ -143,7 +143,7 @@ fn open_dolphin(path: String, flatpak: bool) {
 
 #[tauri::command]
 fn open_link(url: String, window: Window) {
-    open::that(url).unwrap_or_else(|error| {
+    open::that_detached(url).unwrap_or_else(|error| {
         helper::handle_error(anyhow::Error::from(error), &window);
     });
 }
@@ -377,13 +377,21 @@ async fn generate_mod_project(
     path: String,
     name: String,
     description: String,
+    short_description: String,
     window: Window,
 ) {
-    mod_management::generate_mod_template(name, description, game, platform, path)
-        .await
-        .unwrap_or_else(|error| {
-            helper::handle_error(error, &window);
-        })
+    mod_management::generate_mod_template(
+        name,
+        description,
+        short_description,
+        game,
+        platform,
+        path,
+    )
+    .await
+    .unwrap_or_else(|error| {
+        helper::handle_error(error, &window);
+    })
 }
 #[tauri::command]
 async fn package_mod_for_publish(window: Window) -> String {

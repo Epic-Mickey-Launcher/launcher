@@ -32,6 +32,7 @@
 
   let title: string = $state("");
   let description: string = $state("");
+  let shortDescription: string = $state("");
   let iconPath: string = $state("");
   let game: Game = $state(Game.EM1);
   let platform: Platform = $state(Platform.Wii);
@@ -113,8 +114,8 @@
       return;
     }
 
-    if (iconPath == "") {
-      console.log("Please set an icon.");
+    if (iconPath == "" || iconPath == null) {
+      await alert("Please set an icon.");
       return;
     }
 
@@ -128,6 +129,7 @@
       platform: platform,
       path: selected,
       name: title,
+      shortDescription: shortDescription,
       description: description,
     });
 
@@ -165,6 +167,12 @@
 
     <input placeholder="Mod Title" style="width:100%;" bind:value={title} />
     <p></p>
+    <input
+      placeholder="Short Description"
+      style="width:100%;"
+      bind:value={shortDescription}
+    />
+    <p></p>
     <textarea
       placeholder="Description (formatted in markdown)"
       style="width: 100%;min-height: 20vw;"
@@ -185,7 +193,7 @@
     </select>
     <p></p>
     <button style="width:100%;" onclick={SetIcon}>
-      {#if iconPath === ""}
+      {#if iconPath == "" || iconPath == null}
         Set Icon
       {:else}
         Icon Set!
