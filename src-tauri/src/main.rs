@@ -37,7 +37,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let _ = show_window(app);
         }))
         .plugin(tauri_plugin_log::Builder::new().build())
@@ -90,10 +90,21 @@ fn main() {
             generate_mod_project,
             package_mod_for_publish,
             dolphin_auto_set_custom_textures,
-            get_server_url
+            get_server_url,
+            download_dolphin_flatpak,
+            get_os_release
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[tauri::command]
+async fn download_dolphin_flatpak(window: Window) {
+    dolphin::download_dolphin_flatpak(&window)
+        .unwrap_or_else(|error| {
+            helper::handle_error(anyhow::Error::from(error), &window);
+        })
+        .await
 }
 
 #[tauri::command]
@@ -126,13 +137,13 @@ fn dolphin_auto_set_custom_textures() {
 }
 
 #[tauri::command]
-fn open_dolphin(path: String) {
-    dolphin::open(path);
+fn open_dolphin(path: String, flatpak: bool) {
+    dolphin::open(path, flatpak);
 }
 
 #[tauri::command]
 fn open_link(url: String, window: Window) {
-    open::that(url).unwrap_or_else(|error| {
+    open::that_detached(url).unwrap_or_else(|error| {
         helper::handle_error(anyhow::Error::from(error), &window);
     });
 }
@@ -183,8 +194,14 @@ fn write_mod_info(
 }
 
 #[tauri::command]
-async fn extract_iso(isopath: String, gamename: String, dolphin: String, window: Window) -> String {
-    iso_extract::extract(isopath, gamename, dolphin)
+async fn extract_iso(
+    isopath: String,
+    gamename: String,
+    dolphin: String,
+    flatpak: bool,
+    window: Window,
+) -> String {
+    iso_extract::extract(isopath, gamename, dolphin, flatpak)
         .await
         .unwrap_or_else(|error| {
             helper::handle_error(error, &window);
@@ -200,6 +217,14 @@ async fn download_tool(url: String, foldername: String, window: Window) -> PathB
             helper::handle_error(error, &window);
             PathBuf::new()
         })
+}
+
+#[tauri::command]
+async fn get_os_release() -> String {
+    match fs::read_to_string("/etc/os-release") {
+        Ok(res) => return res.to_string(),
+        Err(_) => return "".to_string(),
+    }
 }
 
 #[tauri::command]
@@ -223,15 +248,15 @@ fn open_path_in_file_manager(path: String, window: Window) {
 }
 
 #[tauri::command]
-fn playgame(dolphin: String, exe: String, window: Window) {
-    play::game(dolphin, exe).unwrap_or_else(|error| {
+fn playgame(dolphin: String, exe: String, flatpak: bool, window: Window) {
+    play::game(dolphin, exe, flatpak).unwrap_or_else(|error| {
         helper::handle_error(error, &window);
     })
 }
 
 #[tauri::command]
-fn check_iso(path: String, dolphin: String, window: Window) -> String {
-    iso_extract::check(path, dolphin).unwrap_or_else(|error| {
+fn check_iso(path: String, dolphin: String, flatpak: bool, window: Window) -> String {
+    iso_extract::check(path, dolphin, flatpak).unwrap_or_else(|error| {
         helper::handle_error(error, &window);
         "".to_string()
     })
@@ -352,13 +377,21 @@ async fn generate_mod_project(
     path: String,
     name: String,
     description: String,
+    short_description: String,
     window: Window,
 ) {
-    mod_management::generate_mod_template(name, description, game, platform, path)
-        .await
-        .unwrap_or_else(|error| {
-            helper::handle_error(error, &window);
-        })
+    mod_management::generate_mod_template(
+        name,
+        description,
+        short_description,
+        game,
+        platform,
+        path,
+    )
+    .await
+    .unwrap_or_else(|error| {
+        helper::handle_error(error, &window);
+    })
 }
 #[tauri::command]
 async fn package_mod_for_publish(window: Window) -> String {

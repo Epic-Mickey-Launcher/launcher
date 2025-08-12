@@ -1,4 +1,5 @@
 import {
+  DolphinType,
   Game,
   type GameConfig,
   type GameIdentity,
@@ -168,7 +169,10 @@ export class GameInstance {
   async Play() {
     let config = await LoadConfig();
     if (this.gameConfig.platform.toUpperCase() == Platform.Wii) {
-      if (config.dolphinPath == "") {
+      if (
+        config.dolphinPath == "" &&
+        config.dolphinType != DolphinType.Flatpak
+      ) {
         alert("Dolphin is required for this game to work!");
         return;
       }
@@ -177,6 +181,7 @@ export class GameInstance {
         dolphin: config.dolphinPath,
         exe: this.gameConfig.path + "/sys/main.dol",
         id: id,
+        flatpak: config.dolphinType == DolphinType.Flatpak,
       }).then((res) => {
         if (res == 1) {
           alert(
@@ -201,6 +206,7 @@ export class GameInstance {
             this.gameConfig.path,
             gameRelease.identifier,
           ),
+          flatpak: false,
           exe: "",
           id: "",
         }).then((res) => {

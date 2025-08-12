@@ -1,10 +1,10 @@
 <img src="https://eml.kalsvik.no/eml.png" width="400">
 
-### Easiest way to Play & Mod Epic Mickey on Windows, Mac, and Linux
+### Easiest way to Play & Mod Epic Mickey on Windows, Mac, and Linux (+ Steam Deck)
 
 ---
 
-## Support for every Epic Mickey game
+## Support for every mainline Epic Mickey game
 
 _(Not Including Epic Mickey 2 on XBOX, Wii U or PS3)_
 
@@ -34,15 +34,19 @@ _Easily Disable/Enable mods with one click._
 
 ## Windows
 
-Download the latest .MSI or .EXE from the latest [Release](https://github.com/KjubDusJub/Epic-Mickey-Launcher/releases)
+Download the latest .MSI or .EXE from the latest [Release](https://github.com/Epic-Mickey-Launcher/launcher/releases)
 
 ## MacOS
 
-Download the latest .DMG or .app from the latest [Release](https://github.com/KjubDusJub/Epic-Mickey-Launcher/releases)
+Download the latest .DMG or .app from the latest [Release](https://github.com/Epic-Mickey-Launcher/launcher/releases)
+
+## Steam Deck (Linux)
+
+Epic Mickey Launcher provides an [AppImage](https://github.com/Epic-Mickey-Launcher/launcher/releases) that can be run with one click after downloading. **Make sure that _'Install Dolphin with Flatpak'_ is CHECKED when peforming first-time setup.**
 
 ## Linux (Debian)
 
-Download the latest .DEB from the latest [Release](https://github.com/KjubDusJub/Epic-Mickey-Launcher/releases)
+Download the latest .DEB from the latest [Release](https://github.com/Epic-Mickey-Launcher/launcher/releases)
 
 ## Linux (Arch)
 
@@ -59,11 +63,13 @@ installed via [yay](https://github.com/Jguer/yay) with `yay -S epicmickeylaunche
 - Git
 
 ```
-git clone https://github.com/KjubDusJub/Epic-Mickey-Launcher.git
-cd Epic-Mickey-Launcher
+git clone https://github.com/Epic-Mickey-Launcher/launcher.git eml-source
+cd eml-source
 pnpm install
 npm run tauri dev
 ```
+
+To use a custom EML Server instance, use this environment variable: `SERVER=http://host:42069/`
 
 # Roadmap
 

@@ -1,6 +1,7 @@
 import { LoadConfig } from "./config";
 import { invoke } from "@tauri-apps/api/core";
 import { GetGameIdentity, IdentifyISO } from "./gameid";
+import { DolphinType } from "./types";
 
 export async function ExtractISO(
   source: string,
@@ -9,6 +10,7 @@ export async function ExtractISO(
   let config = await LoadConfig();
   let result: string = await invoke("check_iso", {
     path: source,
+    flatpak: config.dolphinType == DolphinType.Flatpak,
     dolphin: config.dolphinPath,
   });
 
@@ -37,6 +39,7 @@ export async function ExtractISO(
   return await invoke("extract_iso", {
     gamename: `${gameIdentity.name.toLowerCase().replaceAll(" ", "_")}_(${result.toLowerCase()})`,
     isopath: source,
+    flatpak: config.dolphinType == DolphinType.Flatpak,
     dolphin: config.dolphinPath,
   });
 }

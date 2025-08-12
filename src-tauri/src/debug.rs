@@ -9,6 +9,7 @@ use std::path::Path;
 use crate::helper;
 
 pub fn init() -> Result<()> {
+    return Ok(());
     let mut path = helper::get_config_path().expect("could not get config dir");
     fs::create_dir_all(&path)?;
     path.push("Log.txt");
@@ -18,7 +19,6 @@ pub fn init() -> Result<()> {
     }
 
     let now = Local::now();
-
     fs::write(
         &path,
         format!(
@@ -40,6 +40,7 @@ pub fn init() -> Result<()> {
 }
 
 pub fn log(output: &str) {
+    return;
     let mut path = helper::get_config_path().expect("could not get config dir");
     path.push(r"Log.txt");
     let now = Local::now();

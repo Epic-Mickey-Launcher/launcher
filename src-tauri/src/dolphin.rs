@@ -1,4 +1,5 @@
 extern crate dirs_next;
+use crate::download;
 use crate::helper;
 use anyhow::Result;
 use std::env;
@@ -8,6 +9,57 @@ use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;
+use tauri::Window;
+
+const DOLPHIN_FLATPAK: &str =
+    "https://dl.dolphin-emu.org/releases/2506a/dolphin-2506a-x86_64.flatpak";
+
+pub async fn download_dolphin_flatpak(window: &Window) -> Result<()> {
+    let mut config_path = helper::get_config_path().expect("could not get config dir");
+    config_path.push("dolphin.flatpak");
+    download::file(DOLPHIN_FLATPAK.to_string(), &config_path, false, window).await?;
+
+    Command::new("flatpak")
+        .arg("install")
+        .arg("--user")
+        .arg("--assumeyes")
+        .arg(&config_path)
+        .output()
+        .unwrap();
+
+    fs::remove_file(config_path)?;
+
+    Ok(())
+}
+
+pub async fn link_global_dolphin() -> Result<()> {
+    let mut config_path = helper::get_config_path().expect("could not get config dir");
+    config_path.push("Dolphin");
+
+    if config_path.exists() {
+        fs::remove_dir_all(&config_path)?;
+    }
+
+    fs::create_dir_all(&config_path)?;
+
+    let mut config_path_dolphin_emu = config_path.clone();
+    config_path_dolphin_emu.push("dolphin-emu");
+
+    let mut config_path_dolphin_tool = config_path.clone();
+    config_path_dolphin_tool.push("dolphin-tool");
+
+    fs::hard_link("/usr/bin/dolphin-emu", config_path_dolphin_emu)?;
+    fs::hard_link("/usr/bin/dolphin-tool", config_path_dolphin_tool)?; // this could turn into a
+                                                                       // problem
+    Ok(())
+}
+
+pub async fn check_dolphin_installed_global() -> bool {
+    match fs::exists("/usr/bin/dolphin-emu") {
+        Ok(res) => return res,
+        Err(_) => return false,
+    }
+}
 
 pub fn find_dir(where_in: &PathBuf) -> PathBuf {
     let mut config_path = helper::get_config_path().expect("could not get config dir");
@@ -37,21 +89,50 @@ pub fn auto_set_custom_textures() {
     }
 }
 
-pub fn open(path: String) {
+pub fn flatpak_dolphin_override() -> Result<()> {
+    Command::new("flatpak")
+        .arg("override")
+        .arg("org.DolphinEmu.dolphin-emu")
+        .arg("--filesystem")
+        .arg("host")
+        .arg("--user")
+        .spawn()?;
+
+    Ok(())
+}
+
+pub fn open(path: String, flatpak: bool) {
     let mut config_path = helper::get_config_path().expect("could not get config dir");
     config_path.push("DolphinConfig");
 
     #[cfg(target_os = "windows")]
     Command::new(path).arg("-u").arg(config_path).spawn();
     #[cfg(target_os = "linux")]
-    //QT env variable is for wayland functionality
-    Command::new(if path == "" { "dolphin-emu" } else { &path })
-        .arg("-u")
-        .arg(config_path)
-        .env("QT_QPA_PLATFORM", "xcb")
-        .env("WAYLAND_DISPLAY", "0")
-        .spawn()
-        .expect("failed to start dolphin");
+    {
+        if !flatpak {
+            //QT env variable is for wayland functionality
+            Command::new(if path == "" { "dolphin-emu" } else { &path })
+                .arg("-u")
+                .arg(config_path)
+                .env("QT_QPA_PLATFORM", "xcb")
+                .env("WAYLAND_DISPLAY", "0")
+                .spawn()
+                .expect("failed to start dolphin");
+        } else {
+            // make sure the flatpak can access eml config
+            flatpak_dolphin_override().expect("failed to override flatpak permission");
+            Command::new("flatpak")
+                .arg("run")
+                .arg("--command=dolphin-emu")
+                .arg("org.DolphinEmu.dolphin-emu")
+                .arg("-u")
+                .arg(config_path)
+                .env("QT_QPA_PLATFORM", "xcb")
+                .env("WAYLAND_DISPLAY", "0")
+                .spawn()
+                .expect("failed to start dolphin (flatpak)");
+        }
+    }
     #[cfg(target_os = "macos")]
     {
         Command::new("xattr")

@@ -5,10 +5,26 @@
   import { invoke } from "@tauri-apps/api/core";
   import ModInstall from "./components/ModInstall.svelte";
   import { copyFile, remove } from "@tauri-apps/plugin-fs";
-  import { type ConfigFile, Game, Platform } from "./library/types.js";
-  import { LoadConfig, LoadGamesConfig, SaveConfig } from "./library/config";
+  import {
+    type ConfigFile,
+    DolphinType,
+    Game,
+    OperatingSystemType,
+    Platform,
+  } from "./library/types.js";
+  import {
+    currentOperatingSystem,
+    LoadConfig,
+    LoadGamesConfig,
+    SaveConfig,
+  } from "./library/config";
   import { RetrieveFileByAlias } from "./library/filealias";
-  import { DownloadDolphin } from "./library/dolphin";
+  import {
+    DownloadDolphin,
+    DownloadDolphinFlatpak,
+    UseBundled,
+    UseFlatpak,
+  } from "./library/dolphin";
   import { offlineMode } from "./library/networking.js";
 
   let config: ConfigFile = $state();
@@ -16,6 +32,7 @@
 
   let title: string = $state("");
   let description: string = $state("");
+  let shortDescription: string = $state("");
   let iconPath: string = $state("");
   let game: Game = $state(Game.EM1);
   let platform: Platform = $state(Platform.Wii);
@@ -45,7 +62,13 @@
     modInstallElement.modName = "Dolphin";
     modInstallElement.modIcon = "img/dolphin.png";
     modInstallElement.showDownloadProgression = true;
-    await DownloadDolphin();
+
+    if (config.dolphinType == DolphinType.Flatpak) {
+      await DownloadDolphinFlatpak();
+    } else {
+      await DownloadDolphin();
+    }
+
     await unmount(modInstallElement);
   }
 
@@ -54,7 +77,10 @@
   });
 
   async function OpenDolphinFolder() {
-    await invoke("open_dolphin", { path: config.dolphinPath });
+    await invoke("open_dolphin", {
+      path: config.dolphinPath,
+      flatpak: config.dolphinType == DolphinType.Flatpak,
+    });
   }
 
   async function SetCurrentPaths() {
@@ -88,8 +114,8 @@
       return;
     }
 
-    if (iconPath == "") {
-      console.log("Please set an icon.");
+    if (iconPath == "" || iconPath == null) {
+      await alert("Please set an icon.");
       return;
     }
 
@@ -103,6 +129,7 @@
       platform: platform,
       path: selected,
       name: title,
+      shortDescription: shortDescription,
       description: description,
     });
 
@@ -140,6 +167,12 @@
 
     <input placeholder="Mod Title" style="width:100%;" bind:value={title} />
     <p></p>
+    <input
+      placeholder="Short Description"
+      style="width:100%;"
+      bind:value={shortDescription}
+    />
+    <p></p>
     <textarea
       placeholder="Description (formatted in markdown)"
       style="width: 100%;min-height: 20vw;"
@@ -160,7 +193,7 @@
     </select>
     <p></p>
     <button style="width:100%;" onclick={SetIcon}>
-      {#if iconPath === ""}
+      {#if iconPath == "" || iconPath == null}
         Set Icon
       {:else}
         Icon Set!
@@ -189,13 +222,42 @@
       : ""}
     onclick={DownloadDolphinEmu}
   >
-    {config.dolphinPath === "" ? "Download" : "Redownload"}
+    {config.dolphinPath === "" || config.dolphinType == DolphinType.Flatpak
+      ? "Download"
+      : "Redownload"}
   </button>
-  {#if config.dolphinPath !== ""}<span style="font-size:7px;color:lime;"
-      >*Downloaded</span
+
+  {#if config.dolphinPath !== "" && config.dolphinType != DolphinType.Flatpak}<span
+      style="font-size:7px;color:lime;">*Downloaded</span
     >{/if}
+
   <br />
-  <button disabled={config.dolphinPath === ""} onclick={OpenDolphinFolder}
+
+  {#if currentOperatingSystem == OperatingSystemType.Linux}
+    {#if config.dolphinType != DolphinType.Flatpak}
+      <button
+        onclick={async () => {
+          await UseFlatpak();
+          config = await LoadConfig();
+        }}>Switch to Flatpak mode</button
+      >
+    {/if}
+
+    {#if config.dolphinType == DolphinType.Flatpak}
+      <button
+        onclick={async () => {
+          await UseBundled();
+          config = await LoadConfig();
+        }}>Switch to Bundled mode</button
+      >
+    {/if}
+    <br />
+  {/if}
+
+  <button
+    disabled={config.dolphinPath === "" &&
+      config.dolphinType != DolphinType.Flatpak}
+    onclick={OpenDolphinFolder}
     >Open Dolphin
   </button>
   <h2>Factory Reset</h2>

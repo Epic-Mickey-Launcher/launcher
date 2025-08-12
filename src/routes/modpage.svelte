@@ -1,7 +1,13 @@
 <script lang="ts">
   import { mount, onMount, unmount } from "svelte";
   import { GetData, SetData } from "./library/datatransfer";
-  import { GetImagePath, ImageType, POST } from "./library/networking";
+  import {
+    GetImagePath,
+    ImageType,
+    POST,
+    serverLink,
+    websiteLink,
+  } from "./library/networking";
   import {
     Game,
     type GameConfig,
@@ -81,9 +87,9 @@
 
   async function Init() {
     let modid = GetData("modpage_id");
-    let id = loggedInAccount.id;
+    let id = loggedInAccount != null ? loggedInAccount.id : "";
     localid = id;
-    let token = loggedInAccount.token;
+    let token = loggedInAccount != null ? loggedInAccount.token : "";
 
     let res = await POST("mod/get", { id: modid, token: token });
     if (res.error) return;
@@ -93,11 +99,21 @@
       modInfo.Game.toUpperCase() as Game,
       modInfo.Platform.toUpperCase() as Platform,
     );
+
+    let useSelectedInstance = false;
+
     selectedInstance = activeInstance;
-    if (
-      (await selectedInstance.CheckMod(InternetModToUnifiedMod(modInfo))) ==
-      ModState.Incompatible
-    ) {
+
+    if (selectedInstance != null) {
+      if (
+        (await selectedInstance.CheckMod(InternetModToUnifiedMod(modInfo))) ==
+        ModState.NotInstalled
+      ) {
+        useSelectedInstance = true;
+      }
+    }
+
+    if (!useSelectedInstance) {
       if (compatibleInstances.length > 0) {
         selectedInstance = compatibleInstances[0];
       } else {
@@ -219,6 +235,11 @@
     } else {
       hearticon.style.fill = "white";
     }
+  }
+
+  async function ShareMod() {
+    await alert("Mod Share Link copied to clipboard!");
+    navigator.clipboard.writeText(websiteLink + "modpage?id=" + modInfo.ID);
   }
 
   async function OnPressDownload() {
@@ -377,6 +398,12 @@
       <span style="margin-left: 10px;">{likes}</span><span
         style="margin-right:14px;"
       ></span>
+      <button
+        onclick={ShareMod}
+        style="background:transparent;border:none;width:25px;height:25px;margin-right:25px;"
+      >
+        <img src="img/share.svg" width="25px" />
+      </button>
 
       <button onclick={Report} style="border:none;background-color:transparent">
         <img src="img/report.svg" style="width:25px;" alt="Report" />

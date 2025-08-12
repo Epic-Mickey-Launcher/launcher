@@ -12,6 +12,7 @@
   "permissions": [
     "deep-link:default",
     "deep-link:allow-register",
+    "deep-link:allow-is-registered",
     "dialog:default",
     "fs:default",
     "fs:allow-resource-read-recursive",

@@ -1,4 +1,5 @@
 export let serverLink = "https://emlapi.kalsvik.no/"; //"http://127.0.0.1:8574/" // "https://emlapi.kalsvik.no/";
+export let websiteLink = "https://eml.kalsvik.no/";
 export const statusMessageLink =
   "https://raw.githubusercontent.com/Epic-Mickey-Launcher/status/main/emlclientstatus";
 export let outdated = false;
