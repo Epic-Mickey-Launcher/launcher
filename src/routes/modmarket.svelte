@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { POST } from "./library/networking";
+  import { GET, POST, serverLink } from "./library/networking";
   import { mount, onMount } from "svelte";
   import ModNode from "./components/ModNode.svelte";
   import { SetData } from "./library/datatransfer.js";
@@ -30,6 +30,11 @@
     } else {
       nogames = true;
     }
+
+    let featuredMod = await GET("mod/featured/id");
+    if (featuredMod != "off") {
+      featuredModId = featuredMod;
+    }
   });
 
   let chunks = $state([]);
@@ -55,9 +60,7 @@
 
   let search: HTMLInputElement = $state();
 
-  let featuredModId = "";
-  let featuredModImage = "";
-
+  let featuredModId = $state("");
   function GoToFeaturedMod() {
     SetData("modpage_id", featuredModId);
     window.open("#/modpage", "_self");
@@ -146,14 +149,14 @@
   <span
     style="width:100%;display:flex;margin:auto;flex-direction:column;text-align:center;width:500px;"
   >
-    <span class="featuredModText">Available Now!</span>
+    <span class="featuredModText">Featured Mod!</span>
     <p>
       <img
         onclick={GoToFeaturedMod}
         class="featuredModBanner"
         alt="Featured Mod"
         style="border-radius:10px;filter: drop-shadow(1px 1px 4px black);"
-        src={featuredModImage}
+        src={serverLink + "mod/featured/img"}
       />
     </p></span
   >
@@ -212,14 +215,6 @@
     <div class="warning">
       <div style="position:relative;top:50vh;pointer-events:all;">
         <p>You don't have any game builds set up yet!</p>
-        <p>
-          <button
-            onclick={() =>
-              invoke("open_link", { url: "https://emldocs.kalsvik.no" })}
-            class="hyperlinkbutton"
-            >Guide
-          </button>
-        </p>
       </div>
     </div>
   {:else if noModsForGame}
