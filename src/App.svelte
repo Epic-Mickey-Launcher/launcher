@@ -70,7 +70,9 @@
     LoginWithSession(); // attempt log in on application start up
 
     const urls = await getCurrent();
-    urls.forEach((u) => handleUrl(u));
+    if (urls != null) {
+      urls.forEach((u) => handleUrl(u));
+    }
 
     console.log("deep link registered: " + (await isRegistered("eml")));
 
