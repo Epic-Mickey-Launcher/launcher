@@ -61,8 +61,8 @@
 
     description = modData.ShortDescription;
 
-    if (modData.Description.length > len) {
-      let newDesc = modData.Description.substring(0, len).trim();
+    if (modData.ShortDescription.length > len) {
+      let newDesc = modData.ShortDescription.substring(0, len).trim();
       newDesc += "...";
       description = newDesc;
     }
