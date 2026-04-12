@@ -32,6 +32,7 @@
   import { ConvertGamesConfigToTrackedGames } from "./routes/library/legacy";
   import {
     activeInstance,
+    currentOperatingSystem,
     LoadConfig,
     LoadGameInstancesFromTrackingFile,
     SetActiveGameInstance,
@@ -39,7 +40,7 @@
     SetOS,
   } from "./routes/library/config";
   import { LoginWithSession } from "./routes/library/account";
-  import { DolphinType } from "./routes/library/types";
+  import { DolphinType, OperatingSystemType } from "./routes/library/types";
   import { SetData } from "./routes/library/datatransfer";
 
   let DownloadModComponent = $state(DownloadMod);
@@ -53,11 +54,15 @@
   ListenLoop();
 
   onMount(async () => {
-    await register("eml");
     await SetOS();
     await GetPath();
-    let config = await LoadConfig();
 
+    if (currentOperatingSystem != OperatingSystemType.MacOS) {
+      await register("eml")
+    }
+	  
+    let config = await LoadConfig();
+	 
     await InitConfFiles();
     await ConvertGamesConfigToTrackedGames();
     await LoadGameInstancesFromTrackingFile();

@@ -40,9 +40,11 @@ Download the latest .MSI or .EXE from the latest [Release](https://github.com/Ep
 
 Download the latest .DMG or .app from the latest [Release](https://github.com/Epic-Mickey-Launcher/launcher/releases)
 
+**Before performing first-time setup, there will be an *"'Epic Mickey Launcher.app” Not Opened'"* error. To resolve, Click done on the alert -> Open System Settings -> Open Privacy & Security -> Scroll down to Security -> Click "Open Anyway".**
+
 ## Steam Deck (Linux)
 
-Epic Mickey Launcher provides an [AppImage](https://github.com/Epic-Mickey-Launcher/launcher/releases) that can be run with one click after downloading. **Make sure that _'Install Dolphin with Flatpak'_ is CHECKED when peforming first-time setup.**
+Epic Mickey Launcher provides an [AppImage](https://github.com/Epic-Mickey-Launcher/launcher/releases) that can be run with one click after downloading. **Make sure that _'Install Dolphin with Flatpak'_ is CHECKED when performing first-time setup.**
 
 ## Linux (Debian)
 
